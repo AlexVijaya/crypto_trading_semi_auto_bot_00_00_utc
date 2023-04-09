@@ -1,4 +1,3 @@
-
 import pandas as pd
 import os
 import time
@@ -20,6 +19,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_ath_breakout
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import get_spread
+
+
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -232,8 +234,7 @@ def check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_pri
             levels_formed_by_ath_df.at[counter - 1 , "ticker"] = stock_name
             levels_formed_by_ath_df.at[counter - 1 , "exchange"] = exchange
             levels_formed_by_ath_df.at[counter - 1 , "short_name"] = short_name
-            levels_formed_by_ath_df.loc[
-                0, "model"] = "РАССТОЯНИЕ ОТ CLOSE ДО ATH <50%"
+            levels_formed_by_ath_df.at[counter - 1 , "model"] = "РАССТОЯНИЕ ОТ CLOSE ДО ATH <10%"
             levels_formed_by_ath_df.at[counter - 1 , "ath"] = all_time_high_in_stock
             for number_of_timestamp,timestamp_of_ath in enumerate(df_where_high_equals_ath.loc[:,"Timestamp"]):
                 print("number_of_timestamp")
@@ -254,10 +255,10 @@ def check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_pri
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
                     get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
 
-                levels_formed_by_ath_df["asset_type"] = asset_type
-                levels_formed_by_ath_df["maker_fee"] = maker_fee
-                levels_formed_by_ath_df["taker_fee"] = taker_fee
-                levels_formed_by_ath_df["url_of_trading_pair"] = url_of_trading_pair
+                levels_formed_by_ath_df.at[counter - 1,"asset_type"] = asset_type
+                levels_formed_by_ath_df.at[counter - 1,"maker_fee"] = maker_fee
+                levels_formed_by_ath_df.at[counter - 1,"taker_fee"] = taker_fee
+                levels_formed_by_ath_df.at[counter - 1,"url_of_trading_pair"] = url_of_trading_pair
             except:
                 traceback.print_exc()
 

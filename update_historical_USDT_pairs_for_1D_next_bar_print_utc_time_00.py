@@ -23,6 +23,9 @@ from pytz import timezone
 from verify_that_asset_has_enough_volume import check_volume
 from get_info_from_load_markets import get_limit_of_daily_candles_original_limits
 
+
+
+
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]

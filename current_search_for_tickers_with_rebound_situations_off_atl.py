@@ -20,6 +20,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_ath_breakout
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import get_spread
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -928,17 +929,17 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                         take_profit_3_to_1 = buy_order + (advanced_atr * 0.5) * 3
                         take_profit_4_to_1 = buy_order + (advanced_atr * 0.5) * 4
 
-                        stop_loss = round(stop_loss, 3)
-                        calculated_backlash_from_advanced_atr = round(calculated_backlash_from_advanced_atr, 3)
-                        buy_order = round(buy_order, 3)
-                        take_profit_3_to_1 = round(take_profit_3_to_1, 3)
-                        take_profit_4_to_1 = round(take_profit_4_to_1, 3)
+                        # stop_loss = round(stop_loss, 3)
+                        # calculated_backlash_from_advanced_atr = round(calculated_backlash_from_advanced_atr, 3)
+                        # buy_order = round(buy_order, 3)
+                        # take_profit_3_to_1 = round(take_profit_3_to_1, 3)
+                        # take_profit_4_to_1 = round(take_profit_4_to_1, 3)
 
-                        advanced_atr = round(advanced_atr, 3)
-                        low_of_bsu = round(low_of_bsu, 3)
-                        low_of_bpu1 = round(low_of_bpu1, 3)
-                        low_of_bpu2 = round(low_of_bpu2, 3)
-                        close_of_bpu2 = round(close_of_bpu2, 3)
+                        # advanced_atr = round(advanced_atr, 3)
+                        # low_of_bsu = round(low_of_bsu, 3)
+                        # low_of_bpu1 = round(low_of_bpu1, 3)
+                        # low_of_bpu2 = round(low_of_bpu2, 3)
+                        # close_of_bpu2 = round(close_of_bpu2, 3)
 
                         list_with_tickers_ready_for_rebound_off_atl.append ( stock_name )
                         
@@ -1001,10 +1002,10 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                             asset_type, maker_fee, taker_fee, url_of_trading_pair = \
                                 get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
 
-                            df_with_level_atr_bpu_bsu_etc["asset_type"] = asset_type
-                            df_with_level_atr_bpu_bsu_etc["maker_fee"] = maker_fee
-                            df_with_level_atr_bpu_bsu_etc["taker_fee"] = taker_fee
-                            df_with_level_atr_bpu_bsu_etc["url_of_trading_pair"] = url_of_trading_pair
+                            df_with_level_atr_bpu_bsu_etc.loc[0, "asset_type"] = asset_type
+                            df_with_level_atr_bpu_bsu_etc.loc[0, "maker_fee"] = maker_fee
+                            df_with_level_atr_bpu_bsu_etc.loc[0, "taker_fee"] = taker_fee
+                            df_with_level_atr_bpu_bsu_etc.loc[0, "url_of_trading_pair"] = url_of_trading_pair
                         except:
                             traceback.print_exc()
 
