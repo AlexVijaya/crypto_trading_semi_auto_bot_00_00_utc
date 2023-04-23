@@ -18,7 +18,7 @@ from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 
 
-def connect_to_postres_db_with_deleting_it_first(database):
+def connect_to_postgres_db_with_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -41,7 +41,7 @@ def connect_to_postres_db_with_deleting_it_first(database):
         try:
             create_database ( engine.url )
         except:
-            pass
+                        traceback.print_exc()
         print ( f'new database created for {engine}' )
         connection=engine.connect ()
         print ( f'Connection to {engine} established after creating new database' )
@@ -53,11 +53,11 @@ def connect_to_postres_db_with_deleting_it_first(database):
             engine = create_engine ( f"{dialect}+{driver}://{user}:{password}@{host}:{port}/{dummy_database}" ,
                                      isolation_level = 'AUTOCOMMIT' , echo = False )
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute(f'''REVOKE CONNECT ON DATABASE {database} FROM public;''')
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute ( f'''
                                 ALTER DATABASE {database} allow_connections = off;
@@ -65,21 +65,21 @@ def connect_to_postres_db_with_deleting_it_first(database):
     
                             ''' )
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute ( f'''DROP DATABASE {database};''' )
         except:
-            pass
+                        traceback.print_exc()
 
         try:
             engine = create_engine ( f"{dialect}+{driver}://{user}:{password}@{host}:{port}/{database}" ,
                                      isolation_level = 'AUTOCOMMIT' , echo = False )
         except:
-            pass
+                        traceback.print_exc()
         try:
             create_database ( engine.url )
         except:
-            pass
+                        traceback.print_exc()
         print ( f'new database created for {engine}' )
 
     connection = engine.connect ()
@@ -88,7 +88,7 @@ def connect_to_postres_db_with_deleting_it_first(database):
             f' So no new db was created' )
     return engine , connection
 
-def connect_to_postres_db_and_delete_it_first(database):
+def connect_to_postgres_db_with_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -121,7 +121,7 @@ def connect_to_postres_db_and_delete_it_first(database):
         try:
             engine.execute(f'''REVOKE CONNECT ON DATABASE {database} FROM public;''')
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute ( f'''
                                 ALTER DATABASE {database} allow_connections = off;
@@ -129,11 +129,11 @@ def connect_to_postres_db_and_delete_it_first(database):
     
                             ''' )
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute ( f'''DROP DATABASE {database};''' )
         except:
-            pass
+                        traceback.print_exc()
 
         engine = create_engine ( f"{dialect}+{driver}://{user}:{password}@{host}:{port}/{database}" ,
                                  isolation_level = 'AUTOCOMMIT' , echo = False )
@@ -494,7 +494,7 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
 def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
 
     engine , connection_to_ohlcv_for_usdt_pairs =\
-        connect_to_postres_db_with_deleting_it_first (database_name)
+        connect_to_postgres_db_with_deleting_it_first (database_name)
     exchanges_list = ccxt.exchanges
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50

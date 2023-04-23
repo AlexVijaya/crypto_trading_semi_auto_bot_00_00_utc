@@ -56,7 +56,7 @@ def get_date_with_and_without_time_from_timestamp(timestamp):
 
 
 
-def connect_to_postres_db_without_deleting_it_first(database ):
+def connect_to_postgres_db_without_deleting_it_first(database ):
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -125,11 +125,11 @@ def plot_ohlcv_charts_with_breakout_of_ath_situations_entry_point_next_day (name
     counter=0
 
     engine_for_crypto_tickers_ohlcv_db , connection_to_crypto_tickers_ohlcv = \
-        connect_to_postres_db_without_deleting_it_first ( db_where_ohlcv_data_for_stocks_is_stored )
+        connect_to_postgres_db_without_deleting_it_first ( db_where_ohlcv_data_for_stocks_is_stored )
 
     engine_for_db_where_levels_formed_by_fast_breakout_of_ath_are_stored ,\
     connection_to_db_where_levels_formed_by_fast_breakout_of_ath_are_stored = \
-        connect_to_postres_db_without_deleting_it_first ( db_where_levels_formed_by_fast_breakout_of_ath_are_stored )
+        connect_to_postgres_db_without_deleting_it_first ( db_where_levels_formed_by_fast_breakout_of_ath_are_stored )
 
     table_of_tickers_with_fast_breakout_of_ath_df = pd.read_sql ( f'''select * from {table_where_levels_formed_by_fast_breakout_of_ath_are_stored} ;''' ,
                                                  connection_to_db_where_levels_formed_by_fast_breakout_of_ath_are_stored )
@@ -204,7 +204,7 @@ def plot_ohlcv_charts_with_breakout_of_ath_situations_entry_point_next_day (name
                 open_of_bar_next_day_after_breakout_bar = table_of_tickers_with_fast_breakout_of_ath_df.loc[
                     row_with_level_formed_by_ath_and_ready_for_fast_breakout , 'open_of_bar_next_day_after_breakout_bar']
             except:
-                pass
+                        traceback.print_exc()
 
             human_date_of_pre_breakout_bar_list = human_date_of_pre_breakout_bar.split ( " " )
             human_date_of_pre_breakout_bar = human_date_of_pre_breakout_bar_list[0]

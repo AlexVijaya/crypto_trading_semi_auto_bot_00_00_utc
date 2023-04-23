@@ -25,7 +25,28 @@ from get_info_from_load_markets import get_limit_of_daily_candles_original_limit
 
 
 
+def is_pair_active(ohlcv_data_several_last_rows_df,
+                   last_timestamp_in_df,
+                   timeframe,
+                   trading_pair,
+                   exchange):
+    current_timestamp = time.time()
 
+    timeframe_in_seconds = convert_string_timeframe_into_seconds(timeframe)
+    print("current_timestamp")
+    print(current_timestamp)
+    print("last_timestamp_in_df")
+    print(last_timestamp_in_df)
+    print("abs(current_timestamp - last_timestamp_in_df)")
+    print(abs(current_timestamp - last_timestamp_in_df))
+    print("timeframe_in_seconds")
+    print(timeframe_in_seconds)
+
+    if abs(current_timestamp - last_timestamp_in_df) < (timeframe_in_seconds):
+        return True
+    else:
+        print(f"inactive trading pair {trading_pair} on {exchange}")
+        return False
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -33,11 +54,16 @@ def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     url_of_trading_pair = ohlcv_data_df["url_of_trading_pair"].iat[-1]
     return asset_type,maker_fee,taker_fee,url_of_trading_pair
 def drop_table(table_name, engine):
-    conn = engine.connect()
-    query = text(f"DROP TABLE IF EXISTS {table_name}")
-    conn.execute(query)
-    conn.close()
-def connect_to_postres_db_with_deleting_it_first(database):
+    try:
+        conn = engine.connect()
+        query = text(f'''DROP TABLE IF EXISTS "{table_name}"''')
+        conn.execute(query)
+        conn.close()
+    except:
+        traceback.print_exc()
+
+
+def connect_to_postgres_db_with_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -60,7 +86,7 @@ def connect_to_postres_db_with_deleting_it_first(database):
         try:
             create_database ( engine.url )
         except:
-            pass
+                        traceback.print_exc()
         print ( f'new database created for {engine}' )
         connection=engine.connect ()
         print ( f'Connection to {engine} established after creating new database' )
@@ -72,11 +98,11 @@ def connect_to_postres_db_with_deleting_it_first(database):
             engine = create_engine ( f"{dialect}+{driver}://{user}:{password}@{host}:{port}/{dummy_database}" ,
                                      isolation_level = 'AUTOCOMMIT' , echo = False )
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute(f'''REVOKE CONNECT ON DATABASE {database} FROM public;''')
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute ( f'''
                                 ALTER DATABASE {database} allow_connections = off;
@@ -84,21 +110,21 @@ def connect_to_postres_db_with_deleting_it_first(database):
     
                             ''' )
         except:
-            pass
+                        traceback.print_exc()
         try:
             engine.execute ( f'''DROP DATABASE {database};''' )
         except:
-            pass
+                        traceback.print_exc()
 
         try:
             engine = create_engine ( f"{dialect}+{driver}://{user}:{password}@{host}:{port}/{database}" ,
                                      isolation_level = 'AUTOCOMMIT' , echo = False )
         except:
-            pass
+                        traceback.print_exc()
         try:
             create_database ( engine.url )
         except:
-            pass
+                        traceback.print_exc()
         print ( f'new database created for {engine}' )
 
     connection = engine.connect ()
@@ -107,7 +133,7 @@ def connect_to_postres_db_with_deleting_it_first(database):
             f' So no new db was created' )
     return engine , connection
 
-# def connect_to_postres_db_and_delete_it_first(database):
+# def connect_to_postgres_db_with_deleting_it_first(database):
 #     dialect = db_config.dialect
 #     driver = db_config.driver
 #     password = db_config.password
@@ -305,6 +331,8 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                         pd.read_sql_query(f'''select * from "{string_for_comparison_pair_plus_exchange}"''',
                                           engine)
 
+                    last_timestamp_in_original_table = get_last_timestamp_from_ohlcv_table(table_with_ohlcv_data_df)
+
 
 
                     # #delete last row because it is not a complete bar
@@ -383,6 +411,11 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                         not_active_pair_counter = not_active_pair_counter + 1
                         print("not_active_pair_counter=", not_active_pair_counter)
                         list_of_inactive_pairs.append(f"{trading_pair}_on_{exchange}")
+
+
+                        # # drop table from ohlcv db if the pair is inactive
+                        # drop_table(string_for_comparison_pair_plus_exchange, engine)
+
                         continue
                     print("1program got here")
                     # try:
@@ -462,10 +495,36 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     # if trading_pair_has_stablecoin_as_first_part:
                     #     print(f"discarded pair due to stable coin being the first part is {trading_pair}")
                     #     continue
-                    print("ohlcv_data_several_last_rows_df6")
+                    print(f"ohlcv_data_several_last_rows_df6_for_{string_for_comparison_pair_plus_exchange}")
                     print(ohlcv_data_several_last_rows_df.to_string())
+                    print("101program got here")
+                    # last_timestamp_in_df = ohlcv_data_several_last_rows_df.tail(1).index.item() / 1000.0
+                    last_timestamp_in_df = ohlcv_data_several_last_rows_df["Timestamp"].iat[-1]
+                    print("last_timestamp_in_df12")
+                    print(last_timestamp_in_df)
+                    # last_timestamp_in_df=last_timestamp_in_df/ 1000.0
+                    print("102program got here")
+                    is_pair_active_bool = is_pair_active(ohlcv_data_several_last_rows_df, last_timestamp_in_df,
+                                                         timeframe, trading_pair,
+                                                         exchange)
+                    print("103program got here")
+
                     if len(ohlcv_data_several_last_rows_df) <= 1:
                         print("nothing_added")
+
+                        last_timestamp_in_df = last_timestamp_in_original_table
+                        is_pair_active_bool = is_pair_active(ohlcv_data_several_last_rows_df, last_timestamp_in_df,
+                                                             timeframe, trading_pair,
+                                                             exchange)
+                        if not is_pair_active_bool:
+                            drop_table(string_for_comparison_pair_plus_exchange, engine)
+                            print(f"{string_for_comparison_pair_plus_exchange} dropped1 nothing_added")
+                        continue
+
+                    # nothing new is added and the pair is inactive
+                    if not is_pair_active_bool:
+                        drop_table(string_for_comparison_pair_plus_exchange, engine)
+                        print(f"{string_for_comparison_pair_plus_exchange} dropped2")
                         continue
                     # try:
                     #     ohlcv_data_several_last_rows_df['open_time'] = \
@@ -571,7 +630,7 @@ def get_real_time_bitcoin_price():
     last_bitcoin_price=btc_ticker['close']
     return last_bitcoin_price
 
-def connect_to_postres_db_without_deleting_it_first(database):
+def connect_to_postgres_db_without_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -602,7 +661,7 @@ def connect_to_postres_db_without_deleting_it_first(database):
 def get_list_of_tables_in_db_with_db_as_parameter(database_where_ohlcv_for_cryptos_is):
     '''get list of all tables in db which is given as parameter'''
     engine_for_ohlcv_data_for_cryptos, connection_to_ohlcv_data_for_cryptos = \
-        connect_to_postres_db_without_deleting_it_first(database_where_ohlcv_for_cryptos_is)
+        connect_to_postgres_db_without_deleting_it_first(database_where_ohlcv_for_cryptos_is)
 
     inspector = inspect(engine_for_ohlcv_data_for_cryptos)
     list_of_tables_in_db = inspector.get_table_names()
@@ -656,10 +715,10 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
             FROM public."ticker_exchange_print_time" 
             WHERE "next_bar_print_time_utc"='00:00:00' 
             GROUP BY "exchange";'''
-        list_of_exchanges_where_next_bar_print_utc_time_00=["mexc3","poloniex","coinex","exmo","gateio",
+        list_of_exchanges_where_next_bar_print_utc_time_00=["bitfinex2","bitfinex","mexc","mexc3","poloniex","coinex","exmo","gateio",
                                                         "tokocrypto","binanceusdm","hollaex","zb",
                                                         "novadax","kraken","cryptocom","binance","bitmex",
-                                                        "hitbtc3","gate","delta","currencycom","bybit"]
+                                                        "hitbtc3","gate","delta","currencycom","bybit","kucoin"]
         if exchange not in list_of_exchanges_where_next_bar_print_utc_time_00:
             continue
         get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price, exchange,
@@ -676,7 +735,7 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
 def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
 
     engine , connection_to_ohlcv_for_usdt_pairs =\
-        connect_to_postres_db_without_deleting_it_first (database_name)
+        connect_to_postgres_db_without_deleting_it_first (database_name)
     exchanges_list = ccxt.exchanges
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50

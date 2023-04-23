@@ -19,8 +19,16 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_ath_breakout
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import return_dataframe_with_table_names_it_has_base_as_rows_number_as_columns
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_last_ath_timestamp_and_row_number
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_last_atl_timestamp_and_row_number
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
+
+
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -83,7 +91,7 @@ def find_if_level_is_round(level):
             return level_is_round
 
 
-def connect_to_postres_db_without_deleting_it_first(database):
+def connect_to_postgres_db_without_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -157,7 +165,7 @@ from sqlalchemy import text
 
 def drop_table(table_name, engine):
     conn = engine.connect()
-    query = text(f"DROP TABLE IF EXISTS {table_name}")
+    query = text(f'''DROP TABLE IF EXISTS "{table_name}"''')
     conn.execute(query)
     conn.close()
 
@@ -667,11 +675,11 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                 ):
     engine_for_ohlcv_data_for_stocks, \
         connection_to_ohlcv_data_for_stocks = \
-        connect_to_postres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored)
+        connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored)
 
     engine_for_db_where_ticker_which_may_have_breakout_situations, \
         connection_to_db_where_ticker_which_may_have_fast_breakout_situations = \
-        connect_to_postres_db_without_deleting_it_first(db_where_ticker_which_may_have_fast_breakout_situations)
+        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_fast_breakout_situations)
 
     # drop_table(table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
     #            engine_for_db_where_ticker_which_may_have_breakout_situations)
@@ -680,6 +688,43 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
     list_of_tables_in_ohlcv_db = \
         get_list_of_tables_in_db(engine_for_ohlcv_data_for_stocks)
+
+    ##########################################################
+    db_where_ohlcv_data_for_stocks_is_stored_0000 = np.nan
+    db_where_ohlcv_data_for_stocks_is_stored_1600 = np.nan
+    engine_for_ohlcv_data_for_stocks_0000 = np.nan
+    engine_for_ohlcv_data_for_stocks_1600 = np.nan
+    list_of_tables_in_ohlcv_db_1600 = np.nan
+    try:
+        #######################################################################################
+        ###################################################################################
+        db_where_ohlcv_data_for_stocks_is_stored_0000 = db_where_ohlcv_data_for_stocks_is_stored
+        db_where_ohlcv_data_for_stocks_is_stored_1600 = "ohlcv_1d_data_for_usdt_pairs_1600"
+        engine_for_ohlcv_data_for_stocks_0000, \
+            connection_to_ohlcv_data_for_stocks = \
+            connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored_0000)
+
+        engine_for_ohlcv_data_for_stocks_1600, \
+            connection_to_ohlcv_data_for_stocks_1600 = \
+            connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored_1600)
+        ###################################################################################
+        #######################################################################################
+
+        ###################################################################################
+        # ---------------------------------------------------------------------------
+        list_of_tables_in_ohlcv_db_0000 = \
+            get_list_of_tables_in_db(engine_for_ohlcv_data_for_stocks_0000)
+
+        list_of_tables_in_ohlcv_db_1600 = \
+            get_list_of_tables_in_db(engine_for_ohlcv_data_for_stocks_1600)
+
+        print('list_of_tables_in_ohlcv_db_1600')
+        print(list_of_tables_in_ohlcv_db_1600)
+        # -----------------------------------------------------------------------------
+        ###################################################################################
+    except:
+        traceback.print_exc()
+
     counter = 0
     list_of_tickers_where_ath_is_also_limit_level = []
     list_of_tickers_where_atl_is_also_limit_level = []
@@ -820,7 +865,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 print(f"atl_is_not_broken_for_a_long_time for {stock_name}={atl_is_not_broken_for_a_long_time}")
 
             except:
-                pass
+                        traceback.print_exc()
 
             if atl_is_not_broken_for_a_long_time == False:
                 continue
@@ -1049,8 +1094,26 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 df_with_level_atr_bpu_bsu_etc.loc[0,"maker_fee"] = maker_fee
                 df_with_level_atr_bpu_bsu_etc.loc[0,"taker_fee"] = taker_fee
                 df_with_level_atr_bpu_bsu_etc.loc[0,"url_of_trading_pair"] = url_of_trading_pair
+                df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
             except:
                 traceback.print_exc()
+
+            try:
+                #############################################
+                # add info to dataframe about whether level was broken on other exchanges
+                df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
+                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_0000,
+                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_1600,
+                                                                                                       table_with_ohlcv_data_df,
+                                                                                                       engine_for_ohlcv_data_for_stocks_0000,
+                                                                                                       engine_for_ohlcv_data_for_stocks_1600,
+                                                                                                       all_time_low,
+                                                                                                       list_of_tables_in_ohlcv_db_1600,
+                                                                                                       df_with_level_atr_bpu_bsu_etc,
+                                                                                                       0)
+            except:
+                traceback.print_exc()
+
             df_with_level_atr_bpu_bsu_etc.to_sql(
                 table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
                 engine_for_db_where_ticker_which_may_have_breakout_situations,
