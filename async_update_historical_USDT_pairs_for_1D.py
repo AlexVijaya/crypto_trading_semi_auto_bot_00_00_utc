@@ -10,6 +10,7 @@ import db_config
 import sqlalchemy
 import psycopg2
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 # import talib
 import datetime
 import ccxt as ccxt_not_async
@@ -563,19 +564,19 @@ async def get_hisorical_data_from_exchange_for_many_symbols(list_of_crypto_plus_
                         # data_df = populate_dataframe_with_td_indicator ( data_df )
 
                         data_df["exchange"] = exchange
-                        print("5program got here")
-                        data_df["short_name"] = np.nan
-                        print("6program got here")
-                        data_df["country"] = np.nan
-                        data_df["long_name"] = np.nan
-                        data_df["sector"] = np.nan
-                        # data_df["long_business_summary"] = long_business_summary
-                        data_df["website"] = np.nan
-                        data_df["quote_type"] = np.nan
-                        data_df["city"] = np.nan
-                        data_df["exchange_timezone_name"] = np.nan
-                        data_df["industry"] = np.nan
-                        data_df["market_cap"] = np.nan
+                        # print("5program got here")
+                        # data_df["short_name"] = np.nan
+                        # print("6program got here")
+                        # data_df["country"] = np.nan
+                        # data_df["long_name"] = np.nan
+                        # data_df["sector"] = np.nan
+                        # # data_df["long_business_summary"] = long_business_summary
+                        # data_df["website"] = np.nan
+                        # data_df["quote_type"] = np.nan
+                        # data_df["city"] = np.nan
+                        # data_df["exchange_timezone_name"] = np.nan
+                        # data_df["industry"] = np.nan
+                        # data_df["market_cap"] = np.nan
 
                         data_df.set_index("open_time")
                         print("2program got here")

@@ -1,5 +1,6 @@
 
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -26,12 +27,12 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_bas
 from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
-from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_enginge_for_1600_ohlcv_database
-from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_enginge_for_0000_ohlcv_database
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_engine_for_1600_ohlcv_database
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_engine_for_0000_ohlcv_database
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_list_of_all_tables_in_1600_ohlcv_df
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
-
+from check_if_asset_has_new_atl import get_last_row_as_dataframe
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -244,6 +245,10 @@ def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_pri
             get_all_time_low_from_ohlcv_table ( engine_for_ohlcv_data_for_stocks ,
                                             stock_name )
 
+        # if the df is empty do not continue the current loop
+        if table_with_ohlcv_data_df.empty:
+            continue
+
         # number_of_available_days
         number_of_available_days = np.nan
         try:
@@ -277,15 +282,19 @@ def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_pri
             print ( "df_where_low_equals_atl" )
             print ( df_where_low_equals_atl )
             exchange=table_with_ohlcv_data_df["exchange"].iat[0]
-            short_name = table_with_ohlcv_data_df["short_name"].iat[0]
+            # short_name = table_with_ohlcv_data_df["short_name"].iat[0]
 
 
             levels_formed_by_atl_df.at[counter - 1 , "ticker"] = stock_name
             levels_formed_by_atl_df.at[counter - 1 , "exchange"] = exchange
-            levels_formed_by_atl_df.at[counter - 1 , "short_name"] = short_name
+            # levels_formed_by_atl_df.at[counter - 1 , "short_name"] = short_name
             levels_formed_by_atl_df.at[
                 counter - 1, "model"] = "РАССТОЯНИЕ ОТ CLOSE ДО ATL <10%"
             levels_formed_by_atl_df.at[counter - 1 , "atl"] = all_time_low_in_stock
+
+
+
+
             for number_of_timestamp,timestamp_of_atl in enumerate(df_where_low_equals_atl.loc[:,"Timestamp"]):
                 print("number_of_timestamp")
                 print ( number_of_timestamp )
@@ -320,8 +329,8 @@ def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_pri
             try:
                 db_where_ohlcv_data_for_stocks_is_stored_1600 = "ohlcv_1d_data_for_usdt_pairs_1600"
                 db_where_ohlcv_data_for_stocks_is_stored_0000 = "ohlcv_1d_data_for_usdt_pairs_0000"
-                engine_for_ohlcv_data_for_stocks_0000=get_enginge_for_0000_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_0000)
-                engine_for_ohlcv_data_for_stocks_1600=get_enginge_for_1600_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_1600)
+                engine_for_ohlcv_data_for_stocks_0000=get_engine_for_0000_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_0000)
+                engine_for_ohlcv_data_for_stocks_1600=get_engine_for_1600_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_1600)
                 list_of_tables_in_ohlcv_db_1600=get_list_of_all_tables_in_1600_ohlcv_df(engine_for_ohlcv_data_for_stocks_1600)
                 row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero=counter-1
                 levels_formed_by_atl_df = fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
@@ -337,20 +346,29 @@ def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_pri
             except:
                 traceback.print_exc()
 
+            levels_formed_by_atl_df.at[counter - 1, "distance_from_last_close_price_to_atl_in_atr"] = \
+                distance_in_percent_to_atl_from_close_price
+
+
+            last_row_of_levels_formed_by_atl_df = get_last_row_as_dataframe(levels_formed_by_atl_df)
+            last_row_of_levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
+                                                       engine_for_db_where_levels_formed_by_atl_will_be,
+                                                       if_exists='append')
+
 
     levels_formed_by_atl_df.reset_index(inplace = True)
     string_for_output = f"\nСписок инструментов, в которых расстояние от " \
-                        "цены закрытия до цены исторического минимума <10%:\n" \
+                        f"цены закрытия до цены исторического минимума <{percentage_between_atl_and_closing_price}%:\n" \
                         f"{list_of_assets_with_last_close_close_to_atl}\n"
 
     # Use the function to create a text file with the text
     # in the subdirectory "current_rebound_breakout_and_false_breakout"
     create_text_file_and_writ_text_to_it(string_for_output, 'current_rebound_breakout_and_false_breakout')
-    levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
-                                   engine_for_db_where_levels_formed_by_atl_will_be,
-                                   if_exists = 'replace')
-    print ( "levels_formed_by_atl_df" )
-    print ( levels_formed_by_atl_df )
+    # levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
+    #                                engine_for_db_where_levels_formed_by_atl_will_be,
+    #                                if_exists = 'replace')
+    # print ( "levels_formed_by_atl_df" )
+    # print ( levels_formed_by_atl_df )
 
 
 
@@ -364,7 +382,7 @@ if __name__=="__main__":
 
     if count_only_round_atl:
         db_where_levels_formed_by_atl_will_be="round_levels_formed_by_highs_and_lows_for_cryptos_0000"
-    percentage_between_atl_and_closing_price=10
+    percentage_between_atl_and_closing_price=4
     check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_price,
                                               db_where_ohlcv_data_for_stocks_is_stored,
                                                 count_only_round_atl,

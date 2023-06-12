@@ -1,5 +1,6 @@
 from statistics import mean
 import pandas as pd
+from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -717,6 +718,11 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 pd.read_sql_query ( f'''select * from "{stock_name}"''' ,
                                     engine_for_ohlcv_data_for_stocks )
 
+            # if the df is empty do not continue the current loop
+            if table_with_ohlcv_data_df.empty:
+                continue
+
+
             # number_of_available_days
             number_of_available_days = np.nan
             try:
@@ -727,7 +733,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 continue
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
-            short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
+            # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
@@ -1124,6 +1130,14 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                     0, "url_of_trading_pair"] = url_of_trading_pair
                                                 df_with_level_atr_bpu_bsu_etc.loc[
                                                     0, "number_of_available_bars"] = number_of_available_days
+
+                                                try:
+                                                    df_with_level_atr_bpu_bsu_etc.loc[
+                                                        0, "trading_pair_is_traded_with_margin"] = \
+                                                        get_bool_if_asset_is_traded_with_margin(
+                                                            table_with_ohlcv_data_df)
+                                                except:
+                                                    traceback.print_exc()
                                             except:
                                                 traceback.print_exc()
 
@@ -1137,7 +1151,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                     table_with_ohlcv_data_df,
                                                     engine_for_ohlcv_data_for_stocks_0000,
                                                     engine_for_ohlcv_data_for_stocks_1600,
-                                                    all_time_high,
+                                                    ath,
                                                     list_of_tables_in_ohlcv_db_1600,
                                                     df_with_level_atr_bpu_bsu_etc,
                                                     0)

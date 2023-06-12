@@ -1,5 +1,6 @@
 from statistics import mean
 import pandas as pd
+from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -1094,6 +1095,10 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                 pd.read_sql_query ( f'''select * from "{stock_name}"''' ,
                                     engine_for_ohlcv_data_for_stocks )
 
+            # if the df is empty do not continue the current loop
+            if table_with_ohlcv_data_df.empty:
+                continue
+
             # number_of_available_days
             number_of_available_days = np.nan
             try:
@@ -1101,7 +1106,7 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
             except:
                 traceback.print_exc()
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
-            short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
+            # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
@@ -1639,6 +1644,7 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                                                                 0, "ticker"] = stock_name
                                                             df_with_level_atr_bpu_bsu_etc.loc[
                                                                 0, "exchange"] = exchange
+                                                            short_name=""
                                                             df_with_level_atr_bpu_bsu_etc.loc[
                                                                 0, "short_name"] = short_name
                                                             df_with_level_atr_bpu_bsu_etc.loc[
@@ -1717,6 +1723,14 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                                                                 0, "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
                                                             df_with_level_atr_bpu_bsu_etc.loc[
                                                                 0, "row_number_of_false_breakout_bar"] = number_of_last_row_in_np_array_row_slice
+
+                                                            try:
+                                                                df_with_level_atr_bpu_bsu_etc.loc[
+                                                                    0, "trading_pair_is_traded_with_margin"] = \
+                                                                    get_bool_if_asset_is_traded_with_margin(
+                                                                        table_with_ohlcv_data_df)
+                                                            except:
+                                                                traceback.print_exc()
 
                                                             try:
                                                                 df_with_level_atr_bpu_bsu_etc = insert_sl_tp_order_price_into_df(

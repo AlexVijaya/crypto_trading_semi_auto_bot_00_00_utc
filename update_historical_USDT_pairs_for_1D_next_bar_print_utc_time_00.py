@@ -12,6 +12,7 @@ from sqlalchemy import text
 import sqlalchemy
 import psycopg2
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 # import talib
 import datetime
 import datetime as dt
@@ -377,6 +378,10 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
 
                     ohlcv_data_several_last_rows_df['ticker'] = trading_pair
                     ohlcv_data_several_last_rows_df['exchange'] = exchange
+                    ohlcv_data_several_last_rows_df['volume*low'] = ohlcv_data_several_last_rows_df['volume'] * \
+                                                                    ohlcv_data_several_last_rows_df['low']
+                    ohlcv_data_several_last_rows_df['volume*close'] = ohlcv_data_several_last_rows_df['volume'] * \
+                                                                      ohlcv_data_several_last_rows_df['close']
 
                     # если  в крипе мало данных , то ее не добавляем
                     # if len(ohlcv_data_several_last_rows_df) < 10:
@@ -463,20 +468,25 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     ohlcv_data_several_last_rows_df["maker_fee"] = maker_fee
                     ohlcv_data_several_last_rows_df["taker_fee"] = taker_fee
                     ohlcv_data_several_last_rows_df["url_of_trading_pair"] = url_of_trading_pair
+                    try:
+                        if_margin_true_for_an_asset_bool=table_with_ohlcv_data_df["trading_pair_is_traded_with_margin"].iat[0]
+                        ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
+                    except:
+                        ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = np.nan
 
 
-                    ohlcv_data_several_last_rows_df["short_name"] = np.nan
-                    print("6program got here")
-                    ohlcv_data_several_last_rows_df["country"] = np.nan
-                    ohlcv_data_several_last_rows_df["long_name"] = np.nan
-                    ohlcv_data_several_last_rows_df["sector"] = np.nan
-                    # ohlcv_data_several_last_rows_df["long_business_summary"] = long_business_summary
-                    ohlcv_data_several_last_rows_df["website"] = np.nan
-                    ohlcv_data_several_last_rows_df["quote_type"] = np.nan
-                    ohlcv_data_several_last_rows_df["city"] = np.nan
-                    ohlcv_data_several_last_rows_df["exchange_timezone_name"] = np.nan
-                    ohlcv_data_several_last_rows_df["industry"] = np.nan
-                    ohlcv_data_several_last_rows_df["market_cap"] = np.nan
+                    # ohlcv_data_several_last_rows_df["short_name"] = np.nan
+                    # print("6program got here")
+                    # ohlcv_data_several_last_rows_df["country"] = np.nan
+                    # ohlcv_data_several_last_rows_df["long_name"] = np.nan
+                    # ohlcv_data_several_last_rows_df["sector"] = np.nan
+                    # # ohlcv_data_several_last_rows_df["long_business_summary"] = long_business_summary
+                    # ohlcv_data_several_last_rows_df["website"] = np.nan
+                    # ohlcv_data_several_last_rows_df["quote_type"] = np.nan
+                    # ohlcv_data_several_last_rows_df["city"] = np.nan
+                    # ohlcv_data_several_last_rows_df["exchange_timezone_name"] = np.nan
+                    # ohlcv_data_several_last_rows_df["industry"] = np.nan
+                    # ohlcv_data_several_last_rows_df["market_cap"] = np.nan
 
 
 
@@ -711,16 +721,20 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
     # await asyncio.gather(*coroutines, return_exceptions = True)
     #
     for exchange in exchanges_list:
-        '''SELECT 'exchange" 
-            FROM public."ticker_exchange_print_time" 
-            WHERE "next_bar_print_time_utc"='00:00:00' 
-            GROUP BY "exchange";'''
-        list_of_exchanges_where_next_bar_print_utc_time_00=["bitfinex2","bitfinex","mexc","mexc3","poloniex","coinex","exmo","gateio",
-                                                        "tokocrypto","binanceusdm","hollaex","zb",
-                                                        "novadax","kraken","cryptocom","binance","bitmex",
-                                                        "hitbtc3","gate","delta","currencycom","bybit","kucoin"]
-        if exchange not in list_of_exchanges_where_next_bar_print_utc_time_00:
-            continue
+        # '''SELECT 'exchange"
+        #     FROM public."ticker_exchange_print_time"
+        #     WHERE "next_bar_print_time_utc"='00:00:00'
+        #     GROUP BY "exchange";'''
+        # list_of_exchanges_where_next_bar_print_utc_time_00=["bitfinex2","bitfinex","mexc","mexc3","poloniex","coinex","exmo","gateio",
+        #                                                 "tokocrypto","binanceusdm","hollaex","zb",
+        #                                                 "novadax","kraken","cryptocom","binance","bitmex",
+        #                                                 "hitbtc3","gate","delta","currencycom","bybit","kucoin",
+        #                                                     "bitmart", "probit", "latoken", "phemex",
+        #                                                     "bkex", "bigone", "bitget","bitmart",
+        #                                                     "probit", "latoken","bkex", "bigone", "bitget", "whitebit"
+        #                                                     ]
+        # if exchange not in list_of_exchanges_where_next_bar_print_utc_time_00:
+        #     continue
         get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price, exchange,
                                                           engine, timeframe)
     #connection_to_usdt_trading_pairs_daily_ohlcv.close()

@@ -1,19 +1,1373 @@
+from datetime import datetime
+
 import ccxt
 import pprint
 import ccxt
 import ccxt
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import time
 import traceback
 import re
 import numpy as np
 import huobi
 import huobi_client
+import streamlit
+
 import db_config
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
+import streamlit as st
+import plotly.graph_objects as go
 # from huobi_client.generic import GenericClient
+# from test_streamlit_app import plot_ohlcv
 
+async def plot_ohlcv(entire_ohlcv_df):
+    # entire_ohlcv_df["Timestamp"] = (entire_ohlcv_df.index)
+
+    try:
+        entire_ohlcv_df["open_time"] = entire_ohlcv_df["Timestamp"].apply(
+            lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
+    except Exception as e:
+        print("error_message")
+        traceback.print_exc()
+
+    entire_ohlcv_df['Timestamp'] = entire_ohlcv_df["Timestamp"] / 1000.0
+
+
+    fig = go.Figure(go.Ohlc(x=entire_ohlcv_df["open_time"], open=entire_ohlcv_df['open'], high=entire_ohlcv_df['high'],
+        low=entire_ohlcv_df['low'], close=entire_ohlcv_df['close'], increasing_line_color= 'green',
+        decreasing_line_color='red'))
+    st.plotly_chart(fig)
+
+import ccxt.async_support as ccxt_async
+async def async_fetch_entire_ohlcv_without_exchange_name(exchange_object,trading_pair, timeframe,limit_of_daily_candles):
+    try:
+
+
+        # limit_of_daily_candles = 200
+        data = []
+        header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+        data_df1 = pd.DataFrame(columns=header)
+        data_df=np.nan
+        exchange_id=""
+
+        # Fetch the most recent 100 days of data
+        try:
+            #exchange latoken has a specific limit of one request number of candles
+            if isinstance(exchange_object, ccxt_async.latoken):
+                print("exchange is latoken")
+                limit_of_daily_candles = 100
+        except:
+            traceback.print_exc()
+
+        # Fetch the most recent 200 days of data
+        try:
+            # exchange bybit has a specific limit of one request number of candles
+            if isinstance(exchange_object, ccxt_async.bybit):
+                print("exchange is bybit")
+                limit_of_daily_candles = 200
+        except:
+            traceback.print_exc()
+
+        # streamlit.write("exchange_object",exchange_object)
+        # streamlit.write(type(exchange_object))
+        # print("trading_pair1")
+        # print(trading_pair)
+        data += await exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+        first_timestamp_in_df=0
+        first_timestamp_in_df_for_gateio=0
+
+        # Fetch previous n days of data consecutively
+        for i in range(1, 100):
+
+            print("i=", i)
+            print("data[0][0] - i * 86400000 * limit_of_daily_candles")
+            # print(data[0][0] - i * 86400000 * limit_of_daily_candles)
+            try:
+                previous_data = await exchange_object.fetch_ohlcv(trading_pair,
+                                                     timeframe,
+                                                     limit=limit_of_daily_candles,
+                                                     since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
+                data = previous_data + data
+            finally:
+
+                data_df1 = pd.DataFrame(data, columns=header)
+                if data_df1.iloc[0]['Timestamp'] == first_timestamp_in_df:
+                    break
+                first_timestamp_in_df = data_df1.iloc[0]['Timestamp']
+
+        header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+        data_df = pd.DataFrame(data, columns=header)
+
+        data_df.drop_duplicates(subset=["Timestamp"],keep="first",inplace=True)
+        data_df.sort_values("Timestamp",inplace=True)
+
+        try:
+            data_df["open_time"] = data_df["Timestamp"].apply(
+                lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
+        except Exception as e:
+            print("error_message")
+            traceback.print_exc()
+
+        data_df['Timestamp'] = data_df["Timestamp"] / 1000.0
+
+        data_df = data_df.set_index('Timestamp')
+        try:
+            exchange_id=exchange_object.id
+            data_df["exchange"]=exchange_id
+        except:
+            traceback.print_exc()
+
+        try:
+            data_df["trading_pair"]=trading_pair
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by low
+            data_df["volume*low"]=data_df["volume"]*data_df["low"]
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by close
+            data_df["volume*close"]=data_df["volume"]*data_df["close"]
+        except:
+            traceback.print_exc()
+
+        print(f"data_df on {exchange_id}")
+        print(data_df)
+        return data_df
+    except:
+        traceback.print_exc()
+        data_df=pd.DataFrame()
+        return data_df
+    finally:
+        await exchange_object.close()
+
+
+async def async_fetch_entire_ohlcv_without_exchange_name_with_load_markets(exchange_object, trading_pair, timeframe,
+                                                         limit_of_daily_candles):
+    try:
+
+
+        # limit_of_daily_candles = 200
+        data = []
+        header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+        data_df1 = pd.DataFrame(columns=header)
+        data_df = np.nan
+        exchange_id = ""
+        print("exchange_object")
+        print(exchange_object)
+        await exchange_object.load_markets()
+
+        # Fetch the most recent 100 days of data
+        try:
+            # exchange latoken has a specific limit of one request number of candles
+            if isinstance(exchange_object, ccxt_async.latoken):
+                print("exchange is latoken")
+                limit_of_daily_candles = 100
+        except:
+            traceback.print_exc()
+
+        # Fetch the most recent 200 days of data
+        try:
+            # exchange bybit has a specific limit of one request number of candles
+            if isinstance(exchange_object, ccxt_async.bybit):
+                print("exchange is bybit")
+                limit_of_daily_candles = 200
+        except:
+            traceback.print_exc()
+
+        # streamlit.write("exchange_object",exchange_object)
+        # streamlit.write(type(exchange_object))
+        # print("trading_pair1")
+        # print(trading_pair)
+        data += await exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+        first_timestamp_in_df = 0
+        first_timestamp_in_df_for_gateio = 0
+
+        # Fetch previous n days of data consecutively
+        for i in range(1, 100):
+
+            print("i=", i)
+            print("data[0][0] - i * 86400000 * limit_of_daily_candles")
+            # print(data[0][0] - i * 86400000 * limit_of_daily_candles)
+            try:
+                previous_data = await exchange_object.fetch_ohlcv(trading_pair,
+                                                                  timeframe,
+                                                                  limit=limit_of_daily_candles,
+                                                                  since=data[-1][
+                                                                            0] - i * 86400000 * limit_of_daily_candles)
+                data = previous_data + data
+            finally:
+
+                data_df1 = pd.DataFrame(data, columns=header)
+                if data_df1.iloc[0]['Timestamp'] == first_timestamp_in_df:
+                    break
+                first_timestamp_in_df = data_df1.iloc[0]['Timestamp']
+
+        header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+        data_df = pd.DataFrame(data, columns=header)
+
+        data_df.drop_duplicates(subset=["Timestamp"], keep="first", inplace=True)
+        data_df.sort_values("Timestamp", inplace=True)
+
+        try:
+            data_df["open_time"] = data_df["Timestamp"].apply(
+                lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
+        except Exception as e:
+            print("error_message")
+            traceback.print_exc()
+
+        data_df['Timestamp'] = data_df["Timestamp"] / 1000.0
+
+        data_df = data_df.set_index('Timestamp')
+        try:
+            exchange_id = exchange_object.id
+            data_df["exchange"] = exchange_id
+        except:
+            traceback.print_exc()
+
+        try:
+            data_df["trading_pair"] = trading_pair
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by low
+            data_df["volume*low"] = data_df["volume"] * data_df["low"]
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by close
+            data_df["volume*close"] = data_df["volume"] * data_df["close"]
+        except:
+            traceback.print_exc()
+
+        print(f"data_df on {exchange_id}")
+        print(data_df)
+        return data_df
+    except:
+        traceback.print_exc()
+        data_df = pd.DataFrame()
+        return data_df
+    finally:
+        await exchange_object.close()
+
+
+def get_exchange_object3(exchange_name):
+    import ccxt.async_support as ccxt  # noqa: E402
+    exchange_objects = {
+        # 'aax': ccxt.aax(),
+        # 'aofex': ccxt.aofex(),
+        'ace': ccxt.ace(),
+        'alpaca': ccxt.alpaca(),
+        'ascendex': ccxt.ascendex(),
+        'bequant': ccxt.bequant(),
+        # 'bibox': ccxt.bibox(),
+        'bigone': ccxt.bigone(),
+        'binance': ccxt.binance({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'binanceus': ccxt.binanceus({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'binancecoinm': ccxt.binancecoinm({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'binanceusdm':ccxt.binanceusdm({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bit2c': ccxt.bit2c(),
+        'bitbank': ccxt.bitbank(),
+        'bitbay': ccxt.bitbay(),
+        'bitbns': ccxt.bitbns(),
+        'bitcoincom': ccxt.bitcoincom(),
+        'bitfinex': ccxt.bitfinex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitfinex2': ccxt.bitfinex2({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitflyer': ccxt.bitflyer(),
+        'bitforex': ccxt.bitforex({
+        'rateLimit': 300,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitget': ccxt.bitget(),
+        'bithumb': ccxt.bithumb(),
+        # 'bitkk': ccxt.bitkk(),
+        'bitmart': ccxt.bitmart({
+        'rateLimit': 170,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        # 'bitmax': ccxt.bitmax(),
+        'bitmex': ccxt.bitmex(),
+        'bitpanda': ccxt.bitpanda(),
+        'bitso': ccxt.bitso(),
+        'bitstamp': ccxt.bitstamp(),
+        'bitstamp1': ccxt.bitstamp1(),
+        'bittrex': ccxt.bittrex(),
+        'bitrue':ccxt.bitrue(),
+        'bitvavo': ccxt.bitvavo(),
+        # 'bitz': ccxt.bitz(),
+        'bl3p': ccxt.bl3p(),
+        # 'bleutrade': ccxt.bleutrade(),
+        # 'braziliex': ccxt.braziliex(),
+        'bkex': ccxt.bkex(),
+        'btcalpha': ccxt.btcalpha(),
+        'btcbox': ccxt.btcbox(),
+        'btcmarkets': ccxt.btcmarkets(),
+        # 'btctradeim': ccxt.btctradeim(),
+        'btcturk': ccxt.btcturk(),
+        'btctradeua':ccxt.btctradeua(),
+        # 'buda': ccxt.buda(),
+        'bybit': ccxt.bybit({
+        'rateLimit': 9,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        # 'bytetrade': ccxt.bytetrade(),
+        # 'cdax': ccxt.cdax(),
+        'cex': ccxt.cex(),
+        # 'chilebit': ccxt.chilebit(),
+        'coinbase': ccxt.coinbase(),
+        'coinbaseprime': ccxt.coinbaseprime(),
+        'coinbasepro': ccxt.coinbasepro(),
+        'coincheck': ccxt.coincheck(),
+        # 'coinegg': ccxt.coinegg(),
+        'coinex': ccxt.coinex(),
+        'coinfalcon': ccxt.coinfalcon(),
+        'coinsph':ccxt.coinsph(),
+        # 'coinfloor': ccxt.coinfloor(),
+        # 'coingi': ccxt.coingi(),
+        # 'coinmarketcap': ccxt.coinmarketcap(),
+        'cryptocom': ccxt.cryptocom(),
+        'coinmate': ccxt.coinmate(),
+        'coinone': ccxt.coinone(),
+        'coinspot': ccxt.coinspot(),
+        # 'crex24': ccxt.crex24(),
+        'currencycom': ccxt.currencycom(),
+        'delta': ccxt.delta(),
+        'deribit': ccxt.deribit(),
+        'digifinex': ccxt.digifinex(),
+        # 'dsx': ccxt.dsx(),
+        # 'dx': ccxt.dx(),
+        # 'eqonex': ccxt.eqonex(),
+        # 'eterbase': ccxt.eterbase(),
+        'exmo': ccxt.exmo(),
+        # 'exx': ccxt.exx(),
+        # 'fcoin': ccxt.fcoin(),
+        # 'fcoinjp': ccxt.fcoinjp(),
+        # 'ftx': ccxt.ftx(),
+        # 'flowbtc':ccxt.flowbtc(),
+        'fmfwio': ccxt.fmfwio(),
+        'gate':ccxt.gate(),
+        'gateio': ccxt.gateio(),
+        'gemini': ccxt.gemini(),
+        # 'gopax': ccxt.gopax(),
+        # 'hbtc': ccxt.hbtc(),
+        'hitbtc': ccxt.hitbtc(),
+        # 'hitbtc2': ccxt.hitbtc2(),
+        # 'hkbitex': ccxt.hkbitex(),
+        'hitbtc3': ccxt.hitbtc3(),
+        'hollaex': ccxt.hollaex(),
+        'huobijp': ccxt.huobijp(),
+        'huobipro': ccxt.huobipro(),
+        # 'ice3x': ccxt.ice3x(),
+        'idex': ccxt.idex(),
+        # 'idex2': ccxt.idex2(),
+        'indodax': ccxt.indodax(),
+        'independentreserve': ccxt.independentreserve(),
+
+        # 'itbit': ccxt.itbit(),
+        'kraken': ccxt.kraken(),
+        'krakenfutures': ccxt.krakenfutures(),
+        'kucoin': ccxt.kucoin(),
+        'kuna': ccxt.kuna(),
+        # 'lakebtc': ccxt.lakebtc(),
+        'latoken': ccxt.latoken(),
+        'lbank': ccxt.lbank(),
+        # 'liquid': ccxt.liquid(),
+        'luno': ccxt.luno(),
+        'lykke': ccxt.lykke(),
+        'mercado': ccxt.mercado(),
+        'mexc':ccxt.mexc(),
+        'mexc3' : ccxt.mexc3(),
+        # 'mixcoins': ccxt.mixcoins(),
+        'paymium':ccxt.paymium(),
+        'poloniexfutures':ccxt.poloniexfutures(),
+        'ndax': ccxt.ndax(),
+        'novadax': ccxt.novadax(),
+        'oceanex': ccxt.oceanex(),
+        'okcoin': ccxt.okcoin(),
+        'okex': ccxt.okex(),
+        'okex5':ccxt.okex5(),
+        'okx':ccxt.okx(),
+        'bitopro': ccxt.bitopro(),
+        'huobi': ccxt.huobi(),
+        'lbank2': ccxt.lbank2(),
+        'blockchaincom': ccxt.blockchaincom(),
+        'btcex': ccxt.btcex(),
+        'kucoinfutures': ccxt.kucoinfutures(),
+        # 'okex3': ccxt.okex3(),
+        # 'p2pb2b': ccxt.p2pb2b(),
+        # 'paribu': ccxt.paribu(),
+        'phemex': ccxt.phemex(),
+        'tokocrypto':ccxt.tokocrypto(),
+        'poloniex': ccxt.poloniex(),
+        'probit': ccxt.probit(),
+        # 'qtrade': ccxt.qtrade(),
+        # 'ripio': ccxt.ripio(),
+        # 'southxchange': ccxt.southxchange(),
+        'stex': ccxt.stex(),
+        # 'stronghold': ccxt.stronghold(),
+        # 'surbitcoin': ccxt.surbitcoin(),
+        # 'therock': ccxt.therock(),
+        # 'tidebit': ccxt.tidebit(),
+        'tidex': ccxt.tidex(),
+        'timex': ccxt.timex(),
+        'upbit': ccxt.upbit(),
+        # 'vcc': ccxt.vcc(),
+        'wavesexchange': ccxt.wavesexchange(),
+        'woo':ccxt.woo(),
+        'wazirx':ccxt.wazirx(),
+        'whitebit': ccxt.whitebit(),
+        # 'xbtce': ccxt.xbtce(),
+        'xt': ccxt.xt(),
+        'yobit': ccxt.yobit(),
+        'zaif': ccxt.zaif(),
+        # 'zb': ccxt.zb(),
+        'zonda':ccxt.zonda()
+    }
+    exchange_object = exchange_objects.get(exchange_name)
+    if exchange_object is None:
+        raise ValueError(f"Exchange '{exchange_name}' is not available via CCXT.")
+    return exchange_object
+def get_exchange_object6(exchange_name):
+    import ccxt  # noqa: E402
+    exchange_objects = {
+        # 'aax': ccxt.aax(),
+        # 'aofex': ccxt.aofex(),
+        'ace': ccxt.ace(),
+        'alpaca': ccxt.alpaca(),
+        'ascendex': ccxt.ascendex(),
+        'bequant': ccxt.bequant(),
+        # 'bibox': ccxt.bibox(),
+        'bigone': ccxt.bigone(),
+        'binance': ccxt.binance({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'binanceus': ccxt.binanceus({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'binancecoinm': ccxt.binancecoinm({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'binanceusdm':ccxt.binanceusdm({
+        'rateLimit': 50,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+        # 'options': {
+        #     'defaultType': 'future',
+        #     'adjustForTimeDifference': True
+        #     # 'sandbox': True  # set_sandbox_mode is True
+        # }
+    }),
+        'bit2c': ccxt.bit2c(),
+        'bitbank': ccxt.bitbank(),
+        'bitbay': ccxt.bitbay(),
+        'bitbns': ccxt.bitbns(),
+        'bitcoincom': ccxt.bitcoincom(),
+        'bitfinex': ccxt.bitfinex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitfinex2': ccxt.bitfinex2({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitflyer': ccxt.bitflyer(),
+        'bitforex': ccxt.bitforex({
+        'rateLimit': 10000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitget': ccxt.bitget(),
+        'bithumb': ccxt.bithumb(),
+        # 'bitkk': ccxt.bitkk(),
+        'bitmart': ccxt.bitmart({
+        'rateLimit': 170,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        # 'bitmax': ccxt.bitmax(),
+        'bitmex': ccxt.bitmex(),
+        'bitpanda': ccxt.bitpanda(),
+        'bitso': ccxt.bitso(),
+        'bitstamp': ccxt.bitstamp(),
+        'bitstamp1': ccxt.bitstamp1(),
+        'bittrex': ccxt.bittrex(),
+        'bitrue':ccxt.bitrue(),
+        'bitvavo': ccxt.bitvavo(),
+        # 'bitz': ccxt.bitz(),
+        'bl3p': ccxt.bl3p(),
+        # 'bleutrade': ccxt.bleutrade(),
+        # 'braziliex': ccxt.braziliex(),
+        'bkex': ccxt.bkex(),
+        'btcalpha': ccxt.btcalpha(),
+        'btcbox': ccxt.btcbox(),
+        'btcmarkets': ccxt.btcmarkets(),
+        # 'btctradeim': ccxt.btctradeim(),
+        'btcturk': ccxt.btcturk(),
+        'btctradeua':ccxt.btctradeua(),
+        # 'buda': ccxt.buda(),
+        'bybit': ccxt.bybit({
+        'rateLimit': 9,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        # 'bytetrade': ccxt.bytetrade(),
+        # 'cdax': ccxt.cdax(),
+        'cex': ccxt.cex(),
+        # 'chilebit': ccxt.chilebit(),
+        'coinbase': ccxt.coinbase(),
+        'coinbaseprime': ccxt.coinbaseprime(),
+        'coinbasepro': ccxt.coinbasepro(),
+        'coincheck': ccxt.coincheck(),
+        # 'coinegg': ccxt.coinegg(),
+        'coinex': ccxt.coinex(),
+        'coinfalcon': ccxt.coinfalcon(),
+        'coinsph':ccxt.coinsph(),
+        # 'coinfloor': ccxt.coinfloor(),
+        # 'coingi': ccxt.coingi(),
+        # 'coinmarketcap': ccxt.coinmarketcap(),
+        'cryptocom': ccxt.cryptocom(),
+        'coinmate': ccxt.coinmate(),
+        'coinone': ccxt.coinone(),
+        'coinspot': ccxt.coinspot(),
+        # 'crex24': ccxt.crex24(),
+        'currencycom': ccxt.currencycom(),
+        'delta': ccxt.delta(),
+        'deribit': ccxt.deribit(),
+        'digifinex': ccxt.digifinex(),
+        # 'dsx': ccxt.dsx(),
+        # 'dx': ccxt.dx(),
+        # 'eqonex': ccxt.eqonex(),
+        # 'eterbase': ccxt.eterbase(),
+        'exmo': ccxt.exmo(),
+        # 'exx': ccxt.exx(),
+        # 'fcoin': ccxt.fcoin(),
+        # 'fcoinjp': ccxt.fcoinjp(),
+        # 'ftx': ccxt.ftx(),
+        # 'flowbtc':ccxt.flowbtc(),
+        'fmfwio': ccxt.fmfwio(),
+        'gate':ccxt.gate(),
+        'gateio': ccxt.gateio(),
+        'gemini': ccxt.gemini(),
+        # 'gopax': ccxt.gopax(),
+        # 'hbtc': ccxt.hbtc(),
+        'hitbtc': ccxt.hitbtc(),
+        # 'hitbtc2': ccxt.hitbtc2(),
+        # 'hkbitex': ccxt.hkbitex(),
+        'hitbtc3': ccxt.hitbtc3(),
+        'hollaex': ccxt.hollaex(),
+        'huobijp': ccxt.huobijp(),
+        'huobipro': ccxt.huobipro(),
+        # 'ice3x': ccxt.ice3x(),
+        'idex': ccxt.idex(),
+        # 'idex2': ccxt.idex2(),
+        'indodax': ccxt.indodax(),
+        'independentreserve': ccxt.independentreserve(),
+
+        # 'itbit': ccxt.itbit(),
+        'kraken': ccxt.kraken(),
+        'krakenfutures': ccxt.krakenfutures(),
+        'kucoin': ccxt.kucoin(),
+        'kuna': ccxt.kuna(),
+        # 'lakebtc': ccxt.lakebtc(),
+        'latoken': ccxt.latoken(),
+        'lbank': ccxt.lbank(),
+        # 'liquid': ccxt.liquid(),
+        'luno': ccxt.luno(),
+        'lykke': ccxt.lykke(),
+        'mercado': ccxt.mercado(),
+        'mexc':ccxt.mexc(),
+        'mexc3' : ccxt.mexc3(),
+        # 'mixcoins': ccxt.mixcoins(),
+        'paymium':ccxt.paymium(),
+        'poloniexfutures':ccxt.poloniexfutures(),
+        'ndax': ccxt.ndax(),
+        'novadax': ccxt.novadax(),
+        'oceanex': ccxt.oceanex(),
+        'okcoin': ccxt.okcoin(),
+        'okex': ccxt.okex(),
+        'okex5':ccxt.okex5(),
+        'okx':ccxt.okx(),
+        'bitopro': ccxt.bitopro(),
+        'huobi': ccxt.huobi(),
+        'lbank2': ccxt.lbank2(),
+        'blockchaincom': ccxt.blockchaincom(),
+        'btcex': ccxt.btcex(),
+        'kucoinfutures': ccxt.kucoinfutures(),
+        # 'okex3': ccxt.okex3(),
+        # 'p2pb2b': ccxt.p2pb2b(),
+        # 'paribu': ccxt.paribu(),
+        'phemex': ccxt.phemex(),
+        'tokocrypto':ccxt.tokocrypto(),
+        'poloniex': ccxt.poloniex(),
+        'probit': ccxt.probit(),
+        # 'qtrade': ccxt.qtrade(),
+        # 'ripio': ccxt.ripio(),
+        # 'southxchange': ccxt.southxchange(),
+        'stex': ccxt.stex(),
+        # 'stronghold': ccxt.stronghold(),
+        # 'surbitcoin': ccxt.surbitcoin(),
+        # 'therock': ccxt.therock(),
+        # 'tidebit': ccxt.tidebit(),
+        'tidex': ccxt.tidex(),
+        'timex': ccxt.timex(),
+        'upbit': ccxt.upbit(),
+        # 'vcc': ccxt.vcc(),
+        'wavesexchange': ccxt.wavesexchange(),
+        'woo':ccxt.woo(),
+        'wazirx':ccxt.wazirx(),
+        'whitebit': ccxt.whitebit(),
+        # 'xbtce': ccxt.xbtce(),
+        # 'xena': ccxt.xena(),
+        'xt' : ccxt.xt(),
+        'yobit': ccxt.yobit(),
+        'zaif': ccxt.zaif(),
+        # 'zb': ccxt.zb(),
+        'zonda':ccxt.zonda()
+    }
+    exchange_object = exchange_objects.get(exchange_name)
+    if exchange_object is None:
+        raise ValueError(f"Exchange '{exchange_name}' is not available via CCXT.")
+    # exchange_object.set_sandbox_mode(True)
+    return exchange_object
+
+
+import ccxt.async_support as ccxt_async
+async def async_get_exchange_object3(exchange_name):
+      # noqa: E402
+    exchange_objects = {
+        # 'aax': ccxt_async.aax(),
+        # 'aofex': ccxt_async.aofex(),
+        'ace': ccxt_async.ace({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'alpaca': ccxt_async.alpaca({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'ascendex': ccxt_async.ascendex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bequant': ccxt_async.bequant({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'bibox': ccxt_async.bibox(),
+        'bigone': ccxt_async.bigone({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'binance': ccxt_async.binance({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'binanceus': ccxt_async.binanceus({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'binancecoinm': ccxt_async.binancecoinm({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'binanceusdm':ccxt_async.binanceusdm({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bit2c': ccxt_async.bit2c({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitbank': ccxt_async.bitbank({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitbay': ccxt_async.bitbay({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitbns': ccxt_async.bitbns({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitcoincom': ccxt_async.bitcoincom({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitfinex': ccxt_async.bitfinex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitfinex2': ccxt_async.bitfinex2({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitflyer': ccxt_async.bitflyer({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitforex': ccxt_async.bitforex({
+        'rateLimit': 10000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'bitget': ccxt_async.bitget({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bithumb': ccxt_async.bithumb({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'bitkk': ccxt_async.bitkk(),
+        'bitmart': ccxt_async.bitmart({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'bitmax': ccxt_async.bitmax(),
+        'bitmex': ccxt_async.bitmex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitpanda': ccxt_async.bitpanda({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitso': ccxt_async.bitso({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitstamp': ccxt_async.bitstamp({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitstamp1': ccxt_async.bitstamp1({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bittrex': ccxt_async.bittrex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitrue':ccxt_async.bitrue({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitvavo': ccxt_async.bitvavo({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'bitz': ccxt_async.bitz(),
+        'bl3p': ccxt_async.bl3p({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'bleutrade': ccxt_async.bleutrade(),
+        # 'braziliex': ccxt_async.braziliex(),
+        'bkex': ccxt_async.bkex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),  # Set a custom timeout of 60000 ms (1 minute)}),
+        'btcalpha': ccxt_async.btcalpha({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'btcbox': ccxt_async.btcbox({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'btcmarkets': ccxt_async.btcmarkets({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'btctradeim': ccxt_async.btctradeim(),
+        'btcturk': ccxt_async.btcturk({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'btctradeua':ccxt_async.btctradeua({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'buda': ccxt_async.buda(),
+        'bybit': ccxt_async.bybit({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'bytetrade': ccxt_async.bytetrade(),
+        # 'cdax': ccxt_async.cdax(),
+        'cex': ccxt_async.cex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'chilebit': ccxt_async.chilebit(),
+        'coinbase': ccxt_async.coinbase({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coinbaseprime': ccxt_async.coinbaseprime({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coinbasepro': ccxt_async.coinbasepro({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coincheck': ccxt_async.coincheck({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'coinegg': ccxt_async.coinegg(),
+        'coinex': ccxt_async.coinex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coinfalcon': ccxt_async.coinfalcon({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coinsph':ccxt_async.coinsph({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'coinfloor': ccxt_async.coinfloor(),
+        # 'coingi': ccxt_async.coingi(),
+        # 'coinmarketcap': ccxt_async.coinmarketcap(),
+        'cryptocom': ccxt_async.cryptocom({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coinmate': ccxt_async.coinmate({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coinone': ccxt_async.coinone({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'coinspot': ccxt_async.coinspot({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'crex24': ccxt_async.crex24(),
+        'currencycom': ccxt_async.currencycom({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'delta': ccxt_async.delta({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'deribit': ccxt_async.deribit({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'digifinex': ccxt_async.digifinex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'dsx': ccxt_async.dsx(),
+        # 'dx': ccxt_async.dx(),
+        # 'eqonex': ccxt_async.eqonex(),
+        # 'eterbase': ccxt_async.eterbase(),
+        'exmo': ccxt_async.exmo({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'exx': ccxt_async.exx(),
+        # 'fcoin': ccxt_async.fcoin(),
+        # 'fcoinjp': ccxt_async.fcoinjp(),
+        # 'ftx': ccxt_async.ftx(),
+        # 'flowbtc':ccxt_async.flowbtc(),
+        'fmfwio': ccxt_async.fmfwio({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'gate':ccxt_async.gate({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'gateio': ccxt_async.gateio({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'gemini': ccxt_async.gemini({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'gopax': ccxt_async.gopax(),
+        # 'hbtc': ccxt_async.hbtc(),
+        'hitbtc': ccxt_async.hitbtc({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'hitbtc2': ccxt_async.hitbtc2(),
+        # 'hkbitex': ccxt_async.hkbitex(),
+        'hitbtc3': ccxt_async.hitbtc3({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'hollaex': ccxt_async.hollaex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'huobijp': ccxt_async.huobijp({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'huobipro': ccxt_async.huobipro({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'ice3x': ccxt_async.ice3x(),
+        'idex': ccxt_async.idex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'idex2': ccxt_async.idex2(),
+        'indodax': ccxt_async.indodax({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'independentreserve': ccxt_async.independentreserve({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+
+        # 'itbit': ccxt_async.itbit(),
+        'kraken': ccxt_async.kraken({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'krakenfutures': ccxt_async.krakenfutures({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'kucoin': ccxt_async.kucoin({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'kuna': ccxt_async.kuna({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'lakebtc': ccxt_async.lakebtc(),
+        'latoken': ccxt_async.latoken({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'lbank': ccxt_async.lbank({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'liquid': ccxt_async.liquid(),
+        'luno': ccxt_async.luno({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'lykke': ccxt_async.lykke({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'mercado': ccxt_async.mercado({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'mexc':ccxt_async.mexc({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'mexc3' : ccxt_async.mexc3({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'mixcoins': ccxt_async.mixcoins(),
+        'paymium':ccxt_async.paymium({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'poloniexfutures':ccxt_async.poloniexfutures({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'ndax': ccxt_async.ndax({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'novadax': ccxt_async.novadax({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'oceanex': ccxt_async.oceanex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'okcoin': ccxt_async.okcoin({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'okex': ccxt_async.okex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'okex5':ccxt_async.okex5({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'okx':ccxt_async.okx({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'bitopro': ccxt_async.bitopro({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'huobi': ccxt_async.huobi({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'lbank2': ccxt_async.lbank2({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'blockchaincom': ccxt_async.blockchaincom({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'btcex': ccxt_async.btcex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'kucoinfutures': ccxt_async.kucoinfutures({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'okex3': ccxt_async.okex3(),
+        # 'p2pb2b': ccxt_async.p2pb2b(),
+        # 'paribu': ccxt_async.paribu(),
+        'phemex': ccxt_async.phemex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'tokocrypto':ccxt_async.tokocrypto({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'poloniex': ccxt_async.poloniex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'probit': ccxt_async.probit({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+
+        'xt': ccxt_async.xt({
+            'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+            'enableRateLimit': True,  # Enable rate limiting
+            'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+
+        # 'qtrade': ccxt_async.qtrade(),
+        # 'ripio': ccxt_async.ripio(),
+        # 'southxchange': ccxt_async.southxchange(),
+        'stex': ccxt_async.stex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'stronghold': ccxt_async.stronghold(),
+        # 'surbitcoin': ccxt_async.surbitcoin(),
+        # 'therock': ccxt_async.therock(),
+        # 'tidebit': ccxt_async.tidebit(),
+        'tidex': ccxt_async.tidex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'timex': ccxt_async.timex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'upbit': ccxt_async.upbit({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'vcc': ccxt_async.vcc(),
+        'wavesexchange': ccxt_async.wavesexchange({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'woo':ccxt_async.woo({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'wazirx':ccxt_async.wazirx({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'whitebit': ccxt_async.whitebit({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'xbtce': ccxt_async.xbtce(),
+        # 'xena': ccxt_async.xena(),
+        'yobit': ccxt_async.yobit({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        'zaif': ccxt_async.zaif({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+    }),
+        # 'zb': ccxt_async.zb(),
+        'zonda':ccxt_async.zonda({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True,  # Enable rate limiting
+        'timeout': 60000  # Set a custom timeout of 60000 ms (1 minute)
+
+
+    })
+    }
+    exchange_object = exchange_objects.get(exchange_name)
+    if exchange_object is None:
+        raise ValueError(f"Exchange '{exchange_name}' is not available via CCXT.")
+    return exchange_object
+
+def ohlcVolume(x):
+    if len(x):
+        ohlc={ "open":x["open"][0],"high":max(x["high"]),"low":min(x["low"]),"close":x["close"][-1],"volume":sum(x["volume"])}
+        return pd.Series(ohlc)
+# Function to resample a dataframe for a day timeframe
+def resample_dataframe_daily(df):
+    # df: The dataframe to be resampled.
+
+    # Convert the timestamp to be in 12h:
+    # df.index = df.index /1000
+    print("df.index")
+    print(df.index)
+    df.index =  pd.to_datetime(df.index,unit='ms')
+
+    # Resample the dataframe based on the day timeframe:
+    resampled_df = df.resample('D').apply(ohlcVolume)
+
+    return resampled_df
+
+def convert_index_to_unix_timestamp(df):
+    # convert the index to datetime object
+    df.index = pd.to_datetime(df.index)
+
+    # convert the datetime object to Unix timestamp in milliseconds
+    df.index = df.index.astype(int) // 10**6
+
+    return df
+def fetch_entire_ohlcv_without_exchange_name(exchange_object,trading_pair, timeframe,limit_of_daily_candles):
+    # exchange_id = 'bybit'
+    # exchange_class = getattr(ccxt, exchange_id)
+    # exchange = exchange_class()
+
+    print(f'list of available timeframes for {exchange_object.id}')
+    print(exchange_object.timeframes)
+    # limit_of_daily_candles = 200
+    data = []
+    header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+    data_df1 = pd.DataFrame(columns=header)
+    data_df=np.nan
+
+    # Fetch the most recent 100 days of data for latoken exchange
+    try:
+        #exchange latoken has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.latoken):
+            print("exchange is latoken")
+            limit_of_daily_candles = 100
+    except:
+        traceback.print_exc()
+
+    # Fetch the most recent 200 days of data bybit exchange
+    try:
+        # exchange bybit has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.bybit):
+            print("exchange is bybit")
+            limit_of_daily_candles = 200
+    except:
+        traceback.print_exc()
+
+    if exchange_object.id == "btcex":
+        timeframe="12h"
+        data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+    else:
+        data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+    first_timestamp_in_df=0
+    first_timestamp_in_df_for_gateio=0
+
+    # Fetch previous n days of data consecutively
+    for i in range(1, 100):
+
+        print("i=", i)
+        print("data[0][0] - i * 86400000 * limit_of_daily_candles")
+        # print(data[0][0] - i * 86400000 * limit_of_daily_candles)
+        try:
+            if exchange_object.id=="btcex":
+                timeframe="12h"
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * (86400000/2) * limit_of_daily_candles)
+            else:
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                     timeframe,
+                                                     limit=limit_of_daily_candles,
+                                                     since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
+            data = previous_data + data
+        finally:
+
+            data_df1 = pd.DataFrame(data, columns=header)
+            if data_df1.iloc[0]['Timestamp'] == first_timestamp_in_df:
+                break
+            first_timestamp_in_df = data_df1.iloc[0]['Timestamp']
+
+
+    header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+    data_df = pd.DataFrame(data, columns=header)
+
+    data_df.drop_duplicates(subset=["Timestamp"],keep="first",inplace=True)
+    data_df.sort_values("Timestamp",inplace=True)
+    data_df = data_df.set_index('Timestamp')
+
+    if exchange_object.id=="btcex":
+        data_df_for_btcex=resample_dataframe_daily(data_df)
+        # print("data_df_for_btcex")
+        # print(data_df_for_btcex.to_string())
+        data_df_for_btcex=convert_index_to_unix_timestamp(data_df_for_btcex)
+        print("data_df_for_btcex")
+        print(data_df_for_btcex.to_string())
+        return data_df_for_btcex
+    else:
+        return data_df
 def connect_to_postgres_db_without_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
@@ -153,17 +1507,37 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
             return f"https://trading.bitfinex.com/t/{base}F0:{quote}F0"
     elif exchange_id == 'gateio':
         return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
     elif exchange_id == 'kucoin':
         return f"https://futures.kucoin.com/trade/{trading_pair.replace('/','-')}-SWAP"
     elif exchange_id == 'coinex':
         # return f"https://www.coinex.com/swap/{trading_pair.replace('/','').upper()}"
         return f"https://www.coinex.com/futures/{trading_pair.replace('/','-').upper()}"
     elif exchange_id == 'poloniex':
-        return f"https://www.poloniex.com/futures/trade/{base.upper}{quote.upper}PERP"
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
     elif exchange_id == 'lbank2':
-        return f"https://www.lbank.com/futures/{base.lower}{quote.lower}/"
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
     elif exchange_id == 'lbank':
-        return f"https://www.lbank.com/futures/{base.lower}{quote.lower}/"
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
+    elif exchange_id == 'bkex':
+        return f"https://swap.bkex.com/contract/LIVE_{quote.upper()}/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'bitmart':
+        return f"https://derivatives.bitmart.com/en-US?symbol={base.upper()}{quote.upper()}&theme=dark"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{base.upper()}-PERP"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/mix/usdt/{base.upper()}{quote.upper()}_UMCBL/"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{base.upper()}{quote.upper()}-PERP"
+    elif exchange_id == 'delta':
+        return f"https://www.delta.exchange/app/futures/trade/{base.upper()}/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/perpetual/{base.upper()}-{quote.upper()}-PERPETUAL"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/futures-perpetualcontract-trading/{base.lower()}-perp"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/contract/trade/{base.upper()}{quote.upper()}"
     else:
         return "Exchange not supported"
 
@@ -278,6 +1652,8 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://exmo.me/en/trade/{market['base']}_{market['quote']}"
     elif exchange_id == 'gateio':
         return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
     elif exchange_id == 'kucoin':
         return f"https://trade.kucoin.com/{market['base']}-{market['quote']}"
     elif exchange_id == 'coinex':
@@ -288,14 +1664,46 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
     elif exchange_id == 'lbank':
         return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
-    # elif exchange_id == 'bitstamp':
-    #     return f"https://www.bitstamp.net/markets/{market['base'].lower()}/{market['quote'].lower()}/"
+    elif exchange_id == 'bitmart':
+        return f"https://www.bitmart.com/trade/en-US?layout=basic&theme=dark&symbol={market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'bkex':
+        return f"https://www.bkex.com/en/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{market['base'].upper()}-{market['quote'].upper()}?type=spot&tab=open-orders"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/spot/{market['base'].upper()}{market['quote'].upper()}_SPBL?type=spot"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'currencycom':
+        return f"https://currency.com/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/spot/{market['base'].upper()}-{market['quote'].upper()}-SPOT"
+    elif exchange_id == 'tokocrypto':
+        return f"https://www.tokocrypto.com/id/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'wazirx':
+        return f"https://wazirx.com/exchange/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbase':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbasepro':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbaseprime':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/en/trade/{market['base'].upper()}-{market['quote'].upper()}"
     else:
         return "Exchange not supported"
 
 def get_asset_type2(markets, trading_pair):
     market = markets[trading_pair]
     return market['type']
+
+def if_margin_true_for_an_asset(markets, trading_pair):
+    market = markets[trading_pair]
+    print(f" markets[{trading_pair}]")
+    print(market)
+    return market['margin']
 
 # def get_asset_type(markets, trading_pair):
 #     # exchange = getattr(ccxt, exchange_name)()
@@ -309,6 +1717,7 @@ def get_taker_tiered_fees(exchange_object):
     return taker_fees
 
 def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,limit_of_daily_candles):
+    # import ccxt
     # exchange_id = 'bybit'
     # exchange_class = getattr(ccxt, exchange_id)
     # exchange = exchange_class()
@@ -319,10 +1728,34 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
     data_df1 = pd.DataFrame(columns=header)
     data_df=np.nan
 
-    # Fetch the most recent 200 days of data
-    data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+    # Fetch the most recent 100 days of data for latoken exchange
+    try:
+        # exchange latoken has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.latoken):
+            print("exchange is latoken")
+            limit_of_daily_candles = 1
+    except:
+        traceback.print_exc()
+
+    # Fetch the most recent 200 days of data bybit exchange
+    try:
+        # exchange bybit has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.bybit):
+            print("exchange is bybit")
+            limit_of_daily_candles = 200
+    except:
+        traceback.print_exc()
+
+    if exchange_object.id == "btcex":
+        timeframe = "12h"
+        data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+    else:
+        data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+
     first_timestamp_in_df=0
     first_timestamp_in_df_for_gateio=0
+
+
 
     # Fetch previous 200 days of data consecutively
     for i in range(1, 100):
@@ -331,58 +1764,27 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
         print("data[0][0] - i * 86400000 * limit_of_daily_candles")
         # print(data[0][0] - i * 86400000 * limit_of_daily_candles)
         try:
-            previous_data = exchange_object.fetch_ohlcv(trading_pair,
-                                                 timeframe,
-                                                 limit=limit_of_daily_candles,
-                                                 since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
+            if exchange_object.id == "btcex":
+                timeframe = "12h"
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * (
+                                                                        86400000 / 2) * limit_of_daily_candles)
+            else:
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
             data = previous_data + data
+        except:
+            traceback.print_exc()
         finally:
 
             data_df1 = pd.DataFrame(data, columns=header)
             if data_df1.iloc[0]['Timestamp'] == first_timestamp_in_df:
                 break
             first_timestamp_in_df = data_df1.iloc[0]['Timestamp']
-            # print("data_df12")
-            # print(data_df1)
-
-            # if exchange_name == "gateio" and first_timestamp_in_df == 1364688000000:
-            #     for i in range(1, 100000):
-            #         limit_of_daily_candles_for_gateio = 2
-            #         print("i=", i)
-            #         print("data[0][0] - i * 86400000 * limit_of_daily_candles")
-            #         print(data[0][0] - i * 86400000 * limit_of_daily_candles_for_gateio)
-            #         try:
-            #             additional_previous_data_for_gateio = exchange.fetch_ohlcv(trading_pair,
-            #                                                                        timeframe,
-            #                                                                        limit=limit_of_daily_candles_for_gateio,
-            #                                                                        since=data[0][
-            #                                                                                  0] - i * 86400000 * limit_of_daily_candles_for_gateio)
-            #             data = additional_previous_data_for_gateio + data
-            #             print("data_for_gateio")
-            #             print(data)
-            #         except:
-            #             traceback.print_exc()
-            #
-            #         data_df1 = pd.DataFrame(data, columns=header)
-            #         print("data_df123")
-            #         print(data_df1)
-            #
-            #         if data_df1.iloc[0]['Timestamp'] == first_timestamp_in_df_for_gateio:
-            #             break
-            #         first_timestamp_in_df_for_gateio = data_df1.iloc[0]['Timestamp']
-
-            # try:
-            #     data_df1["open_time"] = data_df1["Timestamp"].apply(
-            #         lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
-            # except Exception as e:
-            #     print("error_message")
-            #     traceback.print_exc()
-            # data_df1 = data_df1.set_index('Timestamp')
-            # print("data_df1")
-            # print(data_df1)
-
-            # if len(previous_data) == 0:
-            #     break
 
     header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
     data_df = pd.DataFrame(data, columns=header)
@@ -397,7 +1799,44 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
     data_df = data_df.set_index('Timestamp')
 
 
-    return data_df
+    if exchange_object.id=="btcex":
+        data_df_for_btcex=resample_dataframe_daily(data_df)
+        # print("data_df_for_btcex")
+        # print(data_df_for_btcex.to_string())
+        data_df_for_btcex=convert_index_to_unix_timestamp(data_df_for_btcex)
+        # print("data_df_for_btcex")
+        # print(data_df_for_btcex.to_string())
+
+        try:
+            # add volume multiplied by low
+            data_df_for_btcex["volume*low"] = data_df_for_btcex["volume"] * data_df_for_btcex["low"]
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by close
+            data_df_for_btcex["volume*close"] = data_df_for_btcex["volume"] * data_df_for_btcex["close"]
+        except:
+            traceback.print_exc()
+
+        return data_df_for_btcex
+    else:
+        try:
+            # add volume multiplied by low
+            data_df["volume*low"] = data_df["volume"] * data_df["low"]
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by close
+            data_df["volume*close"] = data_df["volume"] * data_df["close"]
+        except:
+            traceback.print_exc()
+        return data_df
+
+
+
+
 
 def get_maker_taker_fees_for_huobi(exchange_object):
     fees = exchange_object.describe()['fees']['trading']
@@ -633,7 +2072,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         limit = 200
     elif exchange_name == 'hitbtc3':
         exchange_object = ccxt.hitbtc3()
-        limit = 1000
+        limit = 500
     elif exchange_name == 'mexc':
         exchange_object = ccxt.mexc()
         limit = 1000
@@ -666,7 +2105,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         limit = 2000
     elif exchange_name == 'coinex':
         exchange_object = ccxt.coinex()
-        limit = 2000
+        limit = 500
     elif exchange_name == 'poloniex':
         exchange_object = ccxt.poloniex()
         limit = 500
@@ -678,7 +2117,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         limit = 1000
 
     elif exchange_name == 'zb':
-        exchange_object = ccxt.zb()
+        # exchange_object = ccxt.zb()
         limit = 1000
     elif exchange_name == 'tokocrypto':
         exchange_object = ccxt.tokocrypto()
@@ -688,10 +2127,34 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         limit = 1000
     elif exchange_name == 'cryptocom':
         exchange_object = ccxt.cryptocom()
-        limit = 1000
+        limit = 300
     elif exchange_name == 'delta':
         exchange_object = ccxt.delta()
         limit = 1000
+    elif exchange_name == 'bitmart':
+        exchange_object = ccxt.bitmart()
+        limit = 1000
+    elif exchange_name == 'probit':
+        exchange_object = ccxt.probit()
+        limit = 1000
+    elif exchange_name == 'whitebit':
+        exchange_object = ccxt.whitebit()
+        limit = 1000
+    elif exchange_name == 'latoken':
+        exchange_object = ccxt.latoken()
+        limit = 100
+    elif exchange_name == 'phemex':
+        exchange_object = ccxt.phemex()
+        limit = 1000
+    elif exchange_name == 'bkex':
+        exchange_object = ccxt.bkex()
+        limit = 1000
+    elif exchange_name == 'bigone':
+        exchange_object = ccxt.bigone()
+        limit = 500
+    elif exchange_name == 'bitget':
+        exchange_object = ccxt.bitget()
+        limit = 300
 
 
     return exchange_object, limit
@@ -814,7 +2277,7 @@ def get_exchange_object2(exchange_name):
         # 'btctradeim': ccxt.btctradeim(),
         'btcturk': ccxt.btcturk(),
         'btctradeua':ccxt.btctradeua(),
-        'buda': ccxt.buda(),
+        # 'buda': ccxt.buda(),
         'bybit': ccxt.bybit(),
         # 'bytetrade': ccxt.bytetrade(),
         # 'cdax': ccxt.cdax(),
@@ -849,7 +2312,7 @@ def get_exchange_object2(exchange_name):
         # 'fcoin': ccxt.fcoin(),
         # 'fcoinjp': ccxt.fcoinjp(),
         # 'ftx': ccxt.ftx(),
-        'flowbtc':ccxt.flowbtc(),
+        # 'flowbtc':ccxt.flowbtc(),
         'fmfwio': ccxt.fmfwio(),
         'gate':ccxt.gate(),
         'gateio': ccxt.gateio(),
@@ -869,7 +2332,7 @@ def get_exchange_object2(exchange_name):
         'indodax': ccxt.indodax(),
         'independentreserve': ccxt.independentreserve(),
 
-        'itbit': ccxt.itbit(),
+        # 'itbit': ccxt.itbit(),
         'kraken': ccxt.kraken(),
         'krakenfutures': ccxt.krakenfutures(),
         'kucoin': ccxt.kucoin(),
@@ -907,7 +2370,7 @@ def get_exchange_object2(exchange_name):
         'poloniex': ccxt.poloniex(),
         'probit': ccxt.probit(),
         # 'qtrade': ccxt.qtrade(),
-        'ripio': ccxt.ripio(),
+        # 'ripio': ccxt.ripio(),
         # 'southxchange': ccxt.southxchange(),
         'stex': ccxt.stex(),
         # 'stronghold': ccxt.stronghold(),
@@ -926,8 +2389,10 @@ def get_exchange_object2(exchange_name):
         # 'xena': ccxt.xena(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
-        'zb': ccxt.zb(),
-        'zonda':ccxt.zonda()
+        # 'zb': ccxt.zb(),
+        'zonda':ccxt.zonda(),
+        'xt': ccxt.xt()
+
     }
     exchange_object = exchange_objects.get(exchange_name)
     if exchange_object is None:
@@ -1224,6 +2689,40 @@ def remove_trading_pairs_which_contain_stablecoin_as_base(filtered_pairs,stablec
                       not any(pair.startswith(ticker) for ticker in stablecoin_bases_with_slash_list)]
     return filtered_pairs
 if __name__=="__main__":
+
+    exchanges_list=ccxt.exchanges
+    print("exchanges_list")
+    print(exchanges_list)
+    for exchange_name in exchanges_list:
+        try:
+            print(f"fethcing info for {exchange_name}")
+            trading_pair="BTC/USDT"
+            # timeframe="1d"
+            # limit_of_daily_candles=1200
+            exchange_object=get_exchange_object6(exchange_name)
+            # ohlcv_df=fetch_entire_ohlcv(exchange_object,
+            #                                exchange_name,
+            #                                trading_pair,
+            #                                timeframe,limit_of_daily_candles)
+
+            markets = np.nan
+            try:
+                markets = exchange_object.load_markets()
+            except:
+                traceback.print_exc()
+            trading_pair_can_be_traded_with_margin=if_margin_true_for_an_asset(markets, trading_pair)
+
+            # print("ohlcv_df.head(10).to_string()")
+            # print(ohlcv_df.head(10).to_string())
+            #
+            # print("len(ohlcv_df)")
+            # print(len(ohlcv_df))
+
+            print(f"trading_pair_can_be_traded_with_margin on {exchange_object}")
+            print(trading_pair_can_be_traded_with_margin)
+        except:
+            traceback.print_exc()
+
     # list_of_shortable_assets_for_binance=get_shortable_assets_for_binance()
     # print("list_of_shortable_assets_for_binance")
     # print(list_of_shortable_assets_for_binance)
@@ -1344,45 +2843,45 @@ if __name__=="__main__":
     # ohlcv_df=get_huobi_ohlcv()
     # print("ohlcv_df")
     # print(ohlcv_df)
-    db_with_trading_pair_statistics="db_with_trading_pair_statistics"
-    table_name_where_exchanges_will_be_with_all_available_trading_pairs="available_trading_pairs_for_each_exchange"
-    # table_with_strings_where_each_pair_is_traded="exchanges_where_each_pair_is_traded"
-    engine_for_db_with_trading_pair_statistics, connection_to_db_with_trading_pair_statistics=\
-        connect_to_postgres_db_with_deleting_it_first(db_with_trading_pair_statistics)
-    list_of_all_exchanges=get_all_exchanges()
-    data_dict={}
-    # exchange_map=get_exchange_map_from_exchange_id_to_exchange_name(list_of_all_exchanges)
-    # print("exchange_map")
-    # print(exchange_map)
-    for exchange_name in list_of_all_exchanges:
-        try:
-            exchange_object=get_exchange_object2(exchange_name)
-            list_of_trading_pairs_for_one_exchange=get_trading_pairs(exchange_object)
-
-            print(f"list_of_trading_pairs_for_one_exchange for {exchange_name}" )
-            print(list_of_trading_pairs_for_one_exchange)
-            print(f"number of all pairs for {exchange_name} is  {len(list_of_trading_pairs_for_one_exchange)}")
-
-            filtered_pairs = [pair for pair in list_of_trading_pairs_for_one_exchange if "/USDT" in pair]
-            print(f"filtered_pairs for {exchange_name}")
-            print(filtered_pairs)
-            print(f"number of all usdt pairs for {exchange_name} is  {len(filtered_pairs)}")
-            stablecoin_bases_with_slash_list=return_list_of_all_stablecoin_bases_with_slash()
-            filtered_pairs =\
-                remove_trading_pairs_which_contain_stablecoin_as_base(
-                    filtered_pairs,
-                    stablecoin_bases_with_slash_list)
-            print(filtered_pairs)
-            filtered_pairs=remove_leveraged_pairs(filtered_pairs)
-            filtered_pairs=remove_futures_with_expiration_and_options(filtered_pairs)
-            print(f"number of all usdt pairs without stablecoin base and without levereged tokens "
-                  f"for {exchange_name} is  {len(filtered_pairs)}")
-            data_dict[exchange_name] = filtered_pairs
-
-        except:
-            traceback.print_exc()
-    df_with_trading_pairs_for_each_exchange = pd.DataFrame.from_dict(data_dict, orient='index')
-    df_with_trading_pairs_for_each_exchange = df_with_trading_pairs_for_each_exchange.transpose()
+    # db_with_trading_pair_statistics="db_with_trading_pair_statistics"
+    # table_name_where_exchanges_will_be_with_all_available_trading_pairs="available_trading_pairs_for_each_exchange"
+    # # table_with_strings_where_each_pair_is_traded="exchanges_where_each_pair_is_traded"
+    # engine_for_db_with_trading_pair_statistics, connection_to_db_with_trading_pair_statistics=\
+    #     connect_to_postgres_db_with_deleting_it_first(db_with_trading_pair_statistics)
+    # list_of_all_exchanges=get_all_exchanges()
+    # data_dict={}
+    # # exchange_map=get_exchange_map_from_exchange_id_to_exchange_name(list_of_all_exchanges)
+    # # print("exchange_map")
+    # # print(exchange_map)
+    # for exchange_name in list_of_all_exchanges:
+    #     try:
+    #         exchange_object=get_exchange_object2(exchange_name)
+    #         list_of_trading_pairs_for_one_exchange=get_trading_pairs(exchange_object)
+    #
+    #         print(f"list_of_trading_pairs_for_one_exchange for {exchange_name}" )
+    #         print(list_of_trading_pairs_for_one_exchange)
+    #         print(f"number of all pairs for {exchange_name} is  {len(list_of_trading_pairs_for_one_exchange)}")
+    #
+    #         filtered_pairs = [pair for pair in list_of_trading_pairs_for_one_exchange if "/USDT" in pair]
+    #         print(f"filtered_pairs for {exchange_name}")
+    #         print(filtered_pairs)
+    #         print(f"number of all usdt pairs for {exchange_name} is  {len(filtered_pairs)}")
+    #         stablecoin_bases_with_slash_list=return_list_of_all_stablecoin_bases_with_slash()
+    #         filtered_pairs =\
+    #             remove_trading_pairs_which_contain_stablecoin_as_base(
+    #                 filtered_pairs,
+    #                 stablecoin_bases_with_slash_list)
+    #         print(filtered_pairs)
+    #         filtered_pairs=remove_leveraged_pairs(filtered_pairs)
+    #         filtered_pairs=remove_futures_with_expiration_and_options(filtered_pairs)
+    #         print(f"number of all usdt pairs without stablecoin base and without levereged tokens "
+    #               f"for {exchange_name} is  {len(filtered_pairs)}")
+    #         data_dict[exchange_name] = filtered_pairs
+    #
+    #     except:
+    #         traceback.print_exc()
+    # df_with_trading_pairs_for_each_exchange = pd.DataFrame.from_dict(data_dict, orient='index')
+    # df_with_trading_pairs_for_each_exchange = df_with_trading_pairs_for_each_exchange.transpose()
     # print("df_with_trading_pairs")
     # print(df_with_trading_pairs_for_each_exchange.head(200).to_string())
     # trading_pair="PIAS/USDT"
@@ -1400,9 +2899,9 @@ if __name__=="__main__":
     # df_with_strings_where_each_pair_is_traded['unique_exchanges_where_pair_is_traded'] =\
     #     df_with_strings_where_each_pair_is_traded.apply(extract_unique_exchanges, axis=1)
 
-    df_with_trading_pairs_for_each_exchange.to_sql(table_name_where_exchanges_will_be_with_all_available_trading_pairs,
-                   engine_for_db_with_trading_pair_statistics,
-                   if_exists='replace')
+    # df_with_trading_pairs_for_each_exchange.to_sql(table_name_where_exchanges_will_be_with_all_available_trading_pairs,
+    #                engine_for_db_with_trading_pair_statistics,
+    #                if_exists='replace')
     # df_with_strings_where_each_pair_is_traded.to_sql(table_with_strings_where_each_pair_is_traded,
     #                                                engine_for_db_with_trading_pair_statistics,
     #                                                if_exists='replace')

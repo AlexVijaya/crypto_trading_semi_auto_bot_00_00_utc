@@ -7,11 +7,13 @@ def unix_to_human_time(timestamp):
     return datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
 
-def update_find_models_plot_open_final_folder_16():
+def update_find_models_plot_open_final_folder_00():
     # Get the path to the Python interpreter executable
     interpreter = sys.executable
     files = ['update_historical_USDT_pairs_for_1D_next_bar_print_utc_time_00.py',
              'run_multiple_current_search_files.py',
+             "fetch_historical_ohlcv_for_this_day_pairs_into_separate_db_without_deleting_it_first.py",
+             "update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00.py"
             # 'execute_multiple_plot_files.py',
             # 'find_recent_jpeg_plot_files.py'
              ]
@@ -20,7 +22,7 @@ def update_find_models_plot_open_final_folder_16():
         subprocess.run([interpreter, file])
 if __name__=="__main__":
     start_time= time.time()
-    update_find_models_plot_open_final_folder_16()
+    update_find_models_plot_open_final_folder_00()
     end_time = time.time()
     overall_time = end_time - start_time
     print(f"start time={unix_to_human_time(start_time)}")

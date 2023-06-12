@@ -10,6 +10,7 @@ import sqlalchemy
 import psycopg2
 
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 # import talib
 import datetime
 import ccxt.async_support as ccxt  # noqa: E402
@@ -259,17 +260,17 @@ async def get_hisorical_data_from_exchange_for_many_symbols(exchange,
                         # data_df = populate_dataframe_with_td_indicator ( data_df )
 
                         data_df["exchange"] = exchange
-                        data_df["short_name"] = "short_name"
-                        data_df["country"] = "country"
-                        data_df["long_name"] = "long_name"
-                        data_df["sector"] = "sector"
-                        # data_df["long_business_summary"] = long_business_summary
-                        data_df["website"] = "website"
-                        data_df["quote_type"] = "quote_type"
-                        data_df["city"] = "city"
-                        data_df["exchange_timezone_name"] = "exchange_timezone_name"
-                        data_df["industry"] = "industry"
-                        data_df["market_cap"] = "market_cap"
+                        # data_df["short_name"] = "short_name"
+                        # data_df["country"] = "country"
+                        # data_df["long_name"] = "long_name"
+                        # data_df["sector"] = "sector"
+                        # # data_df["long_business_summary"] = long_business_summary
+                        # data_df["website"] = "website"
+                        # data_df["quote_type"] = "quote_type"
+                        # data_df["city"] = "city"
+                        # data_df["exchange_timezone_name"] = "exchange_timezone_name"
+                        # data_df["industry"] = "industry"
+                        # data_df["market_cap"] = "market_cap"
 
                         data_df.set_index("open_time")
 

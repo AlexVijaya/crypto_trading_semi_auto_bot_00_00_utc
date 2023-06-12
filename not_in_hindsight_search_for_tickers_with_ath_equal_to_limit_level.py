@@ -1,5 +1,6 @@
 from statistics import mean
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -679,6 +680,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 pd.read_sql_query ( f'''select * from "{stock_name}"''' ,
                                     engine_for_ohlcv_data_for_stocks )
 
+            # if the df is empty do not continue the current loop
+            if table_with_ohlcv_data_df.empty:
+                continue
+
+
             # number_of_available_days
             number_of_available_days = np.nan
             try:
@@ -689,7 +695,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 continue
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
-            short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
+            # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
@@ -870,7 +876,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                         get_date_with_and_without_time_from_timestamp(timestamp_of_bsu)
 
 
-
+                    short_name=""
                     df_with_level_atr_bpu_bsu_etc = \
                         get_df_ready_for_export_to_db_for_rebound_situations_off_ath(stock_name, exchange, short_name, all_time_low,
                                                       advanced_atr,
@@ -1099,7 +1105,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
         except:
             traceback.print_exc()
 
-    string_for_output = f"Список инструментов, в которых исторический максимум был подтвержден последним баром:\n" \
+    string_for_output = f"\nСписок инструментов, в которых исторический максимум был подтвержден последним баром:\n" \
                         f"{list_of_crypto_tickers_with_last_high_equal_to_ath_and_equal_to_limit_level}\n\n"
     # Use the function to create a text file with the text
     # in the subdirectory "current_rebound_breakout_and_false_breakout"

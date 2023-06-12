@@ -1,5 +1,6 @@
 from statistics import mean
 import pandas as pd
+
 import os
 import time
 import datetime
@@ -34,6 +35,14 @@ def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     taker_fee = ohlcv_data_df["taker_fee"].iat[-1]
     url_of_trading_pair = ohlcv_data_df["url_of_trading_pair"].iat[-1]
     return asset_type,maker_fee,taker_fee,url_of_trading_pair
+
+def get_bool_if_asset_is_traded_with_margin(ohlcv_data_df):
+    print("ohlcv_data_df2")
+    print(ohlcv_data_df.tail(10).to_string())
+    asset_is_traded_with_margin=ohlcv_data_df['trading_pair_is_traded_with_margin'].iat[-1]
+    print("asset_is_traded_with_margin1")
+    print(asset_is_traded_with_margin)
+    return asset_is_traded_with_margin
 
 def print_df_to_file(dataframe, subdirectory_name):
     series = dataframe.squeeze()
@@ -748,6 +757,10 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 pd.read_sql_query(f'''select * from "{stock_name}"''',
                                   engine_for_ohlcv_data_for_stocks)
 
+            # if the df is empty do not continue the current loop
+            if table_with_ohlcv_data_df.empty:
+                continue
+
             # number_of_available_days
             number_of_available_days = np.nan
             try:
@@ -764,7 +777,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             # print(list(table_with_ohlcv_data_df.columns))
 
             exchange = table_with_ohlcv_data_df.loc[0, "exchange"]
-            short_name = table_with_ohlcv_data_df.loc[0, 'short_name']
+            # short_name = table_with_ohlcv_data_df.loc[0, 'short_name']
 
             try:
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
@@ -859,11 +872,11 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             # print(f"Close of pre-breakout bar: {close_of_pre_breakout_bar}")
             # print(f"Volume of pre-breakout bar: {volume_of_pre_breakout_bar}")
 
-            if last_two_years_of_data.tail(30)['volume'].min() < 750:
-                continue
+            # if last_two_years_of_data.tail(30)['volume'].min() < 750:
+            #     continue
 
-            if close_of_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
-                continue
+            # if close_of_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
+            #     continue
 
             # find all time low in last_two_years_of_data_but_one_last_day
             all_time_low = last_two_years_of_data_but_two_last_days['low'].min()
@@ -941,17 +954,36 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
             print(f"6found_stock={stock_name}")
 
-            # проверяем поджатие
-            suppression_flag=True
-            last_n_highs = list(last_two_years_of_data['high'].tail(3))
+            # # проверяем поджатие
+            # suppression_flag=True
+            # last_n_highs = list(last_two_years_of_data['high'].tail(3))
+            # for i in range(len(last_n_highs) - 1):
+            #     if last_n_highs[i + 1] > last_n_highs[i]:
+            #         suppression_flag=False
+            #         break
+            # if suppression_flag==False:
+            #     continue
+            # print(f"last_n_highs_for_{stock_name}")
+            # print(last_n_highs)
+
+            # проверяем поджатие по хайам
+            number_of_bars_when_we_check_suppression_by_highs = 3
+            suppression_flag_for_highs = True
+            last_n_highs = list(last_two_years_of_data['high'].tail(number_of_bars_when_we_check_suppression_by_highs))
             for i in range(len(last_n_highs) - 1):
                 if last_n_highs[i + 1] > last_n_highs[i]:
-                    suppression_flag=False
+                    suppression_flag_for_highs = False
                     break
-            if suppression_flag==False:
-                continue
-            print(f"last_n_highs_for_{stock_name}")
-            print(last_n_highs)
+
+            # проверяем поджатие по закрытиям
+            number_of_bars_when_we_check_suppression_by_closes = 3
+            suppression_flag_for_closes = True
+            last_n_closes = list(
+                last_two_years_of_data['close'].tail(number_of_bars_when_we_check_suppression_by_closes))
+            for i in range(len(last_n_closes) - 1):
+                if last_n_closes[i + 1] > last_n_closes[i]:
+                    suppression_flag_for_closes = False
+                    break
 
 
 
@@ -961,7 +993,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             last_two_years_of_data_but_two_last_days_array = last_two_years_of_data_but_two_last_days.to_numpy()
 
             advanced_atr = \
-                calculate_atr_without_paranormal_bars_from_numpy_array(atr_over_this_period,
+                calculate_atr_without_paranormal_bars_from_numpy_array(advanced_atr_over_this_period,
                                                                        last_two_years_of_data_but_two_last_days_array,
                                                                        pre_breakout_bar_row_number)
 
@@ -1009,10 +1041,10 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             take_profit_when_sl_is_calculated_3_to_1 = sell_order - (calculated_stop_loss - sell_order) * 3
             take_profit_when_sl_is_calculated_4_to_1 = sell_order - (calculated_stop_loss - sell_order) * 4
             # round decimals for ease of looking at
-            sell_order = round(sell_order, 3)
-            calculated_stop_loss = round(calculated_stop_loss, 3)
-            take_profit_when_sl_is_calculated_3_to_1 = round(take_profit_when_sl_is_calculated_3_to_1, 3)
-            take_profit_when_sl_is_calculated_4_to_1 = round(take_profit_when_sl_is_calculated_4_to_1, 3)
+            # sell_order = round(sell_order, 3)
+            # calculated_stop_loss = round(calculated_stop_loss, 3)
+            # take_profit_when_sl_is_calculated_3_to_1 = round(take_profit_when_sl_is_calculated_3_to_1, 3)
+            # take_profit_when_sl_is_calculated_4_to_1 = round(take_profit_when_sl_is_calculated_4_to_1, 3)
 
             # plot all lines with advanced atr (stop loss is technical)
             technical_stop_loss = high_of_breakout_bar + (0.05 * advanced_atr)
@@ -1022,13 +1054,13 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             distance_between_technical_stop_loss_and_sell_order_in_atr = \
                 distance_between_technical_stop_loss_and_sell_order / advanced_atr
             # round technical stop loss and take profit for ease of looking at
-            technical_stop_loss = round(technical_stop_loss, 3)
-            take_profit_when_sl_is_technical_3_to_1 = \
-                round(take_profit_when_sl_is_technical_3_to_1, 3)
-            take_profit_when_sl_is_technical_4_to_1 = \
-                round(take_profit_when_sl_is_technical_4_to_1, 3)
-            distance_between_technical_stop_loss_and_sell_order_in_atr = \
-                round(distance_between_technical_stop_loss_and_sell_order_in_atr, 3)
+            # technical_stop_loss = round(technical_stop_loss, 3)
+            # take_profit_when_sl_is_technical_3_to_1 = \
+            #     round(take_profit_when_sl_is_technical_3_to_1, 3)
+            # take_profit_when_sl_is_technical_4_to_1 = \
+            #     round(take_profit_when_sl_is_technical_4_to_1, 3)
+            # distance_between_technical_stop_loss_and_sell_order_in_atr = \
+            #     round(distance_between_technical_stop_loss_and_sell_order_in_atr, 3)
 
             df_with_level_atr_bpu_bsu_etc = pd.DataFrame()
             df_with_level_atr_bpu_bsu_etc.loc[
@@ -1139,6 +1171,15 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "distance_between_technical_sl_and_sell_order_in_atr"] = distance_between_technical_stop_loss_and_sell_order_in_atr
 
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "suppression_by_highs"] = suppression_flag_for_highs
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "number_of_bars_when_we_check_suppression_by_highs"] = number_of_bars_when_we_check_suppression_by_highs
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "suppression_by_closes"] = suppression_flag_for_closes
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "number_of_bars_when_we_check_suppression_by_closes"] = number_of_bars_when_we_check_suppression_by_closes
+
             try:
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
                     get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
@@ -1148,6 +1189,13 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 df_with_level_atr_bpu_bsu_etc.loc[0,"taker_fee"] = taker_fee
                 df_with_level_atr_bpu_bsu_etc.loc[0,"url_of_trading_pair"] = url_of_trading_pair
                 df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
+                try:
+                    df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
+                        get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
+                    print("get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)")
+                    print(get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df))
+                except:
+                    traceback.print_exc()
             except:
                 traceback.print_exc()
 

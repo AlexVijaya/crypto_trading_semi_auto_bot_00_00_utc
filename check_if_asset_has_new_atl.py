@@ -1,4 +1,5 @@
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -35,9 +36,9 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_row
 from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
-from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_enginge_for_1600_ohlcv_database
-from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_enginge_for_0000_ohlcv_database
-
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_engine_for_1600_ohlcv_database
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_engine_for_0000_ohlcv_database
+from get_info_from_load_markets2 import get_all_time_high_low
 
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
@@ -182,7 +183,13 @@ def create_text_file_and_writ_text_to_it(text, subdirectory_name):
 
 
 
-
+def get_last_row_as_dataframe(df):
+    """
+    Creates a new data frame consisting of only the last row of the given data frame
+    """
+    last_row_index = df.index[-1]
+    last_row_df = df.loc[[last_row_index]]
+    return last_row_df
 
 def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_price,
                                           db_where_ohlcv_data_for_stocks_is_stored_0000,
@@ -306,12 +313,12 @@ def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_pri
             print ( "df_where_low_equals_atl" )
             print ( df_where_low_equals_atl )
             exchange=table_with_ohlcv_data_df["exchange"].iat[0]
-            short_name = table_with_ohlcv_data_df["short_name"].iat[0]
+            # short_name = table_with_ohlcv_data_df["short_name"].iat[0]
 
 
             levels_formed_by_atl_df.at[counter - 1 , "ticker"] = stock_name
             levels_formed_by_atl_df.at[counter - 1 , "exchange"] = exchange
-            levels_formed_by_atl_df.at[counter - 1 , "short_name"] = short_name
+            # levels_formed_by_atl_df.at[counter - 1 , "short_name"] = short_name
             levels_formed_by_atl_df.at[
                 counter - 1, "model"] = "Новый All Time Low"
             levels_formed_by_atl_df.at[counter - 1 , "atl"] = all_time_low_in_stock
@@ -529,6 +536,11 @@ def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_pri
 
             print("levels_formed_by_atl_df2")
             print(levels_formed_by_atl_df.to_string())
+            last_row_of_levels_formed_by_atl_df=get_last_row_as_dataframe(levels_formed_by_atl_df)
+            last_row_of_levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
+                                   engine_for_db_where_levels_formed_by_atl_will_be,
+                                   if_exists = 'append')
+
 
 
 
@@ -539,13 +551,14 @@ def check_if_asset_is_approaching_its_atl(percentage_between_atl_and_closing_pri
     # Use the function to create a text file with the text
     # in the subdirectory "current_rebound_breakout_and_false_breakout"
     create_text_file_and_writ_text_to_it(string_for_output, 'current_rebound_breakout_and_false_breakout')
-    levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
-                                   engine_for_db_where_levels_formed_by_atl_will_be,
-                                   if_exists = 'replace')
+    # levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
+    #                                engine_for_db_where_levels_formed_by_atl_will_be,
+    #                                if_exists = 'replace')
     print ( "levels_formed_by_atl_df" )
     print ( levels_formed_by_atl_df )
 
 if __name__=="__main__":
+    start_time = time.time()
     db_where_ohlcv_data_for_stocks_is_stored_0000="ohlcv_1d_data_for_usdt_pairs_0000"
     count_only_round_atl=False
     db_where_levels_formed_by_atl_will_be="levels_formed_by_highs_and_lows_for_cryptos_0000"
@@ -559,3 +572,11 @@ if __name__=="__main__":
                                                 count_only_round_atl,
                                               db_where_levels_formed_by_atl_will_be,
                                               table_where_levels_formed_by_atl_will_be)
+
+    end_time = time.time()
+    overall_time = end_time - start_time
+    print('overall time in minutes=', overall_time / 60.0)
+    print('overall time in hours=', overall_time / 3600.0)
+    print('overall time=', str(datetime.timedelta(seconds=overall_time)))
+    print('start_time=', start_time)
+    print('end_time=', end_time)

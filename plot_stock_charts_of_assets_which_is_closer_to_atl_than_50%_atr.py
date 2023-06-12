@@ -2,6 +2,7 @@ import shutil
 import time
 import os
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import datetime
 
 from pathlib import Path
@@ -756,7 +757,7 @@ if __name__=="__main__":
     name_of_folder_where_plots_will_be = 'asset_approaches_its_atl_closer_than_50percent_atr'
     db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_usdt_pairs_0000"
     db_where_levels_formed_by_fast_breakout_of_atl_are_stored="levels_formed_by_highs_and_lows_for_cryptos_0000"
-    table_where_levels_formed_by_fast_breakout_of_atl_are_stored = "current_asset_approaches_its_atl_closer_than_50percent_atr"
+    table_where_levels_formed_by_fast_breakout_of_atl_are_stored = "current_asset_approaches_its_atl_closer_than_n_percent_atr"
     try:
         plot_ohlcv_charts_with_breakout_of_atl_situations_entry_point_next_day (name_of_folder_where_plots_will_be,
                                                      db_where_ohlcv_data_for_stocks_is_stored,

@@ -10,6 +10,7 @@ import db_config
 import sqlalchemy
 import psycopg2
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 # import talib
 import datetime
 import ccxt
@@ -20,6 +21,7 @@ from pytz import timezone
 import pprint
 from verify_that_asset_has_enough_volume import check_volume
 from get_info_from_load_markets import get_asset_type2
+from get_info_from_load_markets import if_margin_true_for_an_asset
 from get_info_from_load_markets import get_fees
 from get_info_from_load_markets import fetch_huobipro_ohlcv
 from get_info_from_load_markets import get_active_trading_pairs_from_huobipro
@@ -379,8 +381,13 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     # else:
                     #data = exchange_object.fetch_ohlcv(trading_pair, timeframe, since=1293829200000)
                     asset_type=''
+                    if_margin_true_for_an_asset_bool=''
                     try:
                         asset_type=get_asset_type2(markets, trading_pair.replace("_", "/"))
+                        try:
+                            if_margin_true_for_an_asset_bool=if_margin_true_for_an_asset(markets, trading_pair.replace("_", "/"))
+                        except:
+                            traceback.print_exc()
                         print(f"asset_type for {trading_pair} on {exchange}")
 
                         print(asset_type)
@@ -453,10 +460,27 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
 
                     data_df['ticker'] = trading_pair
                     data_df['exchange'] = exchange
+                    try:
+                        # add volume multiplied by low
+                        data_df["volume*low"] = data_df["volume"] * data_df["low"]
+                    except:
+                        traceback.print_exc()
+
+                    try:
+                        # add volume multiplied by close
+                        data_df["volume*close"] = data_df["volume"] * data_df["close"]
+                    except:
+                        traceback.print_exc()
                     # print("markets[trading_pair]")
 
                     # print(markets[trading_pair])
 
+
+                    #if trading pair is traded with margin
+                    try:
+                        data_df['trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
+                    except:
+                        data_df['trading_pair_is_traded_with_margin'] = np.nan
 
                     # add asset type to df
                     try:
@@ -547,6 +571,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                             url_of_trading_pair = \
                                 get_perpetual_swap_url(exchange, trading_pair.replace("_", "/"))
                             data_df['url_of_trading_pair'] = url_of_trading_pair
+                            data_df['trading_pair_is_traded_with_margin'] = True
                         except:
                             data_df['url_of_trading_pair'] = np.nan
                             traceback.print_exc()
@@ -582,14 +607,15 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
 
                     # #проверить, что объем за последние n дней не меньше, чем 1 цены биткойна
                     min_volume_over_these_many_last_days = 7
-                    min_volume_in_bitcoin=4
-                    asset_has_enough_volume=True
+                    min_volume_in_bitcoin=3
+
                     asset_has_enough_volume=check_volume(trading_pair,
                                                          min_volume_over_these_many_last_days,
                                                          data_df,
                                                          min_volume_in_bitcoin,
                                                          last_bitcoin_price)
                     if not asset_has_enough_volume:
+                        print(f"not enough volume in {trading_pair}")
                         continue
 
 
@@ -638,18 +664,18 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
 
                     data_df["exchange"] = exchange
                     print("5program got here")
-                    data_df["short_name"] = np.nan
-                    print("6program got here")
-                    data_df["country"] = np.nan
-                    data_df["long_name"] = np.nan
-                    data_df["sector"] = np.nan
+                    # data_df["short_name"] = np.nan
+                    # print("6program got here")
+                    # data_df["country"] = np.nan
+                    # data_df["long_name"] = np.nan
+                    # data_df["sector"] = np.nan
                     # data_df["long_business_summary"] = long_business_summary
-                    data_df["website"] = np.nan
-                    data_df["quote_type"] = np.nan
-                    data_df["city"] = np.nan
-                    data_df["exchange_timezone_name"] = np.nan
-                    data_df["industry"] = np.nan
-                    data_df["market_cap"] = np.nan
+                    # data_df["website"] = np.nan
+                    # data_df["quote_type"] = np.nan
+                    # data_df["city"] = np.nan
+                    # data_df["exchange_timezone_name"] = np.nan
+                    # data_df["industry"] = np.nan
+                    # data_df["market_cap"] = np.nan
 
                     data_df.set_index("open_time")
                     # try:
@@ -809,10 +835,11 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
     # await asyncio.gather(*coroutines, return_exceptions = True)
     #
     for exchange in exchanges_list:
-        if exchange not in ['binance', 'bybit',
-                            'mexc3','bitfinex',
-                            'bitfinex2','exmo','gateio','kucoin','coinex']:
-            continue
+        # if exchange not in ['binance', 'bybit',
+        #                     'mexc3','bitfinex',
+        #                     'bitfinex2','exmo','gateio','kucoin','coinex',"bitmart",
+        #                     "bkex","whitebit"]:
+        #     continue
 
         # if exchange!="bitfinex" or exchange!="bitfinex2":
         #     continue

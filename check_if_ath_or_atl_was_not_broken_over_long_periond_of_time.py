@@ -2,12 +2,450 @@ import traceback
 
 import numpy as np
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 from sqlalchemy import inspect
 from sqlalchemy import create_engine
 import db_config
 from sqlalchemy_utils import create_database,database_exists
 from collections import Counter
+from get_info_from_load_markets2 import get_all_time_high_low
+from get_info_from_load_markets2 import get_all_time_low_from_some_exchange
+from get_info_from_load_markets2 import get_all_time_high_from_some_exchange
+from get_info_from_load_markets2 import get_exchange_object2
+from get_info_from_load_markets import fetch_entire_ohlcv
+from get_info_from_load_markets import fetch_entire_ohlcv_without_exchange_name
+from async_update_historical_USDT_pairs_for_1D import connect_to_postgres_db_without_deleting_it_first
+from async_update_historical_USDT_pairs_for_1D import get_list_of_tables_in_db
+# def split_and_remove_letters(string_with_letters):
+#     # Split the list on "_"
+#     split_lst = string_with_letters.split("_")
+#
+#     # Remove elements that contain letters
+#     split_lst_without_letters = [elem for elem in split_lst if not any(char.isalpha() for char in elem)]
+#
+#     return split_lst_without_letters
 
+# def split_and_remove_letters(string_with_letters):
+#     # Split the list on "_"
+#     split_lst = string_with_letters.split("_")
+#
+#     # Remove elements that contain letters
+#     split_lst_without_letters = [elem for elem in split_lst if not (any(char.isalpha() for char in elem) and not (len(elem)==1 and elem=="e"))]
+#
+#     return split_lst_without_letters
+
+def split_and_remove_letters(string_with_letters):
+    # Split the list on "_"
+    split_lst = string_with_letters.split("_")
+
+    # Remove elements that contain letters
+    split_lst_without_letters = [elem for elem in split_lst if not (any(char.isalpha() for char in elem) and not ("e-" in elem))]
+
+    return split_lst_without_letters
+
+def convert_to_string(lst):
+    return [str(x) for x in lst]
+def remove_all_on(values_and_exchanges):
+    return [value for value in values_and_exchanges if value != "on"]
+def remove_outliers_from_string(string, outliers):
+    # Split the string into a list of values and exchanges
+    values_and_exchanges = string.split('_')
+    values_and_exchanges=remove_all_on(values_and_exchanges)
+    outliers=convert_to_string(outliers)
+
+    print("values_and_exchanges")
+    print(values_and_exchanges)
+    # Initialize a list to store the removed exchange names
+    removed_exchanges = []
+
+    # Remove outliers and associated exchanges from the list
+    for outlier in outliers:
+        if outlier in values_and_exchanges:
+            index = values_and_exchanges.index(outlier)
+            print(f"index of {outlier}")
+            print(index)
+            exchange = values_and_exchanges[index + 1]
+            popped_out_exchange=values_and_exchanges.pop(index + 1)
+            print("popped_out_exchange")
+            print(popped_out_exchange)
+            popped_out_last_close_price=values_and_exchanges.pop(index)
+            print("popped_out_last_close_price")
+            print(popped_out_last_close_price)
+
+            removed_exchanges.append(exchange)
+
+    # Join the remaining values and exchanges into a string
+    modified_string = '_'.join(values_and_exchanges)
+
+    # Return the modified string and the list of removed exchange names
+    return (modified_string, removed_exchanges)
+
+
+def remove_outliers_from_string_some_value_plus_exchange(string, outlier_exchanges):
+    # Split the string into a list of values and exchanges
+    values_and_exchanges = string.split('_')
+    values_and_exchanges=remove_all_on(values_and_exchanges)
+    # outliers=convert_to_string(outliers)
+
+    print("values_and_exchanges")
+    print(values_and_exchanges)
+    # Initialize a list to store the removed exchange names
+    removed_exchanges = []
+
+    # Remove outliers and associated exchanges from the list
+    for outlier_exchange in outlier_exchanges:
+        if outlier_exchange in values_and_exchanges:
+            index = values_and_exchanges.index(outlier_exchange)
+            print(f"index of {outlier_exchange}")
+            print(index)
+            exchange = values_and_exchanges[index]
+            popped_out_exchange = values_and_exchanges.pop(index)
+            print("popped_out_exchange")
+            print(popped_out_exchange)
+
+            popped_out_value_before_exchange=values_and_exchanges.pop(index - 1)
+            print("popped_out_value_before_exchange")
+            print(popped_out_value_before_exchange)
+
+
+            removed_exchanges.append(exchange)
+
+    # Join the remaining values and exchanges into a string
+    modified_string = '_'.join(values_and_exchanges)
+
+    # Return the modified string and the list of removed exchange names
+    return (modified_string, removed_exchanges)
+def remove_outliers_return_excluded_and_included_values(lst):
+    # Calculate median
+    median = float(sum(lst))/len(lst)
+    # Calculate absolute elements
+    absolute_deviation = [abs(x - median) for x in lst]
+    median_absolute_deviation = float(sum(absolute_deviation))/len(absolute_deviation)
+    # calculate modified z-score
+    modified_z_scores = [0.6745 * (x - median) / median_absolute_deviation
+                       for x in lst]
+    modified_z_scores = [abs(z_score) for z_score in modified_z_scores]
+    # Calculate max threshold
+    max_threshold = 3
+    excluded_outliers = [x for (x, m, le) in
+                       zip(lst, modified_z_scores, absolute_deviation)
+                       if m > max_threshold or le > median*1.3]
+    # Remove outliers
+    included_in_list = [x for x in lst if x not in excluded_outliers]
+    return excluded_outliers,included_in_list
+def remove_outliers(lst):
+    # Calculate median
+    median = float(sum(lst))/len(lst)
+    # Calculate absolute elements
+    absolute_deviation = [abs(x - median) for x in lst]
+    median_absolute_deviation = float(sum(absolute_deviation))/len(absolute_deviation)
+    # calculate modified z-score
+    modified_z_scores = [0.6745 * (x - median) / median_absolute_deviation
+                       for x in lst]
+    modified_z_scores = [abs(z_score) for z_score in modified_z_scores]
+    # Calculate max threshold
+    max_threshold = 2
+    excluded_outliers = [x for (x, m, le) in
+                       zip(lst, modified_z_scores, absolute_deviation)
+                       if m > max_threshold or le > median*1.3]
+    # Remove outliers
+    included_in_list = [x for x in lst if x not in excluded_outliers]
+    return included_in_list
+def generate_min_volume_ath_atl_plus_exchange_string(
+        exchange_id_string_where_trading_pair_is_traded,
+        stock_name):
+    # add_min_volume_on_each_exchange
+
+    string_of_number_of_available_days_from_all_exchanges=""
+    string_of_number_of_available_days_from_all_exchanges_plus_exchange = ""
+    string_all_volumes_by_low_on_which_exchange = ""
+    string_all_atls_on_which_exchange=""
+    string_all_aths_on_which_exchange=""
+    string_all_atls_without_exchange = ""
+    string_all_aths_without_exchange = ""
+    string_of_last_close_prices_on_all_exchanges=''
+    string_of_last_close_prices_on_all_exchanges_with_exchanges = ''
+    string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers=''
+
+    try:
+        list_of_absolutely_all_exchange_ids_where_pair_is_traded = exchange_id_string_where_trading_pair_is_traded.split(
+            "_")
+        print("list_of_absolutely_all_exchange_ids_where_pair_is_traded5")
+        print(list_of_absolutely_all_exchange_ids_where_pair_is_traded)
+        # list_of_all_aths_from_all_exchanges = []
+        list_of_all_volumes_by_low_from_all_exchanges = []
+        list_of_all_atls_from_all_exchanges=[]
+        list_of_all_aths_from_all_exchanges=[]
+        list_of_all_aths_from_all_exchanges_without_exchange=[]
+        list_of_all_atls_from_all_exchanges_without_exchange = []
+        list_last_close_prices_on_all_exchanges=[]
+        list_last_close_prices_on_all_exchanges_with_exchanges = []
+        list_last_close_prices_on_all_exchanges_in_float=[]
+        list_of_all_last_close_prices_without_outliers = []
+        list_of_all_last_close_prices_only_outliers=[]
+        list_exchanges_where_the_pair_is_different=[]
+        list_of_number_of_available_days_from_all_exchanges=[]
+        list_of_number_of_available_days_from_all_exchanges_plus_exchange=[]
+
+        for exchange_id in list_of_absolutely_all_exchange_ids_where_pair_is_traded:
+            exchange_object = get_exchange_object2(exchange_id)
+            crypto_pair_name = stock_name.split("_on_")[0]
+            crypto_pair_name = crypto_pair_name.replace("_", "/")
+            print("crypto_pair_name4")
+            print(crypto_pair_name)
+
+            try:
+                if ":" in crypto_pair_name:
+                    exchange_object.load_markets()
+                    if crypto_pair_name not in exchange_object.symbols:
+                        print("crypto_pair_name5")
+                        print(crypto_pair_name)
+                        # find not swap but spot ath and ath if swap on this exchange is not traded
+                        crypto_pair_name = crypto_pair_name.split(":")[0]
+            except:
+                traceback.print_exc()
+            try:
+                # atl_from_some_other_exchange = \
+                #     get_all_time_low_from_some_exchange(exchange_object, crypto_pair_name)
+                min_volume_over_this_many_days_in_dollars = 7
+
+                number_of_available_days_from_one_exchange,\
+                    min_volume_over_last_several_days_in_dollars,\
+                    ath_in_df, atl_in_df,last_close_price = \
+                    min_volume_ath_and_atl(exchange_object, crypto_pair_name, min_volume_over_this_many_days_in_dollars)
+
+                if min_volume_over_last_several_days_in_dollars > 1:
+                    min_volume_over_last_several_days_in_dollars = int(min_volume_over_last_several_days_in_dollars)
+
+                # list_of_all_min_volumes on different_exchanges
+                list_of_all_volumes_by_low_from_all_exchanges.append(
+                    str(min_volume_over_last_several_days_in_dollars) + "_on_" + exchange_id)
+                # string_list_of_aths = '_'.join([str(x) for x in list_of_all_aths_from_all_exchanges])
+                string_all_volumes_by_low_on_which_exchange = '_'.join(
+                    [str(x) for x in list_of_all_volumes_by_low_from_all_exchanges])
+
+                #######################################################
+                list_of_number_of_available_days_from_all_exchanges_plus_exchange.append(
+                    str(number_of_available_days_from_one_exchange) + "_on_" + exchange_id)
+                string_of_number_of_available_days_from_all_exchanges_plus_exchange = '_'.join(
+                    [str(x) for x in list_of_number_of_available_days_from_all_exchanges_plus_exchange])
+
+                list_of_number_of_available_days_from_all_exchanges.append(
+                    str(number_of_available_days_from_one_exchange))
+                string_of_number_of_available_days_from_all_exchanges = '_'.join(
+                    [str(x) for x in list_of_number_of_available_days_from_all_exchanges])
+                #######################################################
+
+
+                # list_of_all_aths_from_all_exchanges
+                list_of_all_aths_from_all_exchanges.append(
+                    str(ath_in_df) + "_on_" + exchange_id)
+                # string_list_of_aths = '_'.join([str(x) for x in list_of_all_aths_from_all_exchanges])
+                string_all_aths_on_which_exchange = '_'.join(
+                    [str(x) for x in list_of_all_aths_from_all_exchanges])
+
+                # list_of_all_aths_from_all_exchanges without exchange
+                list_of_all_aths_from_all_exchanges_without_exchange.append(
+                    str(ath_in_df))
+                # string_list_of_aths = '_'.join([str(x) for x in list_of_all_aths_from_all_exchanges])
+                string_all_aths_without_exchange = '_'.join(
+                    [str(x) for x in list_of_all_aths_from_all_exchanges_without_exchange])
+
+                # list_of_all_atls_from_all_exchanges
+                list_of_all_atls_from_all_exchanges.append(
+                    str(atl_in_df) + "_on_" + exchange_id)
+                # string_list_of_aths = '_'.join([str(x) for x in list_of_all_aths_from_all_exchanges])
+                string_all_atls_on_which_exchange = '_'.join(
+                    [str(x) for x in list_of_all_atls_from_all_exchanges])
+
+                # list_of_all_atls_from_all_exchanges without exchange
+                list_of_all_atls_from_all_exchanges_without_exchange.append(
+                    str(atl_in_df))
+
+
+                # string_list_of_aths = '_'.join([str(x) for x in list_of_all_aths_from_all_exchanges])
+                string_all_atls_without_exchange = '_'.join(
+                    [str(x) for x in list_of_all_atls_from_all_exchanges_without_exchange])
+
+                ########################################
+                ######################################
+                list_last_close_prices_on_all_exchanges.append(
+                    str(last_close_price))
+
+                list_last_close_prices_on_all_exchanges_in_float.append(last_close_price)
+
+                string_of_last_close_prices_on_all_exchanges='_'.join(
+                    [str(x) for x in list_last_close_prices_on_all_exchanges])
+
+                list_last_close_prices_on_all_exchanges_with_exchanges.append(
+                    str(last_close_price) + "_on_" + exchange_id)
+
+                string_of_last_close_prices_on_all_exchanges_with_exchanges = '_'.join(
+                    [str(x) for x in list_last_close_prices_on_all_exchanges_with_exchanges])
+
+
+
+            except:
+                traceback.print_exc()
+
+        list_of_all_last_close_prices_only_outliers, \
+            list_of_all_last_close_prices_without_outliers = \
+            remove_outliers_return_excluded_and_included_values(
+                list_last_close_prices_on_all_exchanges_in_float)
+
+        print(f"list_last_close_prices_on_all_exchanges_in_float for {stock_name}")
+        print(list_last_close_prices_on_all_exchanges_in_float)
+        print(f"list_of_all_last_close_prices_without_outliers for {stock_name}")
+        print(list_of_all_last_close_prices_without_outliers)
+        print(f"list_of_all_last_close_prices_only_outliers for {stock_name}")
+        print(list_of_all_last_close_prices_only_outliers)
+
+        ###############################################
+        string_of_number_of_available_days_from_all_exchanges_plus_exchange_without_outliers, \
+            list_exchanges_where_the_pair_is_different = \
+            remove_outliers_from_string(string_of_number_of_available_days_from_all_exchanges_plus_exchange,
+                                        list_of_all_last_close_prices_only_outliers)
+        list_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers = \
+            split_and_remove_letters(string_of_number_of_available_days_from_all_exchanges_plus_exchange_without_outliers)
+        string_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers = '_'.join(
+            [str(x) for x in list_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers])
+        ###############################################
+
+        string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers,\
+            list_exchanges_where_the_pair_is_different=\
+            remove_outliers_from_string(string_of_last_close_prices_on_all_exchanges_with_exchanges,
+                                        list_of_all_last_close_prices_only_outliers)
+        list_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers=\
+            split_and_remove_letters(string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers)
+        string_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers = '_'.join(
+            [str(x) for x in list_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers])
+
+        print(f"string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers for {stock_name}")
+        print(string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers)
+        print(f"exchanges_where_the_pair_is_different for {stock_name}")
+        print(list_exchanges_where_the_pair_is_different)
+
+        string_all_volumes_by_low_on_which_exchange_without_outlier=\
+            remove_outliers_from_string_some_value_plus_exchange(
+                string_all_volumes_by_low_on_which_exchange, list_exchanges_where_the_pair_is_different)[0]
+        list_of_all_volumes_by_low_without_exchange_without_outlier=\
+            split_and_remove_letters(string_all_volumes_by_low_on_which_exchange_without_outlier)
+        string_all_volumes_by_low_without_exchange_without_outlier = '_'.join(
+            [str(x) for x in list_of_all_volumes_by_low_without_exchange_without_outlier])
+
+        print(f"string_all_volumes_by_low_without_exchange_without_outlier for {stock_name}")
+        print(string_all_volumes_by_low_without_exchange_without_outlier)
+
+
+        print(f"string_all_volumes_by_low_on_which_exchange_without_outlier for {stock_name}")
+        print(string_all_volumes_by_low_on_which_exchange_without_outlier)
+
+        string_all_atls_on_which_exchange_without_outlier = \
+            remove_outliers_from_string_some_value_plus_exchange(
+                string_all_atls_on_which_exchange, list_exchanges_where_the_pair_is_different)[0]
+        list_of_all_atls_without_exchange_without_outlier = \
+            split_and_remove_letters(string_all_atls_on_which_exchange_without_outlier)
+        string_all_atls_without_exchange_without_outlier = '_'.join(
+            [str(x) for x in list_of_all_atls_without_exchange_without_outlier])
+
+        print(f"string_all_atls_on_which_exchange_without_outlier for {stock_name}")
+        print(string_all_atls_on_which_exchange_without_outlier)
+
+        string_all_aths_on_which_exchange_without_outlier = \
+            remove_outliers_from_string_some_value_plus_exchange(
+                string_all_aths_on_which_exchange, list_exchanges_where_the_pair_is_different)[0]
+        list_of_all_aths_without_exchange_without_outlier = \
+            split_and_remove_letters(string_all_aths_on_which_exchange_without_outlier)
+        string_all_aths_without_exchange_without_outlier='_'.join(
+                    [str(x) for x in list_of_all_aths_without_exchange_without_outlier])
+
+        print(f"string_all_aths_on_which_exchange_without_outlier for {stock_name}")
+        print(string_all_aths_on_which_exchange_without_outlier)
+
+
+
+
+
+        return string_of_number_of_available_days_from_all_exchanges_plus_exchange_without_outliers,\
+            string_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers,\
+            string_all_volumes_by_low_on_which_exchange, \
+            string_all_volumes_by_low_on_which_exchange_without_outlier, \
+            string_all_volumes_by_low_without_exchange_without_outlier,\
+            string_all_aths_on_which_exchange, \
+            string_all_aths_without_exchange, \
+            string_all_aths_on_which_exchange_without_outlier, \
+            string_all_aths_without_exchange_without_outlier, \
+            string_all_atls_on_which_exchange, \
+            string_all_atls_without_exchange, \
+            string_all_atls_on_which_exchange_without_outlier, \
+            string_all_atls_without_exchange_without_outlier, \
+            string_of_last_close_prices_on_all_exchanges,\
+            string_of_last_close_prices_on_all_exchanges_with_exchanges, \
+            string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers,\
+            string_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers
+
+    except:
+        traceback.print_exc()
+        return string_all_volumes_by_low_on_which_exchange
+
+database_name="ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+engine_for_db_with_todays_ohlcv1, connection_to_ohlcv_for_usdt_pairs1 = \
+    connect_to_postgres_db_without_deleting_it_first(database_name)
+
+list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db=get_list_of_tables_in_db(engine_for_db_with_todays_ohlcv1)
+
+def min_volume_ath_and_atl(exchange_object, crypto_pair_name, min_volume_over_this_many_days_in_dollars):
+
+    # ohclv = exchange_object.fetch_ohlcv(crypto_pair_name,"1d")
+    # df = pd.DataFrame(ohclv, columns=['Timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    timeframe="1d"
+    limit_of_daily_candles=1000
+
+    # database_name="ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+    # engine_for_db_with_todays_ohlcv, connection_to_ohlcv_for_todays_usdt_pairs = \
+    #     connect_to_postgres_db_without_deleting_it_first(database_name)
+
+    table_with_ohlcv_table = crypto_pair_name.replace("/", "_") + "_on_" + exchange_object.id
+
+    df=pd.DataFrame()
+    if table_with_ohlcv_table in list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db:
+        try:
+            global engine_for_db_with_todays_ohlcv1
+
+
+            df = \
+                pd.read_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
+                                  engine_for_db_with_todays_ohlcv1)
+            print("df found in ohlcv database")
+        except:
+            print(f"123problem with {crypto_pair_name} on {exchange_object.id}")
+            traceback.print_exc()
+    else:
+        print(f"fetching {crypto_pair_name} on {exchange_object.id} because it is not in ohlcv db")
+        df=fetch_entire_ohlcv_without_exchange_name(
+            exchange_object,crypto_pair_name, timeframe,limit_of_daily_candles)
+
+    # df_last_several_days_copy=pd.DataFrame(columns=["volume_by_low"])
+    number_of_available_days_from_one_exchange=len(df)
+
+    df_last_several_days=df.tail(min_volume_over_this_many_days_in_dollars)
+    df_last_several_days_without_last_row=df_last_several_days.head(min_volume_over_this_many_days_in_dollars-1)
+    df_last_several_days_copy = df_last_several_days_without_last_row.copy()
+    df_last_several_days_copy["volume_by_low"]=df_last_several_days["volume"]*df_last_several_days["low"]
+    min_volume_in_a_week = min(df_last_several_days_copy["volume_by_low"])
+
+    ath_in_df = max(df["high"])
+    atl_in_df = min(df["low"])
+
+
+    last_close_price=df["close"].iat[-1]
+
+
+
+    print(f"df_last_several_days_copy on {exchange_object} with min volume in usd = {min_volume_in_a_week}")
+    print(df_last_several_days_copy.to_string())
+
+    return number_of_available_days_from_one_exchange, min_volume_in_a_week, ath_in_df, atl_in_df, last_close_price
 def drop_duplicates_in_string_in_which_names_are_separated_by_underscores(string):
     unique_items = []
     for item in string.split('_'):
@@ -24,7 +462,7 @@ def get_list_of_all_tables_in_1600_ohlcv_df(engine_for_ohlcv_data_for_stocks_160
     list_of_tables_in_ohlcv_db_1600 = \
             get_list_of_tables_in_db(engine_for_ohlcv_data_for_stocks_1600)
     return list_of_tables_in_ohlcv_db_1600
-def get_enginge_for_0000_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_0000):
+def get_engine_for_0000_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_0000):
     # db_where_ohlcv_data_for_stocks_is_stored_1600 = "ohlcv_1d_data_for_usdt_pairs_1600"
     engine_for_ohlcv_data_for_stocks_0000 , \
     connection_to_ohlcv_data_for_stocks = \
@@ -35,7 +473,7 @@ def get_enginge_for_0000_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored
     #     connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored_1600)
     return engine_for_ohlcv_data_for_stocks_0000
 
-def get_enginge_for_1600_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_1600):
+def get_engine_for_1600_ohlcv_database(db_where_ohlcv_data_for_stocks_is_stored_1600):
     # db_where_ohlcv_data_for_stocks_is_stored_1600 = "ohlcv_1d_data_for_usdt_pairs_1600"
     # engine_for_ohlcv_data_for_stocks_0000 , \
     # connection_to_ohlcv_data_for_stocks = \
@@ -270,14 +708,40 @@ def fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
         except:
             traceback.print_exc()
 
+        # add_min_volume_on_each_exchange
+        ######################################
+        string_of_number_of_available_days_from_all_exchanges_plus_exchange_without_outliers, \
+            string_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers, \
+            string_all_volumes_by_low_on_which_exchange, \
+            string_all_volumes_by_low_on_which_exchange_without_outlier, \
+            string_all_volumes_by_low_without_exchange_without_outlier, \
+            string_all_aths_on_which_exchange, \
+            string_all_aths_without_exchange, \
+            string_all_aths_on_which_exchange_without_outlier, \
+            string_all_aths_without_exchange_without_outlier, \
+            string_all_atls_on_which_exchange, \
+            string_all_atls_without_exchange, \
+            string_all_atls_on_which_exchange_without_outlier, \
+            string_all_atls_without_exchange_without_outlier, \
+            string_of_last_close_prices_on_all_exchanges, \
+            string_of_last_close_prices_on_all_exchanges_with_exchanges, \
+            string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers, \
+            string_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers = generate_min_volume_ath_atl_plus_exchange_string(
+            exchange_id_string_where_trading_pair_is_traded,
+            stock_name)
+        ######################################
+
         levels_formed_by_ath_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_exchanges_where_level_had_been_broken"] = counter_of_number_of_exchanges_where_level_had_been_broken
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_exchanges_from_db_where_level_had_been_broken"] = counter_of_number_of_exchanges_where_level_had_been_broken
+        print("levels_formed_by_ath_df4")
+        print(levels_formed_by_ath_df.to_string())
+
         levels_formed_by_ath_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_where_level_was_broken"] = string_of_exchanges_where_level_was_broken
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_from_db_where_level_was_broken"] = string_of_exchanges_where_level_was_broken
         levels_formed_by_ath_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_where_level_was_not_broken"] = string_of_exchanges_where_level_was_not_broken
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_from_db_where_level_was_not_broken"] = string_of_exchanges_where_level_was_not_broken
         levels_formed_by_ath_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_all_exchanges_where_pair_is_traded"] = string_of_all_exchanges_where_pair_is_traded
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_all_exchanges_from_db_where_pair_is_traded"] = string_of_all_exchanges_where_pair_is_traded
 
         ########################
         levels_formed_by_ath_df.at[
@@ -287,6 +751,46 @@ def fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
         levels_formed_by_ath_df.at[
             row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_exchanges_where_pair_is_traded_on"] = number_of_exchanges_where_pair_is_traded_on
         ########################
+        ########################
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_volumes_by_low_on_which_exchange"] = string_all_volumes_by_low_on_which_exchange
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_volumes_by_low_on_which_exchange_without_outlier"] = string_all_volumes_by_low_on_which_exchange_without_outlier
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_volumes_by_low_without_exchange_without_outlier"] = string_all_volumes_by_low_without_exchange_without_outlier
+
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_on_which_exchange"] = string_all_aths_on_which_exchange
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_without_exchange"] = string_all_aths_without_exchange
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_on_which_exchange_without_outlier"] = string_all_aths_on_which_exchange_without_outlier
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_without_exchange_without_outlier"] = string_all_aths_without_exchange_without_outlier
+
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_on_which_exchange"] = string_all_atls_on_which_exchange
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_without_exchange"] = string_all_atls_without_exchange
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_on_which_exchange_without_outlier"] = string_all_atls_on_which_exchange_without_outlier
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_without_exchange_without_outlier"] = string_all_atls_without_exchange_without_outlier
+
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_last_close_prices_on_all_exchanges"] = string_of_last_close_prices_on_all_exchanges
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_last_close_prices_on_all_exchanges_with_exchanges"] = string_of_last_close_prices_on_all_exchanges_with_exchanges
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "last_close_on_all_exchanges_with_exchanges_without_outliers"] = string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "last_close_on_all_exchanges_without_exchanges_without_outliers"] = string_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers
+
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_available_days_plus_exchange_without_outliers"] = string_of_number_of_available_days_from_all_exchanges_plus_exchange_without_outliers
+        levels_formed_by_ath_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_available_days_without_exchange_without_outliers"] = string_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers
+
     except:
         traceback.print_exc()
 
@@ -338,6 +842,10 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
         #######################################################################################################
         # get base of trading pair
         base = get_base_of_trading_pair(trading_pair=stock_name)
+        print("base12")
+        print(base)
+        # df_with_strings_of_exchanges_where_pair_is_traded["base_of_trading_pair"]=base
+
 
         #########################################################
         # find row where base is equal to base from df_with_strings_of_exchanges_where_pair_is_traded
@@ -345,6 +853,7 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
         exchange_names_string_where_trading_pair_is_traded = ""
         number_of_exchanges_where_pair_is_traded_on = np.nan
         try:
+
             df_with_strings_of_exchanges_where_pair_is_traded.set_index("base_of_trading_pair", inplace=True)
             exchange_id_string_where_trading_pair_is_traded = \
                 df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "exchanges_where_pair_is_traded"]
@@ -352,6 +861,11 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
                 df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "unique_exchanges_where_pair_is_traded"]
             number_of_exchanges_where_pair_is_traded_on = \
                 df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "number_of_exchanges_where_pair_is_traded_on"]
+
+
+
+
+
 
             print("exchange_id_string_where_trading_pair_is_traded")
             print(exchange_id_string_where_trading_pair_is_traded)
@@ -511,15 +1025,130 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
         except:
             traceback.print_exc()
 
-        levels_formed_by_atl_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_exchanges_where_level_had_been_broken"] = counter_of_number_of_exchanges_where_level_had_been_broken
-        levels_formed_by_atl_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_where_level_was_broken"] = string_of_exchanges_where_level_was_broken
-        levels_formed_by_atl_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_where_level_was_not_broken"] = string_of_exchanges_where_level_was_not_broken
-        levels_formed_by_atl_df.at[
-            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_all_exchanges_where_pair_is_traded"] = string_of_all_exchanges_where_pair_is_traded
+        # # create two strings of aths and atls on all exchanges where pair is traded
+        # string_list_of_aths = ""
+        # string_list_of_atls = ""
+        # try:
+        #     list_of_absolutely_all_exchange_ids_where_pair_is_traded = exchange_id_string_where_trading_pair_is_traded.split(
+        #         "_")
+        #     print("list_of_absolutely_all_exchange_ids_where_pair_is_traded5")
+        #     print(list_of_absolutely_all_exchange_ids_where_pair_is_traded)
+        #     # list_of_all_aths_from_all_exchanges = []
+        #     list_of_all_atls_from_all_exchanges = []
+        #     for exchange_id in list_of_absolutely_all_exchange_ids_where_pair_is_traded:
+        #         exchange_object = get_exchange_object2(exchange_id)
+        #         crypto_pair_name=stock_name.split("_on_")[0]
+        #         crypto_pair_name=crypto_pair_name.replace("_","/")
+        #         print("crypto_pair_name4")
+        #         print(crypto_pair_name)
+        #
+        #         try:
+        #             if ":" in crypto_pair_name:
+        #                 exchange_object.load_markets()
+        #                 if crypto_pair_name not in exchange_object.symbols:
+        #                     print("crypto_pair_name5")
+        #                     print(crypto_pair_name)
+        #                     #find not swap but spot ath and ath if swap on this exchange is not traded
+        #                     crypto_pair_name=crypto_pair_name.split(":")[0]
+        #         except:
+        #             traceback.print_exc()
+        #         try:
+        #             atl_from_some_other_exchange = \
+        #                 get_all_time_low_from_some_exchange(exchange_object, crypto_pair_name)
+        #             print("atl_from_some_other_exchange2")
+        #             print(atl_from_some_other_exchange)
+        #             # list_of_all_aths_from_all_exchanges.append(ath_from_some_other_exchange)
+        #             list_of_all_atls_from_all_exchanges.append(atl_from_some_other_exchange)
+        #             # string_list_of_aths = '_'.join([str(x) for x in list_of_all_aths_from_all_exchanges])
+        #             string_list_of_atls = '_'.join([str(x) for x in list_of_all_atls_from_all_exchanges])
+        #         except:
+        #             traceback.print_exc()
+        #
+        # except:
+        #     traceback.print_exc()
 
+        # add_min_volume_on_each_exchange
+        ######################################
+        string_of_number_of_available_days_from_all_exchanges_plus_exchange_without_outliers, \
+            string_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers, \
+            string_all_volumes_by_low_on_which_exchange, \
+            string_all_volumes_by_low_on_which_exchange_without_outlier, \
+            string_all_volumes_by_low_without_exchange_without_outlier, \
+            string_all_aths_on_which_exchange, \
+            string_all_aths_without_exchange, \
+            string_all_aths_on_which_exchange_without_outlier, \
+            string_all_aths_without_exchange_without_outlier, \
+            string_all_atls_on_which_exchange, \
+            string_all_atls_without_exchange, \
+            string_all_atls_on_which_exchange_without_outlier, \
+            string_all_atls_without_exchange_without_outlier, \
+            string_of_last_close_prices_on_all_exchanges, \
+            string_of_last_close_prices_on_all_exchanges_with_exchanges, \
+            string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers, \
+            string_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers = generate_min_volume_ath_atl_plus_exchange_string(
+            exchange_id_string_where_trading_pair_is_traded,
+            stock_name)
+
+        # try:
+        #     list_of_absolutely_all_exchange_ids_where_pair_is_traded = exchange_id_string_where_trading_pair_is_traded.split(
+        #         "_")
+        #     print("list_of_absolutely_all_exchange_ids_where_pair_is_traded5")
+        #     print(list_of_absolutely_all_exchange_ids_where_pair_is_traded)
+        #     # list_of_all_aths_from_all_exchanges = []
+        #     list_of_all_volumes_by_low_from_all_exchanges = []
+        #     for exchange_id in list_of_absolutely_all_exchange_ids_where_pair_is_traded:
+        #         exchange_object = get_exchange_object2(exchange_id)
+        #         crypto_pair_name=stock_name.split("_on_")[0]
+        #         crypto_pair_name=crypto_pair_name.replace("_","/")
+        #         print("crypto_pair_name4")
+        #         print(crypto_pair_name)
+        #
+        #         try:
+        #             if ":" in crypto_pair_name:
+        #                 exchange_object.load_markets()
+        #                 if crypto_pair_name not in exchange_object.symbols:
+        #                     print("crypto_pair_name5")
+        #                     print(crypto_pair_name)
+        #                     #find not swap but spot ath and ath if swap on this exchange is not traded
+        #                     crypto_pair_name=crypto_pair_name.split(":")[0]
+        #         except:
+        #             traceback.print_exc()
+        #         try:
+        #             # atl_from_some_other_exchange = \
+        #             #     get_all_time_low_from_some_exchange(exchange_object, crypto_pair_name)
+        #             min_volume_over_this_many_days_in_dollars=7
+        #             min_volume_over_last_several_days_in_dollars=\
+        #                 min_volume_in_a_week(exchange_object, crypto_pair_name, min_volume_over_this_many_days_in_dollars)
+        #
+        #             if min_volume_over_last_several_days_in_dollars >1:
+        #                 min_volume_over_last_several_days_in_dollars=int(min_volume_over_last_several_days_in_dollars)
+        #
+        #             # list_of_all_aths_from_all_exchanges.append(ath_from_some_other_exchange)
+        #             list_of_all_volumes_by_low_from_all_exchanges.append(str(min_volume_over_last_several_days_in_dollars)+"_on_"+exchange_id)
+        #             # string_list_of_aths = '_'.join([str(x) for x in list_of_all_aths_from_all_exchanges])
+        #             string_all_volumes_by_low_on_which_exchange = '_'.join([str(x) for x in list_of_all_volumes_by_low_from_all_exchanges])
+        #         except:
+        #             traceback.print_exc()
+        #
+        # except:
+        #     traceback.print_exc()
+
+        #################################
+
+        print("levels_formed_by_atl_df1")
+        print(levels_formed_by_atl_df.to_string())
+
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_exchanges_from_db_where_level_had_been_broken"] = counter_of_number_of_exchanges_where_level_had_been_broken
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_from_db_where_level_was_broken"] = string_of_exchanges_where_level_was_broken
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_exchanges_from_db_where_level_was_not_broken"] = string_of_exchanges_where_level_was_not_broken
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_all_exchanges_from_db_where_pair_is_traded"] = string_of_all_exchanges_where_pair_is_traded
+
+        print("levels_formed_by_atl_df2")
+        print(levels_formed_by_atl_df.to_string())
         ########################
         levels_formed_by_atl_df.at[
             row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "exchange_id_string_where_trading_pair_is_traded"] = exchange_id_string_where_trading_pair_is_traded
@@ -528,8 +1157,54 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
         levels_formed_by_atl_df.at[
             row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_exchanges_where_pair_is_traded_on"] = number_of_exchanges_where_pair_is_traded_on
         ########################
+        ########################
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_volumes_by_low_on_which_exchange"] = string_all_volumes_by_low_on_which_exchange
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_volumes_by_low_on_which_exchange_without_outlier"] = string_all_volumes_by_low_on_which_exchange_without_outlier
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_volumes_by_low_without_exchange_without_outlier"] = string_all_volumes_by_low_without_exchange_without_outlier
+
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_on_which_exchange"] = string_all_aths_on_which_exchange
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_without_exchange"] = string_all_aths_without_exchange
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_on_which_exchange_without_outlier"] = string_all_aths_on_which_exchange_without_outlier
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_aths_without_exchange_without_outlier"] = string_all_aths_without_exchange_without_outlier
+
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_on_which_exchange"] = string_all_atls_on_which_exchange
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_without_exchange"] = string_all_atls_without_exchange
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_on_which_exchange_without_outlier"] = string_all_atls_on_which_exchange_without_outlier
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_all_atls_without_exchange_without_outlier"] = string_all_atls_without_exchange_without_outlier
+
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_last_close_prices_on_all_exchanges"] = string_of_last_close_prices_on_all_exchanges
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "string_of_last_close_prices_on_all_exchanges_with_exchanges"] = string_of_last_close_prices_on_all_exchanges_with_exchanges
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "last_close_on_all_exchanges_with_exchanges_without_outliers"] = string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "last_close_on_all_exchanges_without_exchanges_without_outliers"] = string_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers
+
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_available_days_plus_exchange_without_outliers"] = string_of_number_of_available_days_from_all_exchanges_plus_exchange_without_outliers
+        levels_formed_by_atl_df.at[
+            row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "number_of_available_days_without_exchange_without_outliers"] = string_of_number_of_available_days_from_all_exchanges_without_exchanges_without_outliers
+        # levels_formed_by_atl_df.at[
+        #     row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "last_close_on_all_exchanges_with_exchanges_without_outliers"] = string_of_last_close_prices_on_all_exchanges_with_exchanges_without_outliers
+        # levels_formed_by_atl_df.at[
+        #     row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "last_close_on_all_exchanges_without_exchanges_without_outliers"] = string_of_last_close_prices_on_all_exchanges_without_exchanges_without_outliers
+
+
+
     except:
-        traceback.print_exc()
+            traceback.print_exc()
 
     return levels_formed_by_atl_df
 
@@ -572,6 +1247,16 @@ def get_last_atl_timestamp_and_row_number(table_with_ohlcv_data_df_slice_numpy_a
     atl_rows = np.where(table_with_ohlcv_data_df_slice_numpy_array[:, 3] == ATL)[0]
     print("np.where(table_with_ohlcv_data_df_slice_numpy_array[:, 3] == ATL)")
     print(np.where(table_with_ohlcv_data_df_slice_numpy_array[:, 3] == ATL))
+
+    print("atl_rows1")
+    print(atl_rows)
+
+    print("ATL1")
+    print(ATL)
+
+    # print("table_with_ohlcv_data_df_slice_numpy_array1")
+    # print(table_with_ohlcv_data_df_slice_numpy_array)
+
 
     if len(atl_rows) > 0:
         # Get the timestamp of the last row where the low equals the ATL
@@ -658,6 +1343,10 @@ def check_ath_breakout(table_with_ohlcv_data_df_slice_numpy_array,
                        number_of_days_where_ath_was_not_broken,
                        ath,
                        row_of_last_ath):
+
+    if np.isnan(row_of_last_ath):
+        return True
+
     # Calculate the row index to start selecting data from
     start_row_index = max(0, row_of_last_ath - number_of_days_where_ath_was_not_broken)
     # print("start_row_index")
@@ -821,6 +1510,8 @@ def check_atl_breakout(table_with_ohlcv_data_df_slice_numpy_array,
                        number_of_days_where_atl_was_not_broken,
                        atl,
                        row_of_last_atl):
+    if np.isnan(row_of_last_atl):
+        return True
     # Calculate the row index to start selecting data from
     start_row_index = max(0, row_of_last_atl - number_of_days_where_atl_was_not_broken)
 
@@ -898,11 +1589,11 @@ def return_df_with_strings_where_pair_is_traded(
     df_with_strings_of_exchanges_where_pair_is_traded = pd.read_sql_query(
         f'''select * from "{table_where_row_names_are_pairs_and_values_are_strings_of_exchanges}"''',
         engine_for_db_with_string_of_exchanges_where_pair_is_traded)
-    # print("df_with_strings_of_exchanges_where_pair_is_traded")
-    # print(df_with_strings_of_exchanges_where_pair_is_traded.tail(20).to_string())
+    print("df_with_strings_of_exchanges_where_pair_is_traded12")
+    print(df_with_strings_of_exchanges_where_pair_is_traded.tail(20).to_string())
 
     df_with_strings_of_exchanges_where_pair_is_traded = df_with_strings_of_exchanges_where_pair_is_traded[
-        df_with_strings_of_exchanges_where_pair_is_traded['base_slash_exchange'].str.find(':') == -1]
+        df_with_strings_of_exchanges_where_pair_is_traded['trading_pair'].str.find(':') == -1]
 
     connection_to_db_with_string_of_exchanges_where_pair_is_traded.close()
     return df_with_strings_of_exchanges_where_pair_is_traded

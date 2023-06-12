@@ -12,6 +12,7 @@ from sqlalchemy import text
 import sqlalchemy
 import psycopg2
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 # import talib
 import datetime
 import datetime as dt
@@ -375,19 +376,19 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                         traceback.print_exc()
 
                     ohlcv_data_several_last_rows_df["exchange"] = exchange
-                    print("5program got here")
-                    ohlcv_data_several_last_rows_df["short_name"] = np.nan
-                    print("6program got here")
-                    ohlcv_data_several_last_rows_df["country"] = np.nan
-                    ohlcv_data_several_last_rows_df["long_name"] = np.nan
-                    ohlcv_data_several_last_rows_df["sector"] = np.nan
-                    # ohlcv_data_several_last_rows_df["long_business_summary"] = long_business_summary
-                    ohlcv_data_several_last_rows_df["website"] = np.nan
-                    ohlcv_data_several_last_rows_df["quote_type"] = np.nan
-                    ohlcv_data_several_last_rows_df["city"] = np.nan
-                    ohlcv_data_several_last_rows_df["exchange_timezone_name"] = np.nan
-                    ohlcv_data_several_last_rows_df["industry"] = np.nan
-                    ohlcv_data_several_last_rows_df["market_cap"] = np.nan
+                    # print("5program got here")
+                    # ohlcv_data_several_last_rows_df["short_name"] = np.nan
+                    # print("6program got here")
+                    # ohlcv_data_several_last_rows_df["country"] = np.nan
+                    # ohlcv_data_several_last_rows_df["long_name"] = np.nan
+                    # ohlcv_data_several_last_rows_df["sector"] = np.nan
+                    # # ohlcv_data_several_last_rows_df["long_business_summary"] = long_business_summary
+                    # ohlcv_data_several_last_rows_df["website"] = np.nan
+                    # ohlcv_data_several_last_rows_df["quote_type"] = np.nan
+                    # ohlcv_data_several_last_rows_df["city"] = np.nan
+                    # ohlcv_data_several_last_rows_df["exchange_timezone_name"] = np.nan
+                    # ohlcv_data_several_last_rows_df["industry"] = np.nan
+                    # ohlcv_data_several_last_rows_df["market_cap"] = np.nan
 
                     ohlcv_data_several_last_rows_df.set_index("open_time")
                     add_time_of_next_candle_print_to_df(ohlcv_data_several_last_rows_df)

@@ -1,4 +1,5 @@
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -26,6 +27,7 @@ from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
+from check_if_asset_has_new_atl import get_last_row_as_dataframe
 
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
@@ -245,6 +247,10 @@ def check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_pri
             get_all_time_high_from_ohlcv_table ( engine_for_ohlcv_data_for_stocks ,
                                             stock_name )
 
+        # if the df is empty do not continue the current loop
+        if table_with_ohlcv_data_df.empty:
+            continue
+
         # number_of_available_days
         number_of_available_days = np.nan
         try:
@@ -257,6 +263,8 @@ def check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_pri
             if not level_is_round_bool:
                 print(f"in {stock_name} level={all_time_high_in_stock} is not round and is ATL")
                 continue
+
+
         last_close_price=np.nan
         try:
             last_close_price=get_last_close_price_of_asset ( table_with_ohlcv_data_df )
@@ -277,14 +285,19 @@ def check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_pri
             print ( "df_where_high_equals_ath" )
             print ( df_where_high_equals_ath )
             exchange=table_with_ohlcv_data_df["exchange"].iat[0]
-            short_name = table_with_ohlcv_data_df["short_name"].iat[0]
+            # short_name = table_with_ohlcv_data_df["short_name"].iat[0]
 
 
             levels_formed_by_ath_df.at[counter - 1 , "ticker"] = stock_name
             levels_formed_by_ath_df.at[counter - 1 , "exchange"] = exchange
-            levels_formed_by_ath_df.at[counter - 1 , "short_name"] = short_name
-            levels_formed_by_ath_df.at[counter - 1 , "model"] = "РАССТОЯНИЕ ОТ CLOSE ДО ATH <10%"
+            # levels_formed_by_ath_df.at[counter - 1 , "short_name"] = short_name
+            levels_formed_by_ath_df.at[counter - 1 , "model"] = f"РАССТОЯНИЕ ОТ CLOSE ДО ATH <{percentage_between_ath_and_closing_price}%"
             levels_formed_by_ath_df.at[counter - 1 , "ath"] = all_time_high_in_stock
+
+
+            levels_formed_by_ath_df.at[counter - 1, "distance_from_last_close_price_to_ath_in_atr"] = \
+                distance_in_percent_to_ath_from_close_price
+
             for number_of_timestamp,timestamp_of_ath in enumerate(df_where_high_equals_ath.loc[:,"Timestamp"]):
                 print("number_of_timestamp")
                 print ( number_of_timestamp )
@@ -327,6 +340,10 @@ def check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_pri
                                                                                                        counter-1)
             except:
                 traceback.print_exc()
+            last_row_of_levels_formed_by_ath_df = get_last_row_as_dataframe(levels_formed_by_ath_df)
+            last_row_of_levels_formed_by_ath_df.to_sql(table_where_levels_formed_by_ath_will_be,
+                                                       engine_for_db_where_levels_formed_by_ath_will_be,
+                                                       if_exists='append')
 
 
     levels_formed_by_ath_df.reset_index(inplace = True)
@@ -337,11 +354,11 @@ def check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_pri
     # in the subdirectory "current_rebound_breakout_and_false_breakout"
     create_text_file_and_writ_text_to_it(string_for_output, 'current_rebound_breakout_and_false_breakout')
 
-    levels_formed_by_ath_df.to_sql(table_where_levels_formed_by_ath_will_be,
-                                   engine_for_db_where_levels_formed_by_ath_will_be,
-                                   if_exists = 'replace')
-    print ( "levels_formed_by_ath_df" )
-    print ( levels_formed_by_ath_df )
+    # levels_formed_by_ath_df.to_sql(table_where_levels_formed_by_ath_will_be,
+    #                                engine_for_db_where_levels_formed_by_ath_will_be,
+    #                                if_exists = 'replace')
+    # print ( "levels_formed_by_ath_df" )
+    # print ( levels_formed_by_ath_df )
 
 
 
@@ -355,7 +372,7 @@ if __name__=="__main__":
 
     if count_only_round_ath:
         db_where_levels_formed_by_ath_will_be="round_levels_formed_by_highs_and_lows_for_cryptos_0000"
-    percentage_between_ath_and_closing_price=10
+    percentage_between_ath_and_closing_price=4
     check_if_asset_is_approaching_its_ath(percentage_between_ath_and_closing_price,
                                               db_where_ohlcv_data_for_stocks_is_stored,
                                               count_only_round_ath,

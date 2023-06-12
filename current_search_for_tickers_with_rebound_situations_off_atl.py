@@ -1,5 +1,6 @@
 from statistics import mean
 import pandas as pd
+from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -390,7 +391,11 @@ def calculate_advanced_atr(atr_over_this_period,
     for true_range_in_list in list_of_true_ranges:
         if true_range_in_list>=percentile_20 and true_range_in_list<=percentile_80:
             list_of_non_rejected_true_ranges.append(true_range_in_list)
-    atr=mean(list_of_non_rejected_true_ranges)
+    atr=np.nan
+    try:
+        atr=mean(list_of_non_rejected_true_ranges)
+    except:
+        traceback.print_exc()
 
     return atr
 
@@ -670,6 +675,10 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 pd.read_sql_query ( f'''select * from "{stock_name}"''' ,
                                     engine_for_ohlcv_data_for_stocks )
 
+            # if the df is empty do not continue the current loop
+            if table_with_ohlcv_data_df.empty:
+                continue
+
             # number_of_available_days
             number_of_available_days = np.nan
             try:
@@ -683,7 +692,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
             # print(table_with_ohlcv_data_df)
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
-            short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
+            # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
@@ -694,8 +703,8 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
             print("exchange")
             print(exchange)
-            print("short_name")
-            print(short_name)
+            # print("short_name")
+            # print(short_name)
 
 
 
@@ -1034,11 +1043,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                         df_with_level_atr_bpu_bsu_etc.loc[0 , "human_time_of_bpu2"] = timestamp_of_bpu2_with_time
 
                         
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "stop_loss"] = stop_loss
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "calculated_stop_loss"] = stop_loss
                         df_with_level_atr_bpu_bsu_etc.loc[0, "buy_order"] = buy_order
                         df_with_level_atr_bpu_bsu_etc.loc[0, "приемлемый_люфт"] = calculated_backlash_from_advanced_atr
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_3_to_1"] = take_profit_3_to_1
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_4_to_1"] = take_profit_4_to_1
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_when_sl_is_calculated_3_to_1"] = take_profit_3_to_1
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_when_sl_is_calculated_4_to_1"] = take_profit_4_to_1
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "min_volume_over_last_n_days"] = int(table_with_ohlcv_data_df['volume'].tail(
                             count_min_volume_over_this_many_days).min())
@@ -1058,6 +1067,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                             df_with_level_atr_bpu_bsu_etc.loc[0, "taker_fee"] = taker_fee
                             df_with_level_atr_bpu_bsu_etc.loc[0, "url_of_trading_pair"] = url_of_trading_pair
                             df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
+                            try:
+                                df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
+                                    get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
+                            except:
+                                traceback.print_exc()
                         except:
                             traceback.print_exc()
 

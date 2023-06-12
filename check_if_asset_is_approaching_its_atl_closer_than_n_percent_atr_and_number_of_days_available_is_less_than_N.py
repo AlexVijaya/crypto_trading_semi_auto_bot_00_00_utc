@@ -1,5 +1,6 @@
 from statistics import mean
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -27,7 +28,7 @@ from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
-
+from check_if_asset_has_new_atl import get_last_row_as_dataframe
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -212,11 +213,45 @@ def create_text_file_and_writ_text_to_it(text, subdirectory_name):
   # Close the file
   f.close()
 
+def get_columns_from_table(engine, table):
 
+    cursor=engine.execute(f"""
+    select COLUMN_NAME from information_schema.columns where table_name='{table}'
+    """)
+    return [row[0] for row in cursor]
+def get_columns(df):
+    return list(df.columns)
 
+def sql_add_columns(table_name, columns_to_be_added_to_sql_table,engine):
+    for column_name in columns_to_be_added_to_sql_table:
+        sql = f"ALTER TABLE {table_name} ADD COLUMN {column_name} TEXT"
+        engine.execute(sql)
 
+def get_new_list_of_elements_that_are_present_in_first_list_and_absent_in_second(list1, list2):
+    return [elem for elem in list1 if elem not in list2]
 
-def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
+def add_lacking_columns_to_sql_db_atl_used(last_row_of_levels_formed_by_atl_df,
+                                  engine_for_db_where_levels_formed_by_atl_will_be):
+
+    columns_in_partial_sql_table_models_list = get_columns_from_table(
+        engine_for_db_where_levels_formed_by_atl_will_be,
+        table_where_levels_formed_by_atl_will_be)
+    list_of_columns_in_one_row_df = get_columns(last_row_of_levels_formed_by_atl_df)
+    columns_to_be_added_to_sql_table = \
+        get_new_list_of_elements_that_are_present_in_first_list_and_absent_in_second(
+            list_of_columns_in_one_row_df, columns_in_partial_sql_table_models_list)
+
+    print("columns_to_be_added_to_sql_table")
+    print(columns_to_be_added_to_sql_table)
+    if len(columns_to_be_added_to_sql_table) > 0:
+        sql_add_columns(table_where_levels_formed_by_atl_will_be,
+                        columns_to_be_added_to_sql_table,
+                        engine_for_db_where_levels_formed_by_atl_will_be)
+
+def check_if_asset_is_approaching_its_atl(db_where_ohlcv_data_for_stocks_is_stored_for_todays_pairs,
+                                          minimum_number_of_days_available,
+                                          percentage_between_ath_and_closing_price_of_atr,
+                                          advanced_atr_over_this_period,
                                           db_where_ohlcv_data_for_stocks_is_stored,
                                           count_only_round_atl,
                                           db_where_levels_formed_by_atl_will_be,
@@ -236,6 +271,10 @@ def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
     connection_to_ohlcv_data_for_stocks = \
         connect_to_postgres_db_without_deleting_it_first ( db_where_ohlcv_data_for_stocks_is_stored )
 
+    engine_for_ohlcv_data_for_stocks_for_todays_pairs, \
+        connection_to_ohlcv_data_for_stocks_for_todays_pairs = \
+        connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored_for_todays_pairs)
+
     engine_for_db_where_levels_formed_by_atl_will_be , \
     connection_to_db_where_levels_formed_by_atl_will_be = \
         connect_to_postgres_db_without_deleting_it_first ( db_where_levels_formed_by_atl_will_be )
@@ -245,6 +284,9 @@ def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
 
     list_of_tables_in_ohlcv_db=\
         get_list_of_tables_in_db ( engine_for_ohlcv_data_for_stocks )
+
+    list_of_tables_in_ohlcv_db_for_todays_pairs = \
+        get_list_of_tables_in_db(engine_for_ohlcv_data_for_stocks_for_todays_pairs)
 
     ##########################################################
     db_where_ohlcv_data_for_stocks_is_stored_0000 = np.nan
@@ -295,6 +337,10 @@ def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
             get_all_time_low_from_ohlcv_table ( engine_for_ohlcv_data_for_stocks ,
                                             stock_name )
 
+        # if the df is empty do not continue the current loop
+        if table_with_ohlcv_data_df.empty:
+            continue
+
         # number_of_available_days
         number_of_available_days = np.nan
         try:
@@ -306,12 +352,12 @@ def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
         print(table_with_ohlcv_data_df.tail(10).to_string())
 
 
-        calculate_volume_over_this_period=30
-        min_volume_over_n_days=min(table_with_ohlcv_data_df["volume"].tail(calculate_volume_over_this_period))
-        print("min_volume_over_n_days")
-        print(min_volume_over_n_days)
-        if min_volume_over_n_days<750:
-            continue
+        # calculate_volume_over_this_period=30
+        # min_volume_over_n_days=min(table_with_ohlcv_data_df["volume"].tail(calculate_volume_over_this_period))
+        # print("min_volume_over_n_days")
+        # print(min_volume_over_n_days)
+        # if min_volume_over_n_days<750:
+        #     continue
 
         if count_only_round_atl==True:
             level_is_round_bool=find_if_level_is_round ( all_time_low_in_stock )
@@ -338,11 +384,11 @@ def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
 
         distance_from_last_close_price_to_atl=last_close_price-all_time_low_in_stock
 
-        if distance_from_last_close_price_to_atl <= advanced_atr*0.5:
+        if distance_from_last_close_price_to_atl <= advanced_atr*(percentage_between_ath_and_closing_price_of_atr/100.0):
             # print(f"last closing price={last_close_price} is"
             #       f" within {percentage_between_atl_and_closing_price}% range to atl={all_time_low_in_stock}")
             list_of_assets_with_last_close_close_to_atl.append(stock_name)
-            print(f"list_of_assets_with_last_close_closer_to_ath_than_50%ATR({advanced_atr_over_this_period})")
+            print(f"list_of_assets_with_last_close_closer_to_ath_than_{percentage_between_ath_and_closing_price_of_atr}%ATR({advanced_atr_over_this_period})")
             print(f"last_close_price_for_stock={stock_name}")
             print(last_close_price)
             print(f"advanced_atr_for_stock={stock_name}")
@@ -363,18 +409,22 @@ def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
             print ( "df_where_low_equals_atl" )
             print ( df_where_low_equals_atl )
             exchange=table_with_ohlcv_data_df["exchange"].iat[0]
-            short_name = table_with_ohlcv_data_df["short_name"].iat[0]
+            # short_name = table_with_ohlcv_data_df["short_name"].iat[0]
 
 
             levels_formed_by_atl_df.at[counter - 1 , "ticker"] = stock_name
             levels_formed_by_atl_df.at[counter - 1 , "exchange"] = exchange
-            levels_formed_by_atl_df.at[counter - 1 , "short_name"] = short_name
+            # levels_formed_by_atl_df.at[counter - 1 , "short_name"] = short_name
             levels_formed_by_atl_df.at[
-                counter - 1, "model"] = "РАССТОЯНИЕ ОТ CLOSE ДО ATL <50% ATR"
+                counter - 1, "model"] = f"РАССТОЯНИЕ ОТ CLOSE ДО ATL <{percentage_between_ath_and_closing_price_of_atr}% ATR"
             levels_formed_by_atl_df.at[counter - 1 , "atl"] = all_time_low_in_stock
             levels_formed_by_atl_df.at[counter - 1, "advanced_atr"] = advanced_atr
             levels_formed_by_atl_df.at[counter - 1, "advanced_atr_over_this_period"] = \
                 advanced_atr_over_this_period
+
+
+
+
             for number_of_timestamp,timestamp_of_atl in enumerate(df_where_low_equals_atl.loc[:,"Timestamp"]):
                 print("number_of_timestamp")
                 print ( number_of_timestamp )
@@ -419,36 +469,67 @@ def check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
             except:
                 traceback.print_exc()
 
+            distance_from_last_close_price_to_atl_in_atr = distance_from_last_close_price_to_atl / advanced_atr
+            levels_formed_by_atl_df.at[counter - 1, "distance_from_last_close_price_to_atl_in_atr"] = \
+                distance_from_last_close_price_to_atl_in_atr
+
+
+            last_row_of_levels_formed_by_atl_df = get_last_row_as_dataframe(levels_formed_by_atl_df)
+
+
+
+            #add lacking column to the sql table if these columns are in df but not in db table
+            if len(levels_formed_by_atl_df)>1:
+                try:
+                    add_lacking_columns_to_sql_db_atl_used(last_row_of_levels_formed_by_atl_df,
+                                                  engine_for_db_where_levels_formed_by_atl_will_be)
+                except:
+                    traceback.print_exc()
+
+            last_row_of_levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
+                                                       engine_for_db_where_levels_formed_by_atl_will_be,
+                                                       if_exists='append')
+
+            # table_name = "from_close_to_ath_less_than_n_of_atr_and_has_less_than_n_days"
+            # column_name = "timestamp_4"
+            # sql = f"ALTER TABLE {table_name} ADD COLUMN {column_name} TEXT"
+            # engine_for_db_where_levels_formed_by_atl_will_be.execute(sql)
+            # print("column added")
+            # time.sleep(50000000000000)
+
 
     levels_formed_by_atl_df.reset_index(inplace = True)
     string_for_output = f"Список инструментов, в которых расстояние от " \
-                        f"цены закрытия до цены исторического минимума <50% ATR({advanced_atr_over_this_period}):\n\n" \
+                        f"цены закрытия до цены исторического минимума <{percentage_between_ath_and_closing_price_of_atr}% ATR({advanced_atr_over_this_period}):\n\n" \
                         f"{list_of_assets_with_last_close_close_to_atl}"
 
     # Use the function to create a text file with the text
     # in the subdirectory "current_rebound_breakout_and_false_breakout"
     create_text_file_and_writ_text_to_it(string_for_output, 'current_rebound_breakout_and_false_breakout')
-    levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
-                                   engine_for_db_where_levels_formed_by_atl_will_be,
-                                   if_exists = 'replace')
-    print ( "levels_formed_by_atl_df" )
-    print ( levels_formed_by_atl_df )
+    # levels_formed_by_atl_df.to_sql(table_where_levels_formed_by_atl_will_be,
+    #                                engine_for_db_where_levels_formed_by_atl_will_be,
+    #                                if_exists = 'replace')
+    # print ( "levels_formed_by_atl_df" )
+    # print ( levels_formed_by_atl_df )
 
 
-
-
-    pass
 if __name__=="__main__":
+    percentage_between_ath_and_closing_price_of_atr=100
+    minimum_number_of_days_available = 50
     db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_usdt_pairs_0000"
+    db_where_ohlcv_data_for_stocks_is_stored_for_todays_pairs = "ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
     count_only_round_atl=False
     db_where_levels_formed_by_atl_will_be="levels_formed_by_highs_and_lows_for_cryptos_0000"
-    table_where_levels_formed_by_atl_will_be = "current_asset_approaches_its_atl_closer_than_50percent_atr"
+    table_where_levels_formed_by_atl_will_be = "from_close_to_atl_less_than_n_of_atr_and_has_less_than_n_days"
 
     if count_only_round_atl:
         db_where_levels_formed_by_atl_will_be="round_levels_formed_by_highs_and_lows_for_cryptos_0000"
-    percentage_between_atl_and_closing_price=10
+
     advanced_atr_over_this_period=30
-    check_if_asset_is_approaching_its_atl(advanced_atr_over_this_period,
+    check_if_asset_is_approaching_its_atl(db_where_ohlcv_data_for_stocks_is_stored_for_todays_pairs,
+                                          minimum_number_of_days_available,
+                                          percentage_between_ath_and_closing_price_of_atr,
+                                          advanced_atr_over_this_period,
                                               db_where_ohlcv_data_for_stocks_is_stored,
                                                 count_only_round_atl,
                                               db_where_levels_formed_by_atl_will_be,

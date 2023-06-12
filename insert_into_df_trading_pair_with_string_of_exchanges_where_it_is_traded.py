@@ -3,6 +3,7 @@ import pprint
 import ccxt
 import ccxt
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import time
 import traceback
 import re
@@ -159,17 +160,37 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
             return f"https://trading.bitfinex.com/t/{base}F0:{quote}F0"
     elif exchange_id == 'gateio':
         return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
     elif exchange_id == 'kucoin':
         return f"https://futures.kucoin.com/trade/{trading_pair.replace('/','-')}-SWAP"
     elif exchange_id == 'coinex':
         # return f"https://www.coinex.com/swap/{trading_pair.replace('/','').upper()}"
         return f"https://www.coinex.com/futures/{trading_pair.replace('/','-').upper()}"
     elif exchange_id == 'poloniex':
-        return f"https://www.poloniex.com/futures/trade/{base.upper}{quote.upper}PERP"
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
     elif exchange_id == 'lbank2':
-        return f"https://www.lbank.com/futures/{base.lower}{quote.lower}/"
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
     elif exchange_id == 'lbank':
-        return f"https://www.lbank.com/futures/{base.lower}{quote.lower}/"
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
+    elif exchange_id == 'bkex':
+        return f"https://swap.bkex.com/contract/LIVE_{quote.upper()}/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'bitmart':
+        return f"https://derivatives.bitmart.com/en-US?symbol={base.upper()}{quote.upper()}&theme=dark"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{base.upper()}-PERP"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/mix/usdt/{base.upper()}{quote.upper()}_UMCBL/"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{base.upper()}{quote.upper()}-PERP"
+    elif exchange_id == 'delta':
+        return f"https://www.delta.exchange/app/futures/trade/{base.upper()}/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/perpetual/{base.upper()}-{quote.upper()}-PERPETUAL"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/futures-perpetualcontract-trading/{base.lower()}-perp"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/contract/trade/{base.upper()}{quote.upper()}"
     else:
         return "Exchange not supported"
 
@@ -284,6 +305,8 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://exmo.me/en/trade/{market['base']}_{market['quote']}"
     elif exchange_id == 'gateio':
         return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
     elif exchange_id == 'kucoin':
         return f"https://trade.kucoin.com/{market['base']}-{market['quote']}"
     elif exchange_id == 'coinex':
@@ -294,6 +317,35 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
     elif exchange_id == 'lbank':
         return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
+    elif exchange_id == 'bitmart':
+        return f"https://www.bitmart.com/trade/en-US?layout=basic&theme=dark&symbol={market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'bkex':
+        return f"https://www.bkex.com/en/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{market['base'].upper()}-{market['quote'].upper()}?type=spot&tab=open-orders"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/spot/{market['base'].upper()}{market['quote'].upper()}_SPBL?type=spot"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'currencycom':
+        return f"https://currency.com/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/spot/{market['base'].upper()}-{market['quote'].upper()}-SPOT"
+    elif exchange_id == 'tokocrypto':
+        return f"https://www.tokocrypto.com/id/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'wazirx':
+        return f"https://wazirx.com/exchange/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbase':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbasepro':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbaseprime':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/en/trade/{market['base'].upper()}-{market['quote'].upper()}"
+
     # elif exchange_id == 'bitstamp':
     #     return f"https://www.bitstamp.net/markets/{market['base'].lower()}/{market['quote'].lower()}/"
     else:
@@ -799,7 +851,7 @@ def get_exchange_object2(exchange_name):
         # 'btctradeim': ccxt.btctradeim(),
         'btcturk': ccxt.btcturk(),
         'btctradeua':ccxt.btctradeua(),
-        'buda': ccxt.buda(),
+        # 'buda': ccxt.buda(),
         'bybit': ccxt.bybit(),
         # 'bytetrade': ccxt.bytetrade(),
         # 'cdax': ccxt.cdax(),
@@ -834,7 +886,7 @@ def get_exchange_object2(exchange_name):
         # 'fcoin': ccxt.fcoin(),
         # 'fcoinjp': ccxt.fcoinjp(),
         # 'ftx': ccxt.ftx(),
-        'flowbtc':ccxt.flowbtc(),
+        # 'flowbtc':ccxt.flowbtc(),
         'fmfwio': ccxt.fmfwio(),
         'gate':ccxt.gate(),
         'gateio': ccxt.gateio(),
@@ -854,7 +906,7 @@ def get_exchange_object2(exchange_name):
         'indodax': ccxt.indodax(),
         'independentreserve': ccxt.independentreserve(),
 
-        'itbit': ccxt.itbit(),
+        # 'itbit': ccxt.itbit(),
         'kraken': ccxt.kraken(),
         'krakenfutures': ccxt.krakenfutures(),
         'kucoin': ccxt.kucoin(),
@@ -892,7 +944,7 @@ def get_exchange_object2(exchange_name):
         'poloniex': ccxt.poloniex(),
         'probit': ccxt.probit(),
         # 'qtrade': ccxt.qtrade(),
-        'ripio': ccxt.ripio(),
+        # 'ripio': ccxt.ripio(),
         # 'southxchange': ccxt.southxchange(),
         'stex': ccxt.stex(),
         # 'stronghold': ccxt.stronghold(),
@@ -911,7 +963,7 @@ def get_exchange_object2(exchange_name):
         # 'xena': ccxt.xena(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
-        'zb': ccxt.zb(),
+        # 'zb': ccxt.zb(),
         'zonda':ccxt.zonda()
     }
     exchange_object = exchange_objects.get(exchange_name)
@@ -1178,6 +1230,15 @@ def extract_unique_exchanges(row):
 def calculate_number_of_exchanges_where_trading_pair_is_traded_on(row):
     exchanges_list = row.split('_')
     return(len(exchanges_list))
+
+def get_base_of_trading_pair(row):
+    base=""
+    try:
+        base_slash_quote = row.split('/')
+        base=base_slash_quote[0]
+    except:
+        traceback.print_exc()
+    return base
 def get_exchange_map_from_exchange_id_to_exchange_name(exchange_ids):
     exchange_map = {}
     for exchange_id in exchange_ids:
@@ -1232,7 +1293,12 @@ def remove_trading_pairs_which_contain_stablecoin_as_base(filtered_pairs,stablec
     filtered_pairs = [pair for pair in filtered_pairs if
                       not any(pair.startswith(ticker) for ticker in stablecoin_bases_with_slash_list)]
     return filtered_pairs
-
+def add_trading_pair_column(df):
+    """
+    Adds a new column to the given dataframe called 'trading_pair' which is created from the index of the dataframe
+    """
+    df['trading_pair_new_column'] = df.index
+    return df
 def get_all_time_high_low_string(df_with_strings_where_each_pair_is_traded):
     for i, row in df_with_strings_where_each_pair_is_traded.iterrows():
         exchanges_where_pair_is_traded = row["exchanges_where_pair_is_traded"]
@@ -1247,126 +1313,7 @@ def get_all_time_high_low_string(df_with_strings_where_each_pair_is_traded):
         df_with_strings_where_each_pair_is_traded.loc[i, "string_of_all_atls"] = all_time_low_str
     return df_with_strings_where_each_pair_is_traded
 if __name__=="__main__":
-    # list_of_shortable_assets_for_binance=get_shortable_assets_for_binance()
-    # print("list_of_shortable_assets_for_binance")
-    # print(list_of_shortable_assets_for_binance)
-    #
-    # list_of_shortable_assets_for_huobipro = get_huobi_margin_pairs()
-    # print("list_of_shortable_assets_for_huobipro")
-    # print(list_of_shortable_assets_for_huobipro)
-    #
-    # list_of_shortable_assets_for_gateio = get_shortable_assets_for_gateio()
-    # print("list_of_shortable_assets_for_gateio")
-    # print(list_of_shortable_assets_for_gateio)
 
-
-    # print("get_market_type('huobipro', 'BTC/USDT')")
-    # for exchange_name in ['binance','huobipro','bybit','poloniex',
-    #                         'mexc3',
-    #                         'bitfinex2','exmo','gateio','kucoin','coinex']:
-        # if exchange_name!="hitbtc3":
-        #     continue
-        # try:
-    #         print("exchange_name")
-    #         print (exchange_name)
-    #         # print(get_asset_type(exchange_name, 'BTC/USDT'))
-    #         exchange_object=get_exchange_object(exchange_name)
-    #         markets=exchange_object.load_markets()
-    #         trading_pair='BTC/USDT'
-    #         timeframe='1d'
-    #         exchange_object1,limit_of_daily_candles=get_limit_of_daily_candles_original_limits(exchange_name)
-    #         print(f"limit_of_daily_candles_for{exchange_name}")
-    #         print(limit_of_daily_candles)
-    #         # maker_tiered_fees,taker_tiered_fees=get_maker_taker_fees_for_huobi(exchange_object)
-    #         # # taker_tiered_fees = get_t(exchange_object)
-    #         # print(f"maker_tiered_fees for {exchange_name}")
-    #         # print(maker_tiered_fees)
-    #         # print(f"taker_tiered_fees for {exchange_name}")
-    #         # print(taker_tiered_fees)
-    #         list_of_all_symbols_from_exchange = exchange_object.symbols
-    # #
-    #         for trading_pair in  list_of_all_symbols_from_exchange:
-    #             # print("trading_pair")
-    #             # print(trading_pair)
-    #             if trading_pair!='BTC/USDT':
-    #                 continue
-    #             # ohlcv_df=\
-    #             #     fetch_entire_ohlcv(exchange_object,
-    #             #                        exchange_name,
-    #             #                        trading_pair,
-    #             #                        timeframe,limit_of_daily_candles)
-    #             # print("final_ohlcv_df")
-    #             # print(ohlcv_df)
-    #             asset_type=get_asset_type2(markets,trading_pair)
-    #             if asset_type=="spot":
-    #
-    #                 url=get_exchange_url(exchange_name,exchange_object,trading_pair)
-    #                 print(f"url_for_swap for {exchange_name}")
-    #                 print(url)
-    #     except:
-    #         traceback.print_exc()
-
-    # trading_pair="BTC/USDT"
-    # timeframe="1d"
-    # ohlcv_df=fetch_bybit_ohlcv(trading_pair, timeframe)
-    # print("ohlcv_df")
-    # print(ohlcv_df)
-
-    #
-    # print("get_market_type('huobipro', 'BTC/USDT')")
-    # for exchange_name in ['binance', 'huobipro', 'bybit',
-    #                       'hitbtc3', 'mexc', 'mexc3', 'bitfinex',
-    #                       'bitfinex2', 'exmo', 'gateio', 'kucoin', 'coinex']:
-    #
-    #     exchange = getattr(ccxt, exchange_name)()
-    #     markets=exchange.load_markets()
-    #     print(get_asset_type2(markets, 'BTC/USDT'))
-    #     print(get_fees(markets, 'BTC/USDT'))
-    # maker_fee, taker_fee=get_huobipro_fees("1INCH/USDT:USDT")
-
-    # print(maker_fee)
-    # print(taker_fee)
-    # ohlcv_df=get_ohlcv_kucoin("1INCH/USDT")
-    # print("ohlcv_df")
-    # print(ohlcv_df)
-    # exchange = ccxt.gateio()
-    # ohlcv_data = exchange.fetch_ohlcv('ANKR/USDT', timeframe='1d')
-    # print("ohlcv_data for ANKR/USDT")
-    # print(ohlcv_data)
-    #
-    # time.sleep(50000)
-    # for exchange_name in ['binance','huobipro','bybit',
-    #                         'hitbtc3','mexc','mexc3','bitfinex',
-    #                         'bitfinex2','exmo','gateio','kucoin','coinex']:
-    #     exchange_object, limit=get_exchange_object_and_limit_of_daily_candles(exchange_name)
-    #     exchange_object.load_markets()
-    #     # symbol = exchange_object.market(pair)['symbol']
-    #     timeframe = '1d'
-    #     ohlcv = exchange_object.fetch_ohlcv("BSV/USDT", timeframe)
-    #     # ohlcv = get_ohlcv_okex("BTC/USDT")
-    #     print(f"ohlcv for {exchange_name}")
-    #     print(ohlcv)
-
-    # active_trading_pairs_list=get_active_trading_pairs_from_huobipro()
-    # print("active_trading_pairs_list")
-    # print(active_trading_pairs_list)
-    # for symbol in active_trading_pairs_list:
-    #     exchange = ccxt.huobipro()
-    #     ohlcv_df=fetch_huobipro_ohlcv(symbol, exchange, timeframe='1d')
-    #     trading_pair = symbol.replace("/", "_")
-    #
-    #     ohlcv_df['ticker'] = symbol
-    #     ohlcv_df['exchange'] = "huobipro"
-    #
-    #     print("ohlcv_df")
-    #     print(ohlcv_df)
-    # zeros_in_number=count_zeros(9.701e-05)
-    # print("zeros_in_number")
-    # print(zeros_in_number)
-    # get_ohlcv_from_huobi_pro()
-    # ohlcv_df=get_huobi_ohlcv()
-    # print("ohlcv_df")
-    # print(ohlcv_df)
     db_with_trading_pair_statistics="db_with_trading_pair_statistics"
     table_name_where_exchanges_with_all_available_trading_pairs_are="available_trading_pairs_for_each_exchange"
     table_with_strings_where_each_pair_is_traded="exchanges_where_each_pair_is_traded"
@@ -1432,10 +1379,14 @@ if __name__=="__main__":
     print(df_with_trading_pairs_for_each_exchange)
     df_with_trading_pairs_for_each_exchange = df_with_trading_pairs_for_each_exchange.drop('index', axis=1)
     df_with_strings_where_each_pair_is_traded = get_exchanges_for_trading_pairs(df_with_trading_pairs_for_each_exchange)
-    print("df_with_strings_where_each_pair_is_traded")
+
+
+    df_with_strings_where_each_pair_is_traded=add_trading_pair_column(df_with_strings_where_each_pair_is_traded)
+    print("df_with_strings_where_each_pair_is_traded1")
     print(df_with_strings_where_each_pair_is_traded)
-
-
+    df_with_strings_where_each_pair_is_traded['base_of_trading_pair'] = \
+        df_with_strings_where_each_pair_is_traded["trading_pair_new_column"].apply(
+            get_base_of_trading_pair)
     # apply the function to each row and create the new column
     df_with_strings_where_each_pair_is_traded['unique_exchanges_where_pair_is_traded'] =\
         df_with_strings_where_each_pair_is_traded.apply(extract_unique_exchanges, axis=1)

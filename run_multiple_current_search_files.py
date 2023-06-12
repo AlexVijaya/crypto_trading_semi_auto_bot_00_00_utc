@@ -7,10 +7,11 @@ import datetime
 import pprint
 import sys
 import subprocess
-
+from async_update_historical_USDT_pairs_for_1D import connect_to_postgres_db_without_deleting_it_first
 def run_upload_file_script(python_file_name_to_run):
     interpreter = sys.executable
     subprocess.run([interpreter, python_file_name_to_run])
+
 
 def delete_files_in_current_rebound_breakout_and_false_breakout():
   # Get current directory
@@ -58,7 +59,9 @@ def get_file_name_for_deletion(subdirectory_name='current_rebound_breakout_and_f
     file_path = os.path.join(subdirectory_path, "crypto_" + today + '.txt')
     return file_path
 
-
+database_name="ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+engine_for_db_with_todays_ohlcv1, connection_to_ohlcv_for_usdt_pairs1 = \
+    connect_to_postgres_db_without_deleting_it_first(database_name)
 
 def run_multiple_search_current_rebound_breakout_false_breakout_situations():
     # Run the Python script and capture its output
@@ -67,6 +70,8 @@ def run_multiple_search_current_rebound_breakout_false_breakout_situations():
 
     # Get the path to the Python interpreter executable
     interpreter = sys.executable
+
+
 
 
     print(interpreter)
@@ -84,12 +89,16 @@ def run_multiple_search_current_rebound_breakout_false_breakout_situations():
              'not_in_hindsight_search_for_tickers_with_atl_equal_to_limit_level.py',
              'current_search_for_tickers_approaching_ath_confirmed_one_or_more_times.py',
              'current_search_for_tickers_approaching_atl_confirmed_one_or_more_times.py',
-             'check_if_asset_is_approaching_its_ath_closer_than_50percent_atr.py',
-             'check_if_asset_is_approaching_its_atl_closer_than_50percent_atr.py',
-             'check_if_asset_is_approaching_its_atl.py',
-             'check_if_asset_is_approaching_its_ath.py',
-             'current_search_for_tickers_with_complex_false_breakout_of_atl.py',
-             'current_search_for_tickers_with_complex_false_breakout_of_ath.py']
+             'check_if_asset_is_approaching_its_ath_closer_than_n_percent_atr.py',
+             'check_if_asset_is_approaching_its_atl_closer_than_n_percent_atr.py',
+             # 'check_if_asset_is_approaching_its_atl.py',
+             # 'check_if_asset_is_approaching_its_ath.py',
+             'check_if_asset_has_new_ath.py',
+             'check_if_asset_has_new_atl.py',
+             'update_todays_USDT_pairs_for_1D_next_bar_print_utc_time_00.py'
+             #'current_search_for_tickers_with_complex_false_breakout_of_atl.py',
+             #'current_search_for_tickers_with_complex_false_breakout_of_ath.py'
+             ]
 
     # Run each Python file in the list in parallel
     processes = []
@@ -111,8 +120,11 @@ if __name__=="__main__":
     start_time = time.time()
 
     run_multiple_search_current_rebound_breakout_false_breakout_situations()
+
     python_file_name_to_run = "upload_file_to_goggle_drive2.py"
     run_upload_file_script(python_file_name_to_run)
+
+
 
     end_time = time.time()
     overall_time = end_time - start_time

@@ -1,5 +1,6 @@
 from statistics import mean
 import pandas as pd
+from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 import time
 import datetime
@@ -673,6 +674,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 pd.read_sql_query ( f'''select * from "{stock_name}"''' ,
                                     engine_for_ohlcv_data_for_stocks )
 
+            # if the df is empty do not continue the current loop
+            if table_with_ohlcv_data_df.empty:
+                continue
+
+
             # number_of_available_days
             number_of_available_days = np.nan
             try:
@@ -683,7 +689,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 continue
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
-            short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
+            # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
                 asset_type, maker_fee, taker_fee, url_of_trading_pair = \
@@ -1075,10 +1081,10 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
 
                         df_with_level_atr_bpu_bsu_etc.loc[0, "stop_loss"] = stop_loss
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "sell_order"] = sell_order
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "calculated_sell_order"] = sell_order
                         # df_with_level_atr_bpu_bsu_etc.loc[0, "приемлемый_люфт"] = calculated_backlash_from_advanced_atr
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_3_to_1"] = take_profit_3_to_1
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_4_to_1"] = take_profit_4_to_1
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_when_sl_is_calculated_3_to_1"] = take_profit_3_to_1
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_when_sl_is_calculated_4_to_1"] = take_profit_4_to_1
 
                         print("df_with_level_atr_bpu_bsu_etc")
                         print(df_with_level_atr_bpu_bsu_etc.to_string())
@@ -1092,6 +1098,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                             df_with_level_atr_bpu_bsu_etc.loc[0, "taker_fee"] = taker_fee
                             df_with_level_atr_bpu_bsu_etc.loc[0, "url_of_trading_pair"] = url_of_trading_pair
                             df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
+                            try:
+                                df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
+                                    get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
+                            except:
+                                traceback.print_exc()
                         except:
                             traceback.print_exc()
 

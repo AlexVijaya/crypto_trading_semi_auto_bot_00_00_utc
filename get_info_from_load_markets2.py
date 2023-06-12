@@ -3,6 +3,7 @@ import pprint
 import ccxt
 import ccxt
 import pandas as pd
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import time
 import traceback
 import re
@@ -20,6 +21,19 @@ def get_all_time_high_low(exchange_object, symbol):
     all_time_high = ticker['high']
     all_time_low = ticker['low']
     return all_time_high, all_time_low
+
+def get_all_time_high_from_some_exchange(exchange_object, symbol):
+
+    ticker = exchange_object.fetch_ticker(symbol)
+    all_time_high = ticker['high']
+    return all_time_high
+
+
+def get_all_time_low_from_some_exchange(exchange_object, symbol):
+    ticker = exchange_object.fetch_ticker(symbol)
+    all_time_low = ticker['low']
+    return all_time_low
+
 def connect_to_postgres_db_without_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
@@ -159,17 +173,38 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
             return f"https://trading.bitfinex.com/t/{base}F0:{quote}F0"
     elif exchange_id == 'gateio':
         return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
     elif exchange_id == 'kucoin':
         return f"https://futures.kucoin.com/trade/{trading_pair.replace('/','-')}-SWAP"
     elif exchange_id == 'coinex':
         # return f"https://www.coinex.com/swap/{trading_pair.replace('/','').upper()}"
         return f"https://www.coinex.com/futures/{trading_pair.replace('/','-').upper()}"
     elif exchange_id == 'poloniex':
-        return f"https://www.poloniex.com/futures/trade/{base.upper}{quote.upper}PERP"
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
     elif exchange_id == 'lbank2':
-        return f"https://www.lbank.com/futures/{base.lower}{quote.lower}/"
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
     elif exchange_id == 'lbank':
-        return f"https://www.lbank.com/futures/{base.lower}{quote.lower}/"
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
+    elif exchange_id == 'bkex':
+        return f"https://swap.bkex.com/contract/LIVE_{quote.upper()}/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'bitmart':
+        return f"https://derivatives.bitmart.com/en-US?symbol={base.upper()}{quote.upper()}&theme=dark"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{base.upper()}-PERP"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/mix/usdt/{base.upper()}{quote.upper()}_UMCBL/"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{base.upper()}{quote.upper()}-PERP"
+    elif exchange_id == 'delta':
+        return f"https://www.delta.exchange/app/futures/trade/{base.upper()}/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/perpetual/{base.upper()}-{quote.upper()}-PERPETUAL"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/futures-perpetualcontract-trading/{base.lower()}-perp"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/contract/trade/{base.upper()}{quote.upper()}"
+
     else:
         return "Exchange not supported"
 
@@ -284,6 +319,8 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://exmo.me/en/trade/{market['base']}_{market['quote']}"
     elif exchange_id == 'gateio':
         return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
     elif exchange_id == 'kucoin':
         return f"https://trade.kucoin.com/{market['base']}-{market['quote']}"
     elif exchange_id == 'coinex':
@@ -294,8 +331,34 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
     elif exchange_id == 'lbank':
         return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
-    # elif exchange_id == 'bitstamp':
-    #     return f"https://www.bitstamp.net/markets/{market['base'].lower()}/{market['quote'].lower()}/"
+    elif exchange_id == 'bitmart':
+        return f"https://www.bitmart.com/trade/en-US?layout=basic&theme=dark&symbol={market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'bkex':
+        return f"https://www.bkex.com/en/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{market['base'].upper()}-{market['quote'].upper()}?type=spot&tab=open-orders"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/spot/{market['base'].upper()}{market['quote'].upper()}_SPBL?type=spot"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'currencycom':
+        return f"https://currency.com/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/spot/{market['base'].upper()}-{market['quote'].upper()}-SPOT"
+    elif exchange_id == 'tokocrypto':
+        return f"https://www.tokocrypto.com/id/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'wazirx':
+        return f"https://wazirx.com/exchange/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbase':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbasepro':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbaseprime':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/en/trade/{market['base'].upper()}-{market['quote'].upper()}"
     else:
         return "Exchange not supported"
 
@@ -799,7 +862,7 @@ def get_exchange_object2(exchange_name):
         # 'btctradeim': ccxt.btctradeim(),
         'btcturk': ccxt.btcturk(),
         'btctradeua':ccxt.btctradeua(),
-        'buda': ccxt.buda(),
+        # 'buda': ccxt.buda(),
         'bybit': ccxt.bybit(),
         # 'bytetrade': ccxt.bytetrade(),
         # 'cdax': ccxt.cdax(),
@@ -834,7 +897,7 @@ def get_exchange_object2(exchange_name):
         # 'fcoin': ccxt.fcoin(),
         # 'fcoinjp': ccxt.fcoinjp(),
         # 'ftx': ccxt.ftx(),
-        'flowbtc':ccxt.flowbtc(),
+        # 'flowbtc':ccxt.flowbtc(),
         'fmfwio': ccxt.fmfwio(),
         'gate':ccxt.gate(),
         'gateio': ccxt.gateio(),
@@ -854,7 +917,7 @@ def get_exchange_object2(exchange_name):
         'indodax': ccxt.indodax(),
         'independentreserve': ccxt.independentreserve(),
 
-        'itbit': ccxt.itbit(),
+        # 'itbit': ccxt.itbit(),
         'kraken': ccxt.kraken(),
         'krakenfutures': ccxt.krakenfutures(),
         'kucoin': ccxt.kucoin(),
@@ -892,7 +955,7 @@ def get_exchange_object2(exchange_name):
         'poloniex': ccxt.poloniex(),
         'probit': ccxt.probit(),
         # 'qtrade': ccxt.qtrade(),
-        'ripio': ccxt.ripio(),
+        # 'ripio': ccxt.ripio(),
         # 'southxchange': ccxt.southxchange(),
         'stex': ccxt.stex(),
         # 'stronghold': ccxt.stronghold(),
@@ -911,7 +974,175 @@ def get_exchange_object2(exchange_name):
         # 'xena': ccxt.xena(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
-        'zb': ccxt.zb(),
+        # 'zb': ccxt.zb(),
+        'zonda':ccxt.zonda()
+    }
+    exchange_object = exchange_objects.get(exchange_name)
+    if exchange_object is None:
+        raise ValueError(f"Exchange '{exchange_name}' is not available via CCXT.")
+    return exchange_object
+
+def get_exchange_object2_using_async_ccxt(exchange_name):
+    import ccxt.async_support as ccxt
+    exchange_objects = {
+        # 'aax': ccxt.aax(),
+        # 'aofex': ccxt.aofex(),
+        'ace': ccxt.ace(),
+        'alpaca': ccxt.alpaca(),
+        'ascendex': ccxt.ascendex(),
+        'bequant': ccxt.bequant(),
+        # 'bibox': ccxt.bibox(),
+        'bigone': ccxt.bigone(),
+        'binance': ccxt.binance(),
+        'binanceus': ccxt.binanceus(),
+        'binancecoinm': ccxt.binancecoinm(),
+        'binanceusdm':ccxt.binanceusdm(),
+        'bit2c': ccxt.bit2c(),
+        'bitbank': ccxt.bitbank(),
+        'bitbay': ccxt.bitbay(),
+        'bitbns': ccxt.bitbns(),
+        'bitcoincom': ccxt.bitcoincom(),
+        'bitfinex': ccxt.bitfinex(),
+        'bitfinex2': ccxt.bitfinex2(),
+        'bitflyer': ccxt.bitflyer(),
+        'bitforex': ccxt.bitforex(),
+        'bitget': ccxt.bitget(),
+        'bithumb': ccxt.bithumb(),
+        # 'bitkk': ccxt.bitkk(),
+        'bitmart': ccxt.bitmart(),
+        # 'bitmax': ccxt.bitmax(),
+        'bitmex': ccxt.bitmex(),
+        'bitpanda': ccxt.bitpanda(),
+        'bitso': ccxt.bitso(),
+        'bitstamp': ccxt.bitstamp(),
+        'bitstamp1': ccxt.bitstamp1(),
+        'bittrex': ccxt.bittrex(),
+        'bitrue':ccxt.bitrue(),
+        'bitvavo': ccxt.bitvavo(),
+        # 'bitz': ccxt.bitz(),
+        'bl3p': ccxt.bl3p(),
+        # 'bleutrade': ccxt.bleutrade(),
+        # 'braziliex': ccxt.braziliex(),
+        'bkex': ccxt.bkex(),
+        'btcalpha': ccxt.btcalpha(),
+        'btcbox': ccxt.btcbox(),
+        'btcmarkets': ccxt.btcmarkets(),
+        # 'btctradeim': ccxt.btctradeim(),
+        'btcturk': ccxt.btcturk(),
+        'btctradeua':ccxt.btctradeua(),
+        # 'buda': ccxt.buda(),
+        'bybit': ccxt.bybit(),
+        # 'bytetrade': ccxt.bytetrade(),
+        # 'cdax': ccxt.cdax(),
+        'cex': ccxt.cex(),
+        # 'chilebit': ccxt.chilebit(),
+        'coinbase': ccxt.coinbase(),
+        'coinbaseprime': ccxt.coinbaseprime(),
+        'coinbasepro': ccxt.coinbasepro(),
+        'coincheck': ccxt.coincheck(),
+        # 'coinegg': ccxt.coinegg(),
+        'coinex': ccxt.coinex(),
+        'coinfalcon': ccxt.coinfalcon(),
+        'coinsph':ccxt.coinsph(),
+        # 'coinfloor': ccxt.coinfloor(),
+        # 'coingi': ccxt.coingi(),
+        # 'coinmarketcap': ccxt.coinmarketcap(),
+        'cryptocom': ccxt.cryptocom(),
+        'coinmate': ccxt.coinmate(),
+        'coinone': ccxt.coinone(),
+        'coinspot': ccxt.coinspot(),
+        # 'crex24': ccxt.crex24(),
+        'currencycom': ccxt.currencycom(),
+        'delta': ccxt.delta(),
+        'deribit': ccxt.deribit(),
+        'digifinex': ccxt.digifinex(),
+        # 'dsx': ccxt.dsx(),
+        # 'dx': ccxt.dx(),
+        # 'eqonex': ccxt.eqonex(),
+        # 'eterbase': ccxt.eterbase(),
+        'exmo': ccxt.exmo(),
+        # 'exx': ccxt.exx(),
+        # 'fcoin': ccxt.fcoin(),
+        # 'fcoinjp': ccxt.fcoinjp(),
+        # 'ftx': ccxt.ftx(),
+        # 'flowbtc':ccxt.flowbtc(),
+        'fmfwio': ccxt.fmfwio(),
+        'gate':ccxt.gate(),
+        'gateio': ccxt.gateio(),
+        'gemini': ccxt.gemini(),
+        # 'gopax': ccxt.gopax(),
+        # 'hbtc': ccxt.hbtc(),
+        'hitbtc': ccxt.hitbtc(),
+        # 'hitbtc2': ccxt.hitbtc2(),
+        # 'hkbitex': ccxt.hkbitex(),
+        'hitbtc3': ccxt.hitbtc3(),
+        'hollaex': ccxt.hollaex(),
+        'huobijp': ccxt.huobijp(),
+        'huobipro': ccxt.huobipro(),
+        # 'ice3x': ccxt.ice3x(),
+        'idex': ccxt.idex(),
+        # 'idex2': ccxt.idex2(),
+        'indodax': ccxt.indodax(),
+        'independentreserve': ccxt.independentreserve(),
+
+        # 'itbit': ccxt.itbit(),
+        'kraken': ccxt.kraken(),
+        'krakenfutures': ccxt.krakenfutures(),
+        'kucoin': ccxt.kucoin(),
+        'kuna': ccxt.kuna(),
+        # 'lakebtc': ccxt.lakebtc(),
+        'latoken': ccxt.latoken(),
+        'lbank': ccxt.lbank(),
+        # 'liquid': ccxt.liquid(),
+        'luno': ccxt.luno(),
+        'lykke': ccxt.lykke(),
+        'mercado': ccxt.mercado(),
+        'mexc':ccxt.mexc(),
+        'mexc3' : ccxt.mexc3(),
+        # 'mixcoins': ccxt.mixcoins(),
+        'paymium':ccxt.paymium(),
+        'poloniexfutures':ccxt.poloniexfutures(),
+        'ndax': ccxt.ndax(),
+        'novadax': ccxt.novadax(),
+        'oceanex': ccxt.oceanex(),
+        'okcoin': ccxt.okcoin(),
+        'okex': ccxt.okex(),
+        'okex5':ccxt.okex5(),
+        'okx':ccxt.okx(),
+        'bitopro': ccxt.bitopro(),
+        'huobi': ccxt.huobi(),
+        'lbank2': ccxt.lbank2(),
+        'blockchaincom': ccxt.blockchaincom(),
+        'btcex': ccxt.btcex(),
+        'kucoinfutures': ccxt.kucoinfutures(),
+        # 'okex3': ccxt.okex3(),
+        # 'p2pb2b': ccxt.p2pb2b(),
+        # 'paribu': ccxt.paribu(),
+        'phemex': ccxt.phemex(),
+        'tokocrypto':ccxt.tokocrypto(),
+        'poloniex': ccxt.poloniex(),
+        'probit': ccxt.probit(),
+        # 'qtrade': ccxt.qtrade(),
+        # 'ripio': ccxt.ripio(),
+        # 'southxchange': ccxt.southxchange(),
+        'stex': ccxt.stex(),
+        # 'stronghold': ccxt.stronghold(),
+        # 'surbitcoin': ccxt.surbitcoin(),
+        # 'therock': ccxt.therock(),
+        # 'tidebit': ccxt.tidebit(),
+        'tidex': ccxt.tidex(),
+        'timex': ccxt.timex(),
+        'upbit': ccxt.upbit(),
+        # 'vcc': ccxt.vcc(),
+        'wavesexchange': ccxt.wavesexchange(),
+        'woo':ccxt.woo(),
+        'wazirx':ccxt.wazirx(),
+        'whitebit': ccxt.whitebit(),
+        # 'xbtce': ccxt.xbtce(),
+        # 'xena': ccxt.xena(),
+        'yobit': ccxt.yobit(),
+        'zaif': ccxt.zaif(),
+        # 'zb': ccxt.zb(),
         'zonda':ccxt.zonda()
     }
     exchange_object = exchange_objects.get(exchange_name)
