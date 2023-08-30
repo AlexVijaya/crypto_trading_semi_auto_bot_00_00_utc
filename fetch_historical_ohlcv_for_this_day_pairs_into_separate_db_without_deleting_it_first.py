@@ -275,7 +275,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
         # if exchange in ["huobipro"]:
         #     active_trading_pairs_list_from_huobipro = get_active_trading_pairs_from_huobipro()
         exchange_object=get_exchange_object6(exchange)
-        exchange_object.enableRateLimit()
+        exchange_object.enableRateLimit=True
         # exchange_object.fetch_markets()
         # exchange_object_huobipro=np.nan
 
@@ -888,6 +888,8 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
     #
     database_name = 'levels_formed_by_highs_and_lows_for_cryptos_0000'
     list_of_exchanges_for_todays_pairs = get_list_of_exchange_ids_for_todays_pairs(database_name)
+    print("list_of_exchanges_for_todays_pairs2")
+    print(list_of_exchanges_for_todays_pairs)
 
     for exchange in exchanges_list:
         if exchange not in list_of_exchanges_for_todays_pairs:

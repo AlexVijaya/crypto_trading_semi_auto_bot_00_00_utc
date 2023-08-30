@@ -830,11 +830,11 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             # print(f"Close of pre-breakout bar: {close_of_pre_false_breakout_bar}")
             # print(f"Volume of pre-breakout bar: {volume_of_pre_false_breakout_bar}")
 
-            if last_two_years_of_data.tail(30)['volume'].min() < 750:
-                continue
-
-            if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
-                continue
+            # if last_two_years_of_data.tail(30)['volume'].min() < 750:
+            #     continue
+            #
+            # if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
+            #     continue
 
 
             # find all time high in last_two_years_of_data_but_one_last_day
@@ -1145,6 +1145,32 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                                                                        0)
             except:
                 traceback.print_exc()
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "ticker_last_column"] = stock_name
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "ticker_will_be_traced_and_position_entered"] = False
+
+            side = "sell"
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "side"] = side
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "stop_loss_is_technical"] = False
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "stop_loss_is_calculated"] = False
+
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "market_or_limit_stop_loss"] = 'market'
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "market_or_limit_take_profit"] = 'limit'
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "position_size"] = 0
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "take_profit_x_to_one"] = 3
+
             df_with_level_atr_bpu_bsu_etc.to_sql(
                 table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
                 engine_for_db_where_ticker_which_may_have_fast_breakout_situations,

@@ -185,9 +185,17 @@ def get_list_of_todays_trading_pairs(database_name):
 def get_list_of_exchange_ids_for_todays_pairs(database_name):
 
     table_names_list = asyncio.run(async_get_list_of_tables_from_db(database_name))
+    print("table_names_list")
+    print(table_names_list)
     tickers = asyncio.run(get_tickers_from_all_tables(database_name, table_names_list))
+    print("tickers3")
+    print(tickers)
     list_of_exchanges_for_todays_pairs=get_list_of_exchanges_from_list_of_tickers_plus_exchange(tickers)
+    print("list_of_exchanges_for_todays_pairs3")
+    print(list_of_exchanges_for_todays_pairs)
     list_of_todays_exchanges=  asyncio.run(get_todays_exchanges_from_all_tables(database_name, table_names_list))
+    print("list_of_todays_exchanges3")
+    print(list_of_todays_exchanges)
     # results=asyncio.run(async_fetch_all_tickers_from_all_exchanges_where_they_are_traded(tickers))
 
 

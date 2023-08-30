@@ -666,7 +666,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
             print ( f'{stock_name} is'
                     f' number {counter} out of {len ( list_of_tables_in_ohlcv_db )}\n' )
 
-            # if stock_name!='CLOV':
+            # if stock_name!='IRON_USDT_on_bitmart':
             #     continue
 
 
@@ -924,7 +924,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                                          row_number_of_bpu1 )
 
                 # atr = round ( atr ,20)
-                advanced_atr = round ( advanced_atr ,20)
+                # advanced_atr = round ( advanced_atr ,20)
 
                 # print("true_low_of_bsu")
                 # print(true_low_of_bsu)
@@ -933,12 +933,12 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 # print ( "true_low_of_bpu2" )
                 # print ( true_low_of_bpu2 )
 
-                if all_time_low<=1:
-                    if volume_of_bpu1 < 1000 or volume_of_bsu < 1000 or volume_of_bpu2 < 1000:
-                        continue
-
-                if volume_of_bpu1<750 or volume_of_bsu<750 or volume_of_bpu2<750:
-                    continue
+                # if all_time_low<=1:
+                #     if volume_of_bpu1 < 1000 or volume_of_bsu < 1000 or volume_of_bpu2 < 1000:
+                #         continue
+                #
+                # if volume_of_bpu1<750 or volume_of_bsu<750 or volume_of_bpu2<750:
+                #     continue
 
                 # if open_of_tvx<=close_of_bpu2:
                 #     continue
@@ -1091,6 +1091,30 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                                 0)
                         except:
                             traceback.print_exc()
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "ticker_last_column"] = stock_name
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "ticker_will_be_traced_and_position_entered"] = False
+
+                        side = "buy"
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "side"] = side
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "stop_loss_is_technical"] = False
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "stop_loss_is_calculated"] = False
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "market_or_limit_stop_loss"] = 'market'
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "market_or_limit_take_profit"] = 'limit'
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "position_size"] = 0
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "take_profit_x_to_one"] = 3
 
                         df_with_level_atr_bpu_bsu_etc.to_sql (
                             table_where_ticker_which_had_rebound_situations_from_atl_will_be ,

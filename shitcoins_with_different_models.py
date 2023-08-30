@@ -27,6 +27,7 @@ from constant_update_of_ohlcv_for_one_pair_on_many_exchanges_in_todays_db import
 import dash
 from dash import html
 import dash_tvlwc
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 def get_date_with_and_without_time_from_timestamp(timestamp):
     open_time = \
         datetime.datetime.fromtimestamp ( timestamp  )
@@ -291,7 +292,8 @@ def add_plot_of_order_sl_and_tp(index_of_trading_pair_to_select,ticker,df_with_m
 
 
 
-def plot_ohlcv(row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
+def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+               table_name,row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
                df_with_resulting_table_of_certain_models,
                entire_ohlcv_df,
                crypto_ticker,
@@ -409,6 +411,119 @@ def plot_ohlcv(row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticke
         if crypto_ticker==ticker_with_exchange_where_model_was_found:
             add_plot_of_order_sl_and_tp(index_of_trading_pair_to_select,crypto_ticker, df_with_resulting_table_of_certain_models, fig)
 
+
+            # if st.button(label="start tracing this asset and on next bar print enter position ",
+            #              key=key_for_placeholder + 200 + 4):
+            #     column_name="ticker_will_be_traced_and_position_entered"
+            #     value=True
+            #
+            #     set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+            #                            crypto_ticker, table_name, column_name, value)
+            #     st.write("on next bar print i will enter the position")
+            with st.form("position_entry_form"):
+                st.write("fill out the necessary data for position entry")
+
+                type_of_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("technical","calculated"),index=1)
+                market_or_limit_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("market","limit"),index=0)
+                # take_profit_x_to_one=st.number_input(
+                #     label='Please enter positive integer value for take profit, for example 4 means your tp will be 4 to 1',
+                #     key=None,value=3,format='d')
+                # take_profit_x_to_one = st.radio("Choose value for take profit, for example 4 means your tp will be 4 to 1'",
+                #                              (2,3,4,5,6,7,8,9,10,11,12,13,14,15),index=1)
+                take_profit_x_to_one=\
+                    st.number_input(label='Please enter positive integer value for TAKE PROFIT, for example 4 means your tp will be 4 to 1',
+                                    value=3,min_value=1,format='%d')
+
+                market_or_limit_take_profit = st.radio("Choose the TAKE PROFIT type that better suits your needs",
+                                                     ("market", "limit"), index=1)
+
+                # position_size_in_base_or_quote_asset=st.radio(f"input position size in {get_base_of_trading_pair(crypto_ticker)} or in USD",
+                #                                               (f"{get_base_of_trading_pair(crypto_ticker)}","USD"),index=1)
+
+
+                position_size_in_usd = \
+                    st.number_input(
+                        label=f'Please enter position size in USD',
+                        value=0, min_value=0)
+
+
+
+                # Every form must have a submit button.
+                submitted = st.form_submit_button("Trace this trading pair and when next bar opens enter position")
+                if submitted:
+                    if type_of_stop_loss == "technical":
+                        column_name = "stop_loss_is_technical"
+                        value = True
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                        column_name = "stop_loss_is_calculated"
+                        value = False
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                    if type_of_stop_loss == "calculated":
+                        column_name = "stop_loss_is_calculated"
+                        value = True
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                        column_name = "stop_loss_is_technical"
+                        value = False
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                    if market_or_limit_stop_loss == "market":
+                        column_name = "market_or_limit_stop_loss"
+                        value = 'market'
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                        # column_name = "stop_loss_is_calculated"
+                        # value = False
+                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                        crypto_ticker, table_name, column_name, value)
+                    if market_or_limit_stop_loss == "limit":
+                        column_name = "market_or_limit_stop_loss"
+                        value = 'limit'
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                        # column_name = "stop_loss_is_technical"
+                        # value = False
+                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                        crypto_ticker, table_name, column_name, value)
+                    if market_or_limit_take_profit == "market":
+                        column_name = "market_or_limit_take_profit"
+                        value = 'market'
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                        # column_name = "stop_loss_is_calculated"
+                        # value = False
+                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                        crypto_ticker, table_name, column_name, value)
+                    if market_or_limit_stop_loss == "limit":
+                        column_name = "market_or_limit_take_profit"
+                        value = 'limit'
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+                        # column_name = "stop_loss_is_technical"
+                        # value = False
+                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                        crypto_ticker, table_name, column_name, value)
+                    column_name = "take_profit_x_to_one"
+                    value = take_profit_x_to_one
+                    conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                           crypto_ticker, table_name, column_name, value)
+
+                    column_name = "position_size"
+                    value = position_size_in_usd
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "ticker_will_be_traced_and_position_entered"
+                    value = True
+
+                    conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                           crypto_ticker, table_name, column_name, value)
+                    st.write("on next bar print i will enter the position")
+
+                    conn.close()
+
         fig.update_xaxes(rangeslider={'visible': False})
         st.write("all time low for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =',entire_ohlcv_df["low"].min())
         st.write("all time high for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =', entire_ohlcv_df["high"].max())
@@ -479,6 +594,33 @@ def plot_ohlcv(row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticke
 #     ws.close()
 #     return last_close_price
 # @st.cache_resource
+
+# Set value in PostgreSQL database table
+def set_value_in_sql_table(conn, crypto_ticker, table_name, column_name, value):
+    # Create cursor to execute PostgreSQL queries
+    # cursor = conn.cursor()
+
+    # Set value in table
+    print("table_name")
+    print(table_name)
+    print("value")
+    print(value)
+    print("column_name")
+    print(column_name)
+    query=''
+    if value=="market" or value=="limit":
+        print(f"value_is_equal_to_{value}")
+        query = f'''UPDATE public."{table_name}" SET {column_name} = '{value}' WHERE ticker = '{crypto_ticker}'; '''
+    # value=False
+    else:
+        query = f'''UPDATE public."{table_name}" SET {column_name} = {value} WHERE ticker = '{crypto_ticker}'; '''
+    result = conn.execute(query)
+    print(f'Value set to {value} in {table_name} table.')
+
+    # Commit changes and close connection
+    # conn.commit()
+    return conn
+
 def initialize_connection_and_engine(db_where_ohlcv_data_for_stocks_is_stored_0000):
 
     engine_for_ohlcv_data_for_stocks_0000, \
@@ -598,7 +740,7 @@ def create_button_show_or_hide_trading_view_chart(trading_pair,exchange,exchange
     #     if df_visible:
     #         st.dataframe(entire_ohlcv_df)
 
-def plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select,
+def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select,
                                      df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                      engine_for_ohlcv_data_for_stocks_0000_todays_pairs,height,width):
@@ -716,7 +858,7 @@ def plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pai
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT","")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
 
-                plot_ohlcv(row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
+                plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
                            df_with_resulting_table_of_certain_models,table_with_ohlcv_data_df, trading_pair_to_select, asset_type, height, width,
                            key_for_placeholder)
             else:
@@ -729,7 +871,7 @@ def plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pai
                     table_with_ohlcv_data_df = \
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT", "")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
-                plot_ohlcv(row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
+                plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
                            df_with_resulting_table_of_certain_models,table_with_ohlcv_data_df, trading_pair_to_select, asset_type, height, width,
                            key_for_placeholder)
 
@@ -853,7 +995,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs,height,width)
 
@@ -877,7 +1019,7 @@ def streamlit_func():
         #-------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs,height,width)
 
@@ -903,7 +1045,7 @@ def streamlit_func():
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,
                                          trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
@@ -929,7 +1071,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="Breakout of ATL with position entry on second day after breakout":
@@ -952,7 +1094,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="Breakout of ATH with position entry on second day after breakout":
@@ -975,7 +1117,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="False Breakout of ATL by one bar":
@@ -998,7 +1140,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="False Breakout of ATH by one bar":
@@ -1021,7 +1163,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="False Breakout of ATL by two bars":
@@ -1044,7 +1186,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="False Breakout of ATH by two bars":
@@ -1067,7 +1209,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="Rebound off ATL":
@@ -1090,7 +1232,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="Rebound off ATH":
@@ -1113,7 +1255,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="Last close price is closer to ATL than n %ATR":
@@ -1136,7 +1278,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model=="Last close price is closer to ATH than n %ATR":
@@ -1159,7 +1301,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model == "Last close price is closer to ATL than N % of ATR(30)":
@@ -1182,7 +1324,7 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
     if model == "Last close price is closer to ATH than N % of ATR(30)":
@@ -1205,7 +1347,8 @@ def streamlit_func():
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                         table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs, height, width)
 

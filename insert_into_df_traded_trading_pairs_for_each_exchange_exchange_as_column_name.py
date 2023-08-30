@@ -138,6 +138,8 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://www.binance.com/en/futures/{trading_pair.replace('/','').upper()}"
     elif exchange_id == 'huobipro':
         return f"https://www.huobi.com/en-us/futures/linear_swap/exchange#contract_code={base}-{quote}&contract_type=swap&type=isolated"
+    elif exchange_id == 'huobi':
+        return f"https://www.huobi.com/en-us/futures/linear_swap/exchange#contract_code={base}-{quote}&contract_type=swap&type=isolated"
     elif exchange_id == 'bybit':
         return f"https://www.bybit.com/trade/{quote.lower()}/{trading_pair.replace('/','').upper()}"
     elif exchange_id == 'hitbtc3':
@@ -185,6 +187,17 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://ascendex.com/en/futures-perpetualcontract-trading/{base.lower()}-perp"
     elif exchange_id == 'bigone':
         return f"https://big.one/contract/trade/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'xt':
+        return f"https://www.xt.com/en/futures/trade/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'woo':
+        return f"https://x.woo.org/en/trade/{base.upper()}_PERP"
+    elif exchange_id == 'okex5':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'okex':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'okx':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+
     else:
         return "Exchange not supported"
 
@@ -287,6 +300,8 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.binance.com/en/trade/{market['base']}_{''.join(market['quote'].split('/'))}?layout=pro&type=spot"
     elif exchange_id == 'huobipro':
         return f"https://www.huobi.com/en-us/exchange/{market['base'].lower()}_{market['quote'].lower()}/"
+    elif exchange_id == 'huobi':
+        return f"https://www.huobi.com/en-us/exchange/{market['base'].lower()}_{market['quote'].lower()}/"
     elif exchange_id == 'bybit':
         return f"https://www.bybit.com/ru-RU/trade/spot/{market['base']}/{market['quote']}"
     elif exchange_id == 'hitbtc3':
@@ -339,6 +354,16 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
     elif exchange_id == 'bigone':
         return f"https://big.one/en/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'xt':
+        return f"https://www.xt.com/en/trade/{market['base'].lower()}_{market['quote'].lower()}"
+    elif exchange_id == 'woo':
+        return f"https://x.woo.org/en/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'okex5':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'okex':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'okx':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
     else:
         return "Exchange not supported"
 
@@ -948,7 +973,7 @@ def get_exchange_object2(exchange_name):
         'blockchaincom': ccxt.blockchaincom(),
         'btcex': ccxt.btcex(),
         'kucoinfutures': ccxt.kucoinfutures(),
-        # 'okex3': ccxt.okex3(),
+        # 'okex4': ccxt.okex4(),
         # 'p2pb2b': ccxt.p2pb2b(),
         # 'paribu': ccxt.paribu(),
         'phemex': ccxt.phemex(),
@@ -969,13 +994,17 @@ def get_exchange_object2(exchange_name):
         # 'vcc': ccxt.vcc(),
         'wavesexchange': ccxt.wavesexchange(),
         'woo':ccxt.woo(),
-        'wazirx':ccxt.wazirx(),
+        'wazirx':ccxt.wazirx({
+        'rateLimit': 300,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
         'whitebit': ccxt.whitebit(),
         # 'xbtce': ccxt.xbtce(),
         # 'xena': ccxt.xena(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
         # 'zb': ccxt.zb(),
+        'xt':ccxt.xt(),
         'zonda':ccxt.zonda()
     }
     exchange_object = exchange_objects.get(exchange_name)

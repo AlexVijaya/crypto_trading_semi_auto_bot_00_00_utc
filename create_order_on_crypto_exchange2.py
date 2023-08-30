@@ -44,6 +44,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'bitbay': ccxt.bitbay(),
         'bitbns': ccxt.bitbns(),
         'bitcoincom': ccxt.bitcoincom(),
+
         'bitfinex': ccxt.bitfinex({
         'apiKey': public_api_key ,
         'secret': api_secret ,
@@ -253,23 +254,40 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         # 'vcc': ccxt.vcc(),
         'wavesexchange': ccxt.wavesexchange(),
         'woo':ccxt.woo(),
-        'wazirx':ccxt.wazirx(),
+        'wazirx':ccxt.wazirx({
+        'rateLimit': 300,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
         'whitebit': ccxt.whitebit({
         'apiKey': public_api_key ,
         'secret': api_secret }),
         # 'xbtce': ccxt.xbtce(),
-        # 'xena': ccxt.xena(),
+        'xt': ccxt.xt(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
         # 'zb': ccxt.zb(),
         'zonda':ccxt.zonda()
     }
     exchange_object = exchange_objects.get(exchange_name)
-    exchange_object.set_sandbox_mode(True)
+    exchange_object.set_sandbox_mode(False)
     if exchange_object is None:
         raise ValueError(f"Exchange '{exchange_name}' is not available via CCXT.")
     return exchange_object
+def get_exchange_object_when_api_is_used(exchange_id):
+    public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
+    api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    trading_password = None
+    try:
+        trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
+    except:
+        traceback.print_exc()
 
+    exchange_object = \
+        get_exchange_object_with_api_key(exchange_name=exchange_id,
+                                         public_api_key=public_api_key
+                                         , api_secret=api_secret,
+                                         trading_password=trading_password)
+    return exchange_object
 def get_public_api_private_api_and_trading_password(exchange_id):
     public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
     api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
@@ -280,21 +298,27 @@ def get_public_api_private_api_and_trading_password(exchange_id):
         traceback.print_exc()
 
     return public_api_key,api_secret,trading_password
+
 def create_order(exchange_id,trading_pair,type,side,amount,price,params):
 
     public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
     api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
     trading_password=None
-    try:
-        trading_password=api_dict_for_all_exchanges[exchange_id]['trading_password']
-    except:
-        traceback.print_exc()
+    exchange_object=None
+    if exchange_id=="kucoin":
+        try:
+            trading_password=api_dict_for_all_exchanges[exchange_id]['trading_password']
+        except:
+            traceback.print_exc()
+
 
     exchange_object=\
         get_exchange_object_with_api_key(exchange_name=exchange_id,
                                          public_api_key=public_api_key
                                          ,api_secret=api_secret,
                                          trading_password=trading_password)
+
+    # exchange_object.(trading_pair, 'isolated')
 
 
 
@@ -307,6 +331,12 @@ def create_order(exchange_id,trading_pair,type,side,amount,price,params):
     order=""
     if type=='market':
         if exchange_object.has['createMarketOrder']:
+            # print(f"1market order has NOT been placed on {exchange_id} yet")
+            # print("params")
+            # print(params)
+            # print("trading_pair")
+            # print(trading_pair)
+
             order=exchange_object.create_order(trading_pair,type,side,amount,price,params)
             print(f"1market order has been placed on {exchange_id}")
         else:
@@ -339,6 +369,7 @@ def create_limit_buy_order(exchange_id,trading_pair,amount,price,params):
     type = 'limit'
     side = 'buy'
     order=create_order(exchange_id, trading_pair, type, side, amount, price,params)
+    print("limit_buy_order placed")
     return order
 
 if __name__=="__main__":

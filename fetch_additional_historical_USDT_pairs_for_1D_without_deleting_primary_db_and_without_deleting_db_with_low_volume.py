@@ -914,8 +914,8 @@ def fetch_historical_usdt_pairs_asynchronously(engine_for_ohlcv_database_without
         #                     "bkex","whitebit"]:
         #     continue
 
-        if exchange!="bigone":
-            continue
+        # if exchange!="bigone":
+        #     continue
 
         get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_without_enough_volume,
                                                           database_name_for_low_volume_pairs,last_bitcoin_price, exchange,

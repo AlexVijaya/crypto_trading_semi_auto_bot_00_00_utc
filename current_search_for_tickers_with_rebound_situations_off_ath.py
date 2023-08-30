@@ -886,14 +886,14 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                     get_ohlc_of_bpu2 ( truncated_high_and_low_table_with_ohlcv_data_df ,
                                        row_number_of_bpu1 )
 
-                atr = calculate_atr ( atr_over_this_period ,
-                                      table_with_ohlcv_data_df ,
-                                      row_number_of_bpu1 )
+                # atr = calculate_atr ( atr_over_this_period ,
+                #                       table_with_ohlcv_data_df ,
+                #                       row_number_of_bpu1 )
                 advanced_atr = calculate_advanced_atr ( advanced_atr_over_this_period ,
                                                         table_with_ohlcv_data_df ,
                                                         row_number_of_bpu1 )
-                atr=round(atr,20)
-                advanced_atr = round ( advanced_atr ,20)
+                # atr=round(atr,20)
+                # advanced_atr = round ( advanced_atr ,20)
 
                 low_of_bsu = truncated_high_and_low_table_with_ohlcv_data_df_slice.loc[row_number_of_bsu , "low"]
                 low_of_bpu1 = truncated_high_and_low_table_with_ohlcv_data_df_slice.loc[row_number_of_bpu1 , "low"]
@@ -986,12 +986,12 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
 
                 asset_not_open_into_level_bool = \
-                    check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level ( acceptable_backlash , atr , open_of_bsu ,
+                    check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level ( acceptable_backlash , advanced_atr , open_of_bsu ,
                                                                         open_of_bpu1 , open_of_bpu2 ,
                                                                         high_of_bsu , high_of_bpu1 , high_of_bpu2 ,
                                                                         low_of_bsu , low_of_bpu1 , low_of_bpu2 )
                 asset_not_close_into_level_bool = \
-                    check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level ( acceptable_backlash , atr , close_of_bsu ,
+                    check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level ( acceptable_backlash , advanced_atr , close_of_bsu ,
                                                                          close_of_bpu1 , close_of_bpu2 ,
                                                                          high_of_bsu , high_of_bpu1 , high_of_bpu2 ,
                                                                          low_of_bsu , low_of_bpu1 , low_of_bpu2 )
@@ -1122,6 +1122,30 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                                 0)
                         except:
                             traceback.print_exc()
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "ticker_last_column"] = stock_name
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "ticker_will_be_traced_and_position_entered"] = False
+
+                        side = "sell"
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "side"] = side
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "stop_loss_is_technical"] = False
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "stop_loss_is_calculated"] = False
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "market_or_limit_stop_loss"] = 'market'
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "market_or_limit_take_profit"] = 'limit'
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "position_size"] = 0
+
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "take_profit_x_to_one"] = 3
 
                         df_with_level_atr_bpu_bsu_etc.to_sql (
                             table_where_ticker_which_had_rebound_situations_from_ath_will_be ,

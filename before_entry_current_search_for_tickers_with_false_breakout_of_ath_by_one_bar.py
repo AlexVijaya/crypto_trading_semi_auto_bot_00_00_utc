@@ -28,7 +28,18 @@ from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
-
+from create_order_on_crypto_exchange2 import create_limit_buy_order
+from create_order_on_crypto_exchange2 import create_limit_sell_order
+from get_info_from_load_markets import get_exchange_object6
+from place_order_sl_and_tp import place_limit_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_market_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_market_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_limit_buy_order_with_market_sl_and_limit_tp
 
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
@@ -830,11 +841,11 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             # print(f"Close of pre-breakout bar: {close_of_pre_false_breakout_bar}")
             # print(f"Volume of pre-breakout bar: {volume_of_pre_false_breakout_bar}")
 
-            if last_two_years_of_data.tail(30)['volume'].min() < 750:
-                continue
-
-            if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
-                continue
+            # if last_two_years_of_data.tail(30)['volume'].min() < 750:
+            #     continue
+            #
+            # if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
+            #     continue
 
 
             # find all time high in last_two_years_of_data_but_one_last_day
@@ -1130,21 +1141,21 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                     traceback.print_exc()
             except:
                 traceback.print_exc()
-            try:
-                #############################################
-                # add info to dataframe about whether level was broken on other exchanges
-                df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
-                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_0000,
-                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_1600,
-                                                                                                       table_with_ohlcv_data_df,
-                                                                                                       engine_for_ohlcv_data_for_stocks_0000,
-                                                                                                       engine_for_ohlcv_data_for_stocks_1600,
-                                                                                                       all_time_high,
-                                                                                                       list_of_tables_in_ohlcv_db_1600,
-                                                                                                       df_with_level_atr_bpu_bsu_etc,
-                                                                                                       0)
-            except:
-                traceback.print_exc()
+            # try:
+            #     #############################################
+            #     # add info to dataframe about whether level was broken on other exchanges
+            #     df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
+            #                                                                                            db_where_ohlcv_data_for_stocks_is_stored_0000,
+            #                                                                                            db_where_ohlcv_data_for_stocks_is_stored_1600,
+            #                                                                                            table_with_ohlcv_data_df,
+            #                                                                                            engine_for_ohlcv_data_for_stocks_0000,
+            #                                                                                            engine_for_ohlcv_data_for_stocks_1600,
+            #                                                                                            all_time_high,
+            #                                                                                            list_of_tables_in_ohlcv_db_1600,
+            #                                                                                            df_with_level_atr_bpu_bsu_etc,
+            #                                                                                            0)
+            # except:
+            #     traceback.print_exc()
             df_with_level_atr_bpu_bsu_etc.to_sql(
                 table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
                 engine_for_db_where_ticker_which_may_have_fast_breakout_situations,
@@ -1169,6 +1180,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
 if __name__=="__main__":
     start_time=time.time ()
+    side = "sell"
     db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_usdt_pairs_0000"
     count_only_round_rebound_level=False
     db_where_ticker_which_may_have_fast_breakout_situations=\

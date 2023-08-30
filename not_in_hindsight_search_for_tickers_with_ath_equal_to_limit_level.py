@@ -823,10 +823,10 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                                                           min_volume_over_this_many_last_days)
                     print("min_volume_over_last_n_days")
                     print(min_volume_over_last_n_days)
-                    if min_volume_over_last_n_days<750:
-                        continue
-                    if all_time_high<1 and min_volume_over_last_n_days<1000:
-                        continue
+                    # if min_volume_over_last_n_days<750:
+                    #     continue
+                    # if all_time_high<1 and min_volume_over_last_n_days<1000:
+                    #     continue
                     list_of_crypto_tickers_with_last_high_equal_to_ath_and_equal_to_limit_level.append(stock_name)
                     print("list_of_crypto_tickers_with_last_high_equal_to_ath_and_equal_to_limit_level")
                     print(list_of_crypto_tickers_with_last_high_equal_to_ath_and_equal_to_limit_level)
@@ -917,6 +917,8 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                     except:
                         traceback.print_exc()
 
+                    df_with_level_atr_bpu_bsu_etc.loc[
+                        0, "ticker_last_column"] = stock_name
                     df_with_level_atr_bpu_bsu_etc.to_sql(
                         table_where_ticker_which_had_ath_equal_to_limit_level,
                         engine_for_db_where_levels_formed_by_ath_equal_to_limit_level_will_be,

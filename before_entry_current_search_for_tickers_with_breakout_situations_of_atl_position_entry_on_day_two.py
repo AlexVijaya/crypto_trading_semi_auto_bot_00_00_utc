@@ -33,9 +33,17 @@ from create_order_on_crypto_exchange2 import create_limit_sell_order
 from get_info_from_load_markets import get_exchange_object6
 from place_order_sl_and_tp import place_limit_buy_order_with_market_sl_and_limit_tp
 from place_order_sl_and_tp import place_market_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_market_sell_order_with_market_sl_and_limit_tp
 from place_order_sl_and_tp import place_limit_sell_order_with_market_sl_and_limit_tp
 from place_order_sl_and_tp import place_stop_sell_order_with_market_sl_and_limit_tp
 from place_order_sl_and_tp import place_stop_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_limit_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_market_sell_order_with_market_sl_and_limit_tp_sl_and_tp_attached
+from place_order_sl_and_tp import place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp
+from place_order_sl_and_tp import create_stop_market_order_programmatically
+from place_order_sl_and_tp import create_stop_limit_order_programmatically
 def get_current_price_of_asset(exchange_object, symbol):
     ticker = exchange_object.fetch_ticker(symbol)
     last_close = ticker['close']
@@ -43,15 +51,15 @@ def get_current_price_of_asset(exchange_object, symbol):
 def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(stock_name):
     db_where_ohlcv_data_for_stocks_is_stored = "ohlcv_1d_data_for_usdt_pairs_0000"
     count_only_round_level = False
-    db_where_ticker_which_may_have_fast_breakout_situations = \
+    db_where_ticker_which_may_have_breakout_situations = \
         "levels_formed_by_highs_and_lows_for_cryptos_0000"
-    table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be = \
+    table_where_ticker_which_may_have_breakout_situations_of_ath_will_be = \
         "current_breakout_situations_of_ath_position_entry_on_day_two"
-    table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be = \
+    table_where_ticker_which_may_have_breakout_situations_of_atl_will_be = \
         "current_breakout_situations_of_atl_position_entry_on_day_two"
 
     if count_only_round_level:
-        db_where_ticker_which_may_have_fast_breakout_situations = \
+        db_where_ticker_which_may_have_breakout_situations = \
             "round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     # 0.05 means 5%
 
@@ -59,15 +67,15 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
     advanced_atr_over_this_period = 30
     number_of_bars_in_suppression_to_check_for_volume_acceptance = 14
     factor_to_multiply_atr_by_to_check_suppression = 1
-    count_min_volume_over_this_many_days = 30
+    count_min_volume_over_this_many_days = 7
     list_of_tables_in_ohlcv_db = [stock_name]
     trading_pair_still_satisfies_all_criteria=False
     trading_pair_still_satisfies_all_criteria=\
         search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,
                                                 db_where_ohlcv_data_for_stocks_is_stored,
-                                                db_where_ticker_which_may_have_fast_breakout_situations,
-                                                table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
-                                                table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+                                                db_where_ticker_which_may_have_breakout_situations,
+                                                table_where_ticker_which_may_have_breakout_situations_of_ath_will_be,
+                                                table_where_ticker_which_may_have_breakout_situations_of_atl_will_be,
                                                 advanced_atr_over_this_period,
                                                 number_of_bars_in_suppression_to_check_for_volume_acceptance,
                                                 factor_to_multiply_atr_by_to_check_suppression,
@@ -711,9 +719,9 @@ def create_text_file_and_writ_text_to_it(text, subdirectory_name):
 
 
 def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_where_ohlcv_data_for_stocks_is_stored,
-                                                db_where_ticker_which_may_have_fast_breakout_situations,
-                                                table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
-                                                table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+                                                db_where_ticker_which_may_have_breakout_situations,
+                                                table_where_ticker_which_may_have_breakout_situations_of_ath_will_be,
+                                                table_where_ticker_which_may_have_breakout_situations_of_atl_will_be,
                                                 advanced_atr_over_this_period,
                                                 number_of_bars_in_suppression_to_check_for_volume_acceptance,
                                                 factor_to_multiply_atr_by_to_check_suppression,
@@ -724,12 +732,12 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
         connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored)
 
     engine_for_db_where_ticker_which_may_have_breakout_situations, \
-        connection_to_db_where_ticker_which_may_have_fast_breakout_situations = \
-        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_fast_breakout_situations)
+        connection_to_db_where_ticker_which_may_have_breakout_situations = \
+        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_breakout_situations)
 
-    # drop_table(table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
+    # drop_table(table_where_ticker_which_may_have_breakout_situations_of_ath_will_be,
     #            engine_for_db_where_ticker_which_may_have_breakout_situations)
-    # drop_table ( table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be ,
+    # drop_table ( table_where_ticker_which_may_have_breakout_situations_of_atl_will_be ,
     #              engine_for_db_where_ticker_which_may_have_breakout_situations )
 
     # list_of_tables_in_ohlcv_db = \
@@ -778,6 +786,24 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
     list_of_stocks_which_broke_atl = []
     trading_pair_still_satisfies_all_criteria=False
 
+    global calculated_stop_loss
+    global technical_stop_loss
+    global take_profit_when_sl_is_technical_4_to_1
+    global take_profit_when_sl_is_technical_3_to_1
+    global take_profit_when_sl_is_calculated_3_to_1
+    global take_profit_when_sl_is_calculated_4_to_1
+    global sell_order
+    global buy_order
+    global stop_loss_is_technical
+    global stop_loss_is_calculated
+    global take_profit_x_to_one
+    global ticker_will_be_traced_and_position_entered
+    global position_size
+    global market_or_limit_stop_loss
+    global market_or_limit_take_profit
+    global take_profit_size_with_x_to_one
+
+
     for stock_name in list_of_tables_in_ohlcv_db:
 
         try:
@@ -788,6 +814,7 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
 
             # if stock_name not in ['BBBY', 'LAZR', 'LCID', 'RIVN', 'XERS'] :
             #     continue
+
 
 
             table_with_ohlcv_data_df = \
@@ -964,6 +991,12 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
                 last_all_time_low_row_number, 'volume']
             print(f"1found_stock={stock_name}")
 
+            print("breakout_bar_row_number")
+            print(breakout_bar_row_number)
+
+            print("last_all_time_low_row_number")
+            print(last_all_time_low_row_number)
+
             # проверяем, ближайший исторический минимум был не ближе, чем 3 дня до пробоя
             if breakout_bar_row_number - last_all_time_low_row_number < 3:
                 continue
@@ -1098,6 +1131,74 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
             #     round(take_profit_when_sl_is_technical_4_to_1, 3)
             # distance_between_technical_stop_loss_and_sell_order_in_atr = \
             #     round(distance_between_technical_stop_loss_and_sell_order_in_atr, 3)
+
+            table_where_ticker_which_may_have_breakout_situations_of_atl_is_df = \
+                pd.read_sql_query(f'''select * from "{table_where_ticker_which_may_have_breakout_situations_of_atl_will_be}"''',
+                                  engine_for_db_where_ticker_which_may_have_breakout_situations)
+
+            print("table_where_ticker_which_may_have_breakout_situations_of_atl_is_df1")
+            print(table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.to_string())
+
+
+            stop_loss_is_technical=table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df["ticker_last_column"]==trading_pair,"stop_loss_is_technical"].values[0]
+
+            print("stop_loss_is_technical1")
+            print(stop_loss_is_technical)
+
+            stop_loss_is_calculated = table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "stop_loss_is_calculated"].values[0]
+
+            print("stop_loss_is_calculated1")
+            print(stop_loss_is_calculated)
+
+            market_or_limit_stop_loss = table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "market_or_limit_stop_loss"].values[0]
+            print("market_or_limit_stop_loss")
+            print(market_or_limit_stop_loss)
+
+            ticker_will_be_traced_and_position_entered = table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "ticker_will_be_traced_and_position_entered"].values[0]
+
+            print("ticker_will_be_traced_and_position_entered")
+            print(ticker_will_be_traced_and_position_entered)
+
+            take_profit_x_to_one = \
+            table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "take_profit_x_to_one"].values[0]
+            take_profit_x_to_one=int(take_profit_x_to_one)
+
+            print("take_profit_x_to_one")
+            print(take_profit_x_to_one)
+            take_profit_size_with_x_to_one = sell_order - (technical_stop_loss - sell_order) * take_profit_x_to_one
+
+            market_or_limit_take_profit = table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "market_or_limit_take_profit"].values[0]
+            print("market_or_limit_take_profit")
+            print(market_or_limit_take_profit)
+
+            position_size = table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "position_size"].values[0]
+            print("position_size")
+            print(position_size)
+
+            calculated_stop_loss_from_db = table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "calculated_stop_loss"].values[0]
+            print("calculated_stop_loss_from_db")
+            print(calculated_stop_loss_from_db)
+
+            technical_stop_loss_from_db = table_where_ticker_which_may_have_breakout_situations_of_atl_is_df.loc[
+                table_where_ticker_which_may_have_breakout_situations_of_atl_is_df[
+                    "ticker_last_column"] == trading_pair, "technical_stop_loss"].values[0]
+            print("technical_stop_loss_from_db")
+            print(technical_stop_loss_from_db)
 
             df_with_level_atr_bpu_bsu_etc = pd.DataFrame()
             df_with_level_atr_bpu_bsu_etc.loc[
@@ -1234,28 +1335,28 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
             except:
                 traceback.print_exc()
 
-            try:
-                #############################################
-                # add info to dataframe about whether level was broken on other exchanges
-                df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
-                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_0000,
-                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_1600,
-                                                                                                       table_with_ohlcv_data_df,
-                                                                                                       engine_for_ohlcv_data_for_stocks_0000,
-                                                                                                       engine_for_ohlcv_data_for_stocks_1600,
-                                                                                                       all_time_low,
-                                                                                                       list_of_tables_in_ohlcv_db_1600,
-                                                                                                       df_with_level_atr_bpu_bsu_etc,
-                                                                                                       0)
-            except:
-                traceback.print_exc()
+            # try:
+            #     #############################################
+            #     # add info to dataframe about whether level was broken on other exchanges
+            #     df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
+            #                                                                                            db_where_ohlcv_data_for_stocks_is_stored_0000,
+            #                                                                                            db_where_ohlcv_data_for_stocks_is_stored_1600,
+            #                                                                                            table_with_ohlcv_data_df,
+            #                                                                                            engine_for_ohlcv_data_for_stocks_0000,
+            #                                                                                            engine_for_ohlcv_data_for_stocks_1600,
+            #                                                                                            all_time_low,
+            #                                                                                            list_of_tables_in_ohlcv_db_1600,
+            #                                                                                            df_with_level_atr_bpu_bsu_etc,
+            #                                                                                            0)
+            # except:
+            #     traceback.print_exc()
 
 
             print(f"trading pair {stock_name} still satisfies all criteria ")
             trading_pair_still_satisfies_all_criteria=True
 
             # df_with_level_atr_bpu_bsu_etc.to_sql(
-            #     table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+            #     table_where_ticker_which_may_have_breakout_situations_of_atl_will_be,
             #     engine_for_db_where_ticker_which_may_have_breakout_situations,
             #     if_exists='append')
             # print_df_to_file(df_with_level_atr_bpu_bsu_etc,
@@ -1281,29 +1382,33 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
 
 if __name__ == "__main__":
     start_time = time.time()
-    trading_pair="BTC/USDT:USDT"
-    exchange_id="binanceusdm"
 
-    price_of_market_sl=26461
-    amount_of_sl=0.001
+    trading_pair="BAM_USDT_on_lbank2"
+    exchange_id="lbank2"
+    side="sell"
+    technical_stop_loss=None
+    take_profit_when_sl_is_technical_4_to_1=None
+    take_profit_when_sl_is_technical_3_to_1=None
+    take_profit_when_sl_is_calculated_4_to_1 = None
+    take_profit_when_sl_is_calculated_3_to_1 = None
+    calculated_stop_loss=None
+    sell_order=None
+    buy_order=None
+    stop_loss_is_technical=None
+    stop_loss_is_calculated=None
+    take_profit_x_to_one=3
+    ticker_will_be_traced_and_position_entered=None
+    position_size=None
+    calculated_stop_loss_from_db=None
+    technical_stop_loss_from_db = None
+    take_profit_size_with_x_to_one=None
+    market_or_limit_take_profit=None
+    market_or_limit_stop_loss=None
 
-    price_of_limit_tp=27827
-    amount_of_tp=0.001
-    post_only_for_limit_tp_bool=True
+    asset_still_satisfies_all_conditions=\
+        verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(trading_pair)
 
-    price_of_limit_sell_order=28000
-    price_of_limit_buy_order = 26000
-    amount_of_asset_for_entry=0.001
-
-    #we need to update the database first
-    pass
-    #launch it 10 sec after next bar print
-
-    asset_still_satisfies_all_conditions=False
-    # asset_still_satisfies_all_conditions=False
-    # asset_still_satisfies_all_conditions=\
-    #     verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(trading_pair)
-    if asset_still_satisfies_all_conditions==False:
+    if asset_still_satisfies_all_conditions==True:
         trading_pair_with_underscore_and_without_exchange=trading_pair.split("_on_")[0]
         trading_pair_with_slash_and_without_exchange=trading_pair_with_underscore_and_without_exchange.replace("_","/")
         exchange_object=get_exchange_object6(exchange_name=exchange_id)
@@ -1316,26 +1421,253 @@ if __name__ == "__main__":
         #                                               price_of_limit_tp,amount_of_tp,
         #                                               price_of_limit_sell_order,amount_of_asset_for_entry)
 
+        # place_stop_limit_sell_order_with_market_sl_and_limit_tp(exchange_id,
+        #                                                    trading_pair_with_slash_and_without_exchange,
+        #                                                    price_of_market_sl, amount_of_sl,
+        #                                                    price_of_limit_tp, amount_of_tp,
+        #                                                    price_of_limit_sell_order, amount_of_asset_for_entry)
+
+
         # place_limit_buy_order_with_market_sl_and_limit_tp(exchange_id,
         #                                                    trading_pair_with_slash_and_without_exchange,
         #                                                    price_of_market_sl, amount_of_sl,
         #                                                    price_of_limit_tp, amount_of_tp,
         #                                                    price_of_limit_buy_order, amount_of_asset_for_entry)
 
-        market_buy_order,market_sell_order_stop_loss,limit_sell_order_take_profit=\
-            place_market_buy_order_with_market_sl_and_limit_tp(exchange_id,
-                                                          trading_pair_with_slash_and_without_exchange,
-                                                          price_of_market_sl, amount_of_sl,
-                                                          price_of_limit_tp, amount_of_tp,post_only_for_limit_tp_bool,
-                                                          price_of_limit_buy_order, amount_of_asset_for_entry)
+        # place_stop_limit_buy_order_with_market_sl_and_limit_tp(exchange_id,
+        #                                                    trading_pair_with_slash_and_without_exchange,
+        #                                                    price_of_market_sl, amount_of_sl,
+        #                                                    price_of_limit_tp, amount_of_tp,
+        #                                                    price_of_limit_buy_order, amount_of_asset_for_entry)
+
+        # market_buy_order,market_sell_order_stop_loss,limit_sell_order_take_profit=\
+        #     place_market_buy_order_with_market_sl_and_limit_tp(exchange_id,
+        #                                                   trading_pair_with_slash_and_without_exchange,
+        #                                                   price_of_market_sl, amount_of_sl,
+        #                                                   price_of_limit_tp, amount_of_tp,post_only_for_limit_tp_bool,
+        #                                                   price_of_limit_buy_order, amount_of_asset_for_entry)
+
+        # market_sell_order, market_buy_order_stop_loss, limit_buy_order_take_profit = \
+        #     place_market_sell_order_with_market_sl_and_limit_tp(exchange_id,
+        #                                                        trading_pair_with_slash_and_without_exchange,
+        #                                                        price_of_market_sl, amount_of_sl,
+        #                                                        price_of_limit_tp, amount_of_tp,
+        #                                                        post_only_for_limit_tp_bool,
+        #                                                        price_of_limit_buy_order, amount_of_asset_for_entry)
+
+        # order=place_market_sell_order_with_market_sl_and_limit_tp_sl_and_tp_attached(exchange_id,
+        #                                                        trading_pair_with_slash_and_without_exchange,
+        #                                                        price_of_market_sl, amount_of_sl,
+        #                                                        price_of_limit_tp, amount_of_tp,
+        #                                                        post_only_for_limit_tp_bool,
+        #                                                        price_of_limit_buy_order, amount_of_asset_for_entry)
+
+
+
+
+        print("calculated_stop_loss8")
+        print(calculated_stop_loss)
+        print("technical_stop_loss8")
+        print(technical_stop_loss)
+        print("sell_order8")
+        print(sell_order)
+        print("take_profit_when_sl_is_technical_4_to_18")
+        print(take_profit_when_sl_is_technical_4_to_1)
+        print("take_profit_when_sl_is_calculated_3_to_18")
+        print(take_profit_when_sl_is_calculated_4_to_1)
+        print("position_size")
+        print(position_size)
+        print("take_profit_x_to_one")
+        print(take_profit_x_to_one)
+
+
+
+
+        amount_of_asset_for_entry = position_size
+        amount_of_sl = amount_of_asset_for_entry
+        amount_of_tp = amount_of_asset_for_entry
+
+        if stop_loss_is_calculated:
+            if market_or_limit_stop_loss=='market':
+                type_of_sl = "market"
+                if market_or_limit_take_profit=="limit":
+                    price_of_sl=calculated_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp=take_profit_size_with_x_to_one
+                    price_of_limit_order=sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order=sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+                if market_or_limit_take_profit == "market":
+                    price_of_sl = calculated_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp = take_profit_size_with_x_to_one
+                    price_of_limit_order = sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order = sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+            if market_or_limit_stop_loss == 'limit':
+                type_of_sl = "limit"
+                if market_or_limit_take_profit == "limit":
+                    price_of_sl = calculated_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp = take_profit_size_with_x_to_one
+                    price_of_limit_order = sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order = sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+
+                if market_or_limit_take_profit == "market":
+                    price_of_sl = calculated_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp = take_profit_size_with_x_to_one
+                    price_of_limit_order = sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order = sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+        if stop_loss_is_technical:
+            if market_or_limit_stop_loss == 'market':
+                type_of_sl = "market"
+                if market_or_limit_take_profit == "limit":
+                    price_of_sl = technical_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp = take_profit_size_with_x_to_one
+                    price_of_limit_order = sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order = sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+                if market_or_limit_take_profit == "market":
+                    price_of_sl = technical_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp = take_profit_size_with_x_to_one
+                    price_of_limit_order = sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order = sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+            if market_or_limit_stop_loss == 'limit':
+                type_of_sl = "limit"
+                if market_or_limit_take_profit == "limit":
+                    price_of_sl = technical_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp = take_profit_size_with_x_to_one
+                    price_of_limit_order = sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order = sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+
+                if market_or_limit_take_profit == "market":
+                    price_of_sl = technical_stop_loss_from_db
+                    type_of_tp = "limit"
+                    price_of_tp = take_profit_size_with_x_to_one
+                    price_of_limit_order = sell_order
+                    side_of_limit_order = "sell"
+                    trigger_price_of_stop_order = sell_order
+                    create_stop_limit_order_programmatically(exchange_id,
+                                                             trading_pair,
+                                                             trigger_price_of_stop_order,
+                                                             price_of_sl,
+                                                             type_of_sl,
+                                                             amount_of_sl,
+                                                             price_of_tp,
+                                                             type_of_tp,
+                                                             amount_of_tp,
+                                                             amount_of_asset_for_entry,
+                                                             side_of_limit_order, price_of_limit_order)
+
+
+
+
+
+
+
+        # place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp(exchange_id,
+        #                                                                                   trading_pair,
+        #                                                                                   price_of_sl, type_of_sl,
+        #                                                                                   amount_of_sl,
+        #                                                                                   price_of_tp, type_of_tp,
+        #                                                                                   amount_of_tp,
+        #                                                                                   post_only_for_limit_tp_bool,
+        #                                                                                   price_of_limit_order,
+        #                                                                                   amount_of_asset_for_entry,
+        #                                                                                   side_of_limit_order)
 
         # print("market_buy_order,market_sell_order_stop_loss,limit_sell_order_take_profit")
-        print('market_buy_order')
-        print(market_buy_order)
-        print('market_sell_order_stop_loss')
-        print(market_sell_order_stop_loss)
-        print("limit_sell_order_take_profit")
-        print(limit_sell_order_take_profit)
+        # print('market_buy_order')
+        # print(market_buy_order)
+        # print('market_sell_order_stop_loss')
+        # print(market_sell_order_stop_loss)
+        # print("limit_sell_order_take_profit")
+        # print(limit_sell_order_take_profit)
 
 
 

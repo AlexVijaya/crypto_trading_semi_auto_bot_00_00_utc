@@ -10,7 +10,7 @@ def unix_to_human_time(timestamp):
 def update_find_models_plot_open_final_folder_00():
     # Get the path to the Python interpreter executable
     interpreter = sys.executable
-    files = ['update_historical_USDT_pairs_for_1D_next_bar_print_utc_time_00.py',
+    files = ['update_historical_USDT_pairs_for_1D_next_bar_print_utc_time_00_fetch_entire_ohlcv_func_is_used.py',
              'run_multiple_current_search_files.py',
              "fetch_historical_ohlcv_for_this_day_pairs_into_separate_db_without_deleting_it_first.py",
              "update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00.py"

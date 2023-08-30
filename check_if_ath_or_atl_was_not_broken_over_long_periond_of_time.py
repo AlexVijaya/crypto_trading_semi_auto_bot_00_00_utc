@@ -705,6 +705,13 @@ def fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
             string_of_all_exchanges_where_pair_is_traded = \
                 drop_duplicates_in_string_in_which_names_are_separated_by_underscores(
                     string_of_all_exchanges_where_pair_is_traded)
+            print("string_of_exchanges_where_level_was_broken")
+            print(string_of_exchanges_where_level_was_broken)
+            print("string_of_exchanges_where_level_was_not_broken")
+            print(string_of_exchanges_where_level_was_not_broken)
+            print("string_of_all_exchanges_where_pair_is_traded")
+            print(string_of_all_exchanges_where_pair_is_traded)
+
         except:
             traceback.print_exc()
 
@@ -1150,6 +1157,8 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
         print("levels_formed_by_atl_df2")
         print(levels_formed_by_atl_df.to_string())
         ########################
+        print("exchange_id_string_where_trading_pair_is_traded123")
+        print(exchange_id_string_where_trading_pair_is_traded)
         levels_formed_by_atl_df.at[
             row_index_where_to_put_string_it_can_be_counter_minus_one_or_zero, "exchange_id_string_where_trading_pair_is_traded"] = exchange_id_string_where_trading_pair_is_traded
         levels_formed_by_atl_df.at[

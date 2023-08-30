@@ -23,7 +23,7 @@ from sqlalchemy_utils import create_database,database_exists
 from pytz import timezone
 from verify_that_asset_has_enough_volume import check_volume
 from get_info_from_load_markets import get_limit_of_daily_candles_original_limits
-
+from insert_into_df_traded_trading_pairs_for_each_exchange_exchange_as_column_name import fetch_entire_ohlcv
 
 
 def is_pair_active(ohlcv_data_several_last_rows_df,
@@ -279,6 +279,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
     global list_of_inactive_pairs
     global not_active_pair_counter
     exchange_object=False
+    limit_of_daily_candles=0
     try:
         print("exchange1=", exchange)
         exchange_object, limit_of_daily_candles = \
@@ -323,9 +324,9 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     # print("list_of_crypto_plus_exchange")
                     # print(list_of_crypto_plus_exchange)
 
-#
-# ##################################################################
-#                     if string_for_comparison_pair_plus_exchange!="ETH_USDT:USDT_on_whitebit":
+#1234
+##################################################################
+#                     if string_for_comparison_pair_plus_exchange!="BTC_USDT:USDT_on_whitebit":
 #                         continue
 # #######################################################3
 
@@ -369,213 +370,283 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     print("last_timestamp123")
                     print(last_timestamp)
 
-                    try:
-                        data = exchange_object.fetch_ohlcv(trading_pair, timeframe, since=int(last_timestamp * 1000))
-                    except:
-                        traceback.print_exc()
-
-                    ohlcv_data_several_last_rows_df = \
-                        pd.DataFrame(data, columns=header).set_index('Timestamp')
-                    print("ohlcv_data_several_last_rows_df1")
-                    print(ohlcv_data_several_last_rows_df)
-                    trading_pair = trading_pair.replace("/", "_")
-
-                    ohlcv_data_several_last_rows_df['ticker'] = trading_pair
-                    ohlcv_data_several_last_rows_df['exchange'] = exchange
-                    ohlcv_data_several_last_rows_df['volume*low'] = ohlcv_data_several_last_rows_df['volume'] * \
-                                                                    ohlcv_data_several_last_rows_df['low']
-                    ohlcv_data_several_last_rows_df['volume*close'] = ohlcv_data_several_last_rows_df['volume'] * \
-                                                                      ohlcv_data_several_last_rows_df['close']
-
-                    # если  в крипе мало данных , то ее не добавляем
-                    # if len(ohlcv_data_several_last_rows_df) < 10:
-                    #     continue
-
-                    # # slice last 30 days for volume calculation
-                    # min_volume_over_these_many_last_days = 30
-                    # data_df_n_days_slice = ohlcv_data_several_last_rows_df.iloc[:-1].tail(min_volume_over_these_many_last_days).copy()
-                    #
-                    # data_df_n_days_slice["volume_by_close"] = \
-                    #     data_df_n_days_slice["volume"] * data_df_n_days_slice["close"]
-                    # print("data_df_n_days_slice")
-                    # print(data_df_n_days_slice)
-                    # min_volume_over_last_n_days_in_dollars = min(data_df_n_days_slice["volume_by_close"])
-                    # print("min_volume_over_last_n_days_in_dollars")
-                    # print(min_volume_over_last_n_days_in_dollars)
-                    # if min_volume_over_last_n_days_in_dollars < 2 * last_bitcoin_price:
-                    #     continue
-
-
-
                     current_timestamp = time.time()
-                    last_timestamp_in_df = ohlcv_data_several_last_rows_df.tail(1).index.item() / 1000.0
-                    print("current_timestamp=", current_timestamp)
-                    print("ohlcv_data_several_last_rows_df.tail(1).index.item()=",
-                          ohlcv_data_several_last_rows_df.tail(1).index.item() / 1000.0)
+                    print("current_timestamp")
+                    print(current_timestamp)
 
-                    # check if the pair is active
-                    timeframe_in_seconds = convert_string_timeframe_into_seconds(timeframe)
-                    if not abs(current_timestamp - last_timestamp_in_df) < (timeframe_in_seconds):
-                        print(f"not quite active trading pair {trading_pair} on {exchange}")
-                        not_active_pair_counter = not_active_pair_counter + 1
-                        print("not_active_pair_counter=", not_active_pair_counter)
-                        list_of_inactive_pairs.append(f"{trading_pair}_on_{exchange}")
+                    current_timestamp_minus_last_timestamp_in_df_in_days=(current_timestamp-last_timestamp)/86400
+                    print("current_timestamp_minus_last_timestamp_in_df_in_days")
+                    print(current_timestamp_minus_last_timestamp_in_df_in_days)
 
+                    if current_timestamp_minus_last_timestamp_in_df_in_days>=limit_of_daily_candles:
+                        entire_ohlcv_df=fetch_entire_ohlcv(exchange_object,exchange_object.id,trading_pair,timeframe,limit_of_daily_candles)
+                        print("entire_ohlcv_df123")
+                        print(entire_ohlcv_df)
+                        trading_pair = trading_pair.replace("/", "_")
 
-                        # # drop table from ohlcv db if the pair is inactive
-                        # drop_table(string_for_comparison_pair_plus_exchange, engine)
+                        entire_ohlcv_df['ticker'] = trading_pair
+                        entire_ohlcv_df['exchange'] = exchange
+                        entire_ohlcv_df['volume*low'] = entire_ohlcv_df['volume'] * \
+                                                                        entire_ohlcv_df['low']
+                        entire_ohlcv_df['volume*close'] = entire_ohlcv_df['volume'] * \
+                                                                          entire_ohlcv_df['close']
+                        entire_ohlcv_df["Timestamp"] = entire_ohlcv_df.index
 
-                        continue
-                    print("1program got here")
-                    # try:
-                    #     ohlcv_data_several_last_rows_df['Timestamp'] = \
-                    #         [datetime.datetime.timestamp(float(x)) for x in ohlcv_data_several_last_rows_df.index]
-                    #
-                    # except Exception as e:
-                    #     print("error_message")
-                    #     traceback.print_exc()
-                    #     time.sleep(3000000)
-                    ohlcv_data_several_last_rows_df["Timestamp"] = ohlcv_data_several_last_rows_df.index
+                        try:
+                            entire_ohlcv_df["open_time"] = entire_ohlcv_df[
+                                "Timestamp"].apply(
+                                lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
+                        except Exception as e:
+                            print("error_message")
+                            traceback.print_exc()
 
-                    try:
-                        ohlcv_data_several_last_rows_df["open_time"] = ohlcv_data_several_last_rows_df[
-                            "Timestamp"].apply(
-                            lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
-                    except Exception as e:
-                        print("error_message")
-                        traceback.print_exc()
-
-                    ohlcv_data_several_last_rows_df['Timestamp'] = ohlcv_data_several_last_rows_df["Timestamp"] / 1000.0
-                    # time.sleep(3000000)
-                    print("2program got here")
-                    # ohlcv_data_several_last_rows_df["open_time"] = ohlcv_data_several_last_rows_df.index
-                    print("3program got here")
-                    ohlcv_data_several_last_rows_df.index = range(0, len(ohlcv_data_several_last_rows_df))
-                    print("4program got here")
-                    # ohlcv_data_several_last_rows_df = populate_dataframe_with_td_indicator ( ohlcv_data_several_last_rows_df )
-
-                    try:
-                        ohlcv_data_several_last_rows_df['open_time'] = pd.to_datetime(
-                            ohlcv_data_several_last_rows_df['open_time'])
-                        ohlcv_data_several_last_rows_df['open_time_without_date'] = \
-                            ohlcv_data_several_last_rows_df['open_time'].dt.strftime('%H:%M:%S')
-                    except:
-                        traceback.print_exc()
-
-                    ohlcv_data_several_last_rows_df["exchange"] = exchange
-                    print("5program got here")
-
-                    asset_type, maker_fee, taker_fee, url_of_trading_pair = \
-                        get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
-
-                    ohlcv_data_several_last_rows_df["asset_type"] = asset_type
-                    ohlcv_data_several_last_rows_df["maker_fee"] = maker_fee
-                    ohlcv_data_several_last_rows_df["taker_fee"] = taker_fee
-                    ohlcv_data_several_last_rows_df["url_of_trading_pair"] = url_of_trading_pair
-                    try:
-                        if_margin_true_for_an_asset_bool=table_with_ohlcv_data_df["trading_pair_is_traded_with_margin"].iat[0]
-                        ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
-                    except:
-                        ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = np.nan
-
-
-                    # ohlcv_data_several_last_rows_df["short_name"] = np.nan
-                    # print("6program got here")
-                    # ohlcv_data_several_last_rows_df["country"] = np.nan
-                    # ohlcv_data_several_last_rows_df["long_name"] = np.nan
-                    # ohlcv_data_several_last_rows_df["sector"] = np.nan
-                    # # ohlcv_data_several_last_rows_df["long_business_summary"] = long_business_summary
-                    # ohlcv_data_several_last_rows_df["website"] = np.nan
-                    # ohlcv_data_several_last_rows_df["quote_type"] = np.nan
-                    # ohlcv_data_several_last_rows_df["city"] = np.nan
-                    # ohlcv_data_several_last_rows_df["exchange_timezone_name"] = np.nan
-                    # ohlcv_data_several_last_rows_df["industry"] = np.nan
-                    # ohlcv_data_several_last_rows_df["market_cap"] = np.nan
+                        entire_ohlcv_df['Timestamp'] = entire_ohlcv_df["Timestamp"] / 1000.0
+                        try:
+                            entire_ohlcv_df['open_time'] = pd.to_datetime(
+                                entire_ohlcv_df['open_time'])
+                            entire_ohlcv_df['open_time_without_date'] = \
+                                entire_ohlcv_df['open_time'].dt.strftime('%H:%M:%S')
+                        except:
+                            traceback.print_exc()
 
 
 
+                        asset_type, maker_fee, taker_fee, url_of_trading_pair = \
+                            get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
+
+                        entire_ohlcv_df["asset_type"] = asset_type
+                        entire_ohlcv_df["maker_fee"] = maker_fee
+                        entire_ohlcv_df["taker_fee"] = taker_fee
+                        entire_ohlcv_df["url_of_trading_pair"] = url_of_trading_pair
+                        try:
+                            if_margin_true_for_an_asset_bool = \
+                            table_with_ohlcv_data_df["trading_pair_is_traded_with_margin"].iat[0]
+                            entire_ohlcv_df[
+                                'trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
+                        except:
+                            entire_ohlcv_df['trading_pair_is_traded_with_margin'] = np.nan
+
+                        entire_ohlcv_df.set_index("open_time")
+
+
+                        entire_ohlcv_df.index = range(0, len(entire_ohlcv_df))
+                        print("entire_ohlcv_df1234")
+                        print(entire_ohlcv_df.tail(10).to_string())
+                        # drop_table(f"{trading_pair}_on_{exchange}",engine)
+
+                        entire_ohlcv_df.to_sql(f"{trading_pair}_on_{exchange}",
+                                                               engine,
+                                                               if_exists='replace')
+
+                    else:
+
+                        try:
+                            data = exchange_object.fetch_ohlcv(trading_pair, timeframe, since=int(last_timestamp * 1000))
+                        except:
+                            traceback.print_exc()
+
+                        ohlcv_data_several_last_rows_df = \
+                            pd.DataFrame(data, columns=header).set_index('Timestamp')
+                        print("ohlcv_data_several_last_rows_df1")
+                        print(ohlcv_data_several_last_rows_df)
+                        trading_pair = trading_pair.replace("/", "_")
+
+                        ohlcv_data_several_last_rows_df['ticker'] = trading_pair
+                        ohlcv_data_several_last_rows_df['exchange'] = exchange
+                        ohlcv_data_several_last_rows_df['volume*low'] = ohlcv_data_several_last_rows_df['volume'] * \
+                                                                        ohlcv_data_several_last_rows_df['low']
+                        ohlcv_data_several_last_rows_df['volume*close'] = ohlcv_data_several_last_rows_df['volume'] * \
+                                                                          ohlcv_data_several_last_rows_df['close']
+
+                        # если  в крипе мало данных , то ее не добавляем
+                        # if len(ohlcv_data_several_last_rows_df) < 10:
+                        #     continue
+
+                        # # slice last 30 days for volume calculation
+                        # min_volume_over_these_many_last_days = 30
+                        # data_df_n_days_slice = ohlcv_data_several_last_rows_df.iloc[:-1].tail(min_volume_over_these_many_last_days).copy()
+                        #
+                        # data_df_n_days_slice["volume_by_close"] = \
+                        #     data_df_n_days_slice["volume"] * data_df_n_days_slice["close"]
+                        # print("data_df_n_days_slice")
+                        # print(data_df_n_days_slice)
+                        # min_volume_over_last_n_days_in_dollars = min(data_df_n_days_slice["volume_by_close"])
+                        # print("min_volume_over_last_n_days_in_dollars")
+                        # print(min_volume_over_last_n_days_in_dollars)
+                        # if min_volume_over_last_n_days_in_dollars < 2 * last_bitcoin_price:
+                        #     continue
+
+
+
+                        current_timestamp = time.time()
+                        last_timestamp_in_df = ohlcv_data_several_last_rows_df.tail(1).index.item() / 1000.0
+                        print("current_timestamp=", current_timestamp)
+                        print("ohlcv_data_several_last_rows_df.tail(1).index.item()=",
+                              ohlcv_data_several_last_rows_df.tail(1).index.item() / 1000.0)
+
+                        # check if the pair is active
+                        timeframe_in_seconds = convert_string_timeframe_into_seconds(timeframe)
+                        if not abs(current_timestamp - last_timestamp_in_df) < (timeframe_in_seconds):
+                            print(f"not quite active trading pair {trading_pair} on {exchange}")
+                            not_active_pair_counter = not_active_pair_counter + 1
+                            print("not_active_pair_counter=", not_active_pair_counter)
+                            list_of_inactive_pairs.append(f"{trading_pair}_on_{exchange}")
+
+
+                            # # drop table from ohlcv db if the pair is inactive
+                            # drop_table(string_for_comparison_pair_plus_exchange, engine)
+
+                            continue
+                        print("1program got here")
+                        # try:
+                        #     ohlcv_data_several_last_rows_df['Timestamp'] = \
+                        #         [datetime.datetime.timestamp(float(x)) for x in ohlcv_data_several_last_rows_df.index]
+                        #
+                        # except Exception as e:
+                        #     print("error_message")
+                        #     traceback.print_exc()
+                        #     time.sleep(3000000)
+                        ohlcv_data_several_last_rows_df["Timestamp"] = ohlcv_data_several_last_rows_df.index
+
+                        try:
+                            ohlcv_data_several_last_rows_df["open_time"] = ohlcv_data_several_last_rows_df[
+                                "Timestamp"].apply(
+                                lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
+                        except Exception as e:
+                            print("error_message")
+                            traceback.print_exc()
+
+                        ohlcv_data_several_last_rows_df['Timestamp'] = ohlcv_data_several_last_rows_df["Timestamp"] / 1000.0
+                        # time.sleep(3000000)
+                        print("2program got here")
+                        # ohlcv_data_several_last_rows_df["open_time"] = ohlcv_data_several_last_rows_df.index
+                        print("3program got here")
+                        ohlcv_data_several_last_rows_df.index = range(0, len(ohlcv_data_several_last_rows_df))
+                        print("4program got here")
+                        # ohlcv_data_several_last_rows_df = populate_dataframe_with_td_indicator ( ohlcv_data_several_last_rows_df )
+
+                        try:
+                            ohlcv_data_several_last_rows_df['open_time'] = pd.to_datetime(
+                                ohlcv_data_several_last_rows_df['open_time'])
+                            ohlcv_data_several_last_rows_df['open_time_without_date'] = \
+                                ohlcv_data_several_last_rows_df['open_time'].dt.strftime('%H:%M:%S')
+                        except:
+                            traceback.print_exc()
+
+                        ohlcv_data_several_last_rows_df["exchange"] = exchange
+                        print("5program got here")
+
+                        asset_type, maker_fee, taker_fee, url_of_trading_pair = \
+                            get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
+
+                        ohlcv_data_several_last_rows_df["asset_type"] = asset_type
+                        ohlcv_data_several_last_rows_df["maker_fee"] = maker_fee
+                        ohlcv_data_several_last_rows_df["taker_fee"] = taker_fee
+                        ohlcv_data_several_last_rows_df["url_of_trading_pair"] = url_of_trading_pair
+                        try:
+                            if_margin_true_for_an_asset_bool=table_with_ohlcv_data_df["trading_pair_is_traded_with_margin"].iat[0]
+                            ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
+                        except:
+                            ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = np.nan
+
+
+                        # ohlcv_data_several_last_rows_df["short_name"] = np.nan
+                        # print("6program got here")
+                        # ohlcv_data_several_last_rows_df["country"] = np.nan
+                        # ohlcv_data_several_last_rows_df["long_name"] = np.nan
+                        # ohlcv_data_several_last_rows_df["sector"] = np.nan
+                        # # ohlcv_data_several_last_rows_df["long_business_summary"] = long_business_summary
+                        # ohlcv_data_several_last_rows_df["website"] = np.nan
+                        # ohlcv_data_several_last_rows_df["quote_type"] = np.nan
+                        # ohlcv_data_several_last_rows_df["city"] = np.nan
+                        # ohlcv_data_several_last_rows_df["exchange_timezone_name"] = np.nan
+                        # ohlcv_data_several_last_rows_df["industry"] = np.nan
+                        # ohlcv_data_several_last_rows_df["market_cap"] = np.nan
 
 
 
 
-                    ohlcv_data_several_last_rows_df.set_index("open_time")
-                    add_time_of_next_candle_print_to_df(ohlcv_data_several_last_rows_df)
-                    print("100program got here")
-                    # trading_pair_has_stablecoin_as_first_part = \
-                    #     check_if_stable_coin_is_the_first_part_of_ticker(trading_pair)
 
-                    # if "BUSD/" in trading_pair:
-                    #     time.sleep(3000000)
-                    # if trading_pair_has_stablecoin_as_first_part:
-                    #     print(f"discarded pair due to stable coin being the first part is {trading_pair}")
-                    #     continue
-                    print(f"ohlcv_data_several_last_rows_df6_for_{string_for_comparison_pair_plus_exchange}")
-                    print(ohlcv_data_several_last_rows_df.to_string())
-                    print("101program got here")
-                    # last_timestamp_in_df = ohlcv_data_several_last_rows_df.tail(1).index.item() / 1000.0
-                    last_timestamp_in_df = ohlcv_data_several_last_rows_df["Timestamp"].iat[-1]
-                    print("last_timestamp_in_df12")
-                    print(last_timestamp_in_df)
-                    # last_timestamp_in_df=last_timestamp_in_df/ 1000.0
-                    print("102program got here")
-                    is_pair_active_bool = is_pair_active(ohlcv_data_several_last_rows_df, last_timestamp_in_df,
-                                                         timeframe, trading_pair,
-                                                         exchange)
-                    print("103program got here")
 
-                    if len(ohlcv_data_several_last_rows_df) <= 1:
-                        print("nothing_added")
 
-                        last_timestamp_in_df = last_timestamp_in_original_table
+                        ohlcv_data_several_last_rows_df.set_index("open_time")
+                        add_time_of_next_candle_print_to_df(ohlcv_data_several_last_rows_df)
+                        print("100program got here")
+                        # trading_pair_has_stablecoin_as_first_part = \
+                        #     check_if_stable_coin_is_the_first_part_of_ticker(trading_pair)
+
+                        # if "BUSD/" in trading_pair:
+                        #     time.sleep(3000000)
+                        # if trading_pair_has_stablecoin_as_first_part:
+                        #     print(f"discarded pair due to stable coin being the first part is {trading_pair}")
+                        #     continue
+                        print(f"ohlcv_data_several_last_rows_df6_for_{string_for_comparison_pair_plus_exchange}")
+                        print(ohlcv_data_several_last_rows_df.to_string())
+                        print("101program got here")
+                        # last_timestamp_in_df = ohlcv_data_several_last_rows_df.tail(1).index.item() / 1000.0
+                        last_timestamp_in_df = ohlcv_data_several_last_rows_df["Timestamp"].iat[-1]
+                        print("last_timestamp_in_df12")
+                        print(last_timestamp_in_df)
+                        # last_timestamp_in_df=last_timestamp_in_df/ 1000.0
+                        print("102program got here")
                         is_pair_active_bool = is_pair_active(ohlcv_data_several_last_rows_df, last_timestamp_in_df,
                                                              timeframe, trading_pair,
                                                              exchange)
+                        print("103program got here")
+
+                        if len(ohlcv_data_several_last_rows_df) <= 1:
+                            print("nothing_added")
+
+                            last_timestamp_in_df = last_timestamp_in_original_table
+                            is_pair_active_bool = is_pair_active(ohlcv_data_several_last_rows_df, last_timestamp_in_df,
+                                                                 timeframe, trading_pair,
+                                                                 exchange)
+                            if not is_pair_active_bool:
+                                drop_table(string_for_comparison_pair_plus_exchange, engine)
+                                print(f"{string_for_comparison_pair_plus_exchange} dropped1 nothing_added")
+                            continue
+
+                        # nothing new is added and the pair is inactive
                         if not is_pair_active_bool:
                             drop_table(string_for_comparison_pair_plus_exchange, engine)
-                            print(f"{string_for_comparison_pair_plus_exchange} dropped1 nothing_added")
-                        continue
+                            print(f"{string_for_comparison_pair_plus_exchange} dropped2")
+                            continue
+                        # try:
+                        #     ohlcv_data_several_last_rows_df['open_time'] = \
+                        #         [datetime.datetime.timestamp(x) for x in ohlcv_data_several_last_rows_df["Timestamp"]]
+                        #     # ohlcv_data_several_last_rows_df["open_time"] = ohlcv_data_several_last_rows_df.index
+                        # except:
+                        #     print("strange_error")
+                        #     traceback.print_exc()
+                        #
+                        #     time.sleep(3000000)
 
-                    # nothing new is added and the pair is inactive
-                    if not is_pair_active_bool:
-                        drop_table(string_for_comparison_pair_plus_exchange, engine)
-                        print(f"{string_for_comparison_pair_plus_exchange} dropped2")
-                        continue
-                    # try:
-                    #     ohlcv_data_several_last_rows_df['open_time'] = \
-                    #         [datetime.datetime.timestamp(x) for x in ohlcv_data_several_last_rows_df["Timestamp"]]
-                    #     # ohlcv_data_several_last_rows_df["open_time"] = ohlcv_data_several_last_rows_df.index
-                    # except:
-                    #     print("strange_error")
-                    #     traceback.print_exc()
-                    #
-                    #     time.sleep(3000000)
+                        print("ohlcv_data_several_last_rows_df11")
+                        print(ohlcv_data_several_last_rows_df)
 
-                    print("ohlcv_data_several_last_rows_df11")
-                    print(ohlcv_data_several_last_rows_df)
+                        # ohlcv_data_several_last_rows_df.set_index("open_time")
+                        ohlcv_data_several_last_rows_df.index = \
+                            range(number_of_last_index_in_ohlcv_data_df,
+                                  number_of_last_index_in_ohlcv_data_df + len(ohlcv_data_several_last_rows_df))
+                        print("ohlcv_data_several_last_rows_df13")
+                        print(ohlcv_data_several_last_rows_df)
 
-                    # ohlcv_data_several_last_rows_df.set_index("open_time")
-                    ohlcv_data_several_last_rows_df.index = \
-                        range(number_of_last_index_in_ohlcv_data_df,
-                              number_of_last_index_in_ohlcv_data_df + len(ohlcv_data_several_last_rows_df))
-                    print("ohlcv_data_several_last_rows_df13")
-                    print(ohlcv_data_several_last_rows_df)
+                        try:
+                            print("ohlcv_data_several_last_rows_df_first_row_is_not_deleted")
+                            print(ohlcv_data_several_last_rows_df.to_string())
+                            ohlcv_data_several_last_rows_df = ohlcv_data_several_last_rows_df.iloc[1:, :]
+                            print("ohlcv_data_several_last_rows_df_first_row_deleted")
+                            print(ohlcv_data_several_last_rows_df.to_string())
+                        except:
+                            traceback.print_exc()
+                        list_of_updated_trading_pairs.append(trading_pair)
 
-                    try:
-                        print("ohlcv_data_several_last_rows_df_first_row_is_not_deleted")
-                        print(ohlcv_data_several_last_rows_df.to_string())
-                        ohlcv_data_several_last_rows_df = ohlcv_data_several_last_rows_df.iloc[1:, :]
-                        print("ohlcv_data_several_last_rows_df_first_row_deleted")
-                        print(ohlcv_data_several_last_rows_df.to_string())
-                    except:
-                        traceback.print_exc()
-                    list_of_updated_trading_pairs.append(trading_pair)
+                        ohlcv_data_several_last_rows_df.to_sql(f"{trading_pair}_on_{exchange}",
+                                                               engine,
+                                                               if_exists='append')
 
-                    ohlcv_data_several_last_rows_df.to_sql(f"{trading_pair}_on_{exchange}",
-                                                           engine,
-                                                           if_exists='append')
-
-                    # if string_for_comparison_pair_plus_exchange=="1INCH3L_USDT_on_lbank":
-                    #     time.sleep(30000000)
+                        # if string_for_comparison_pair_plus_exchange=="1INCH3L_USDT_on_lbank":
+                        #     time.sleep(30000000)
 
 
 
@@ -738,7 +809,7 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
         #                                                     "probit", "latoken","bkex", "bigone", "bitget", "whitebit"
         #                                                     ]
 
-        #
+
         # #########################3
         # if exchange !="whitebit":
         #     continue

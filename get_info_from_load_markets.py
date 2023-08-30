@@ -439,7 +439,10 @@ def get_exchange_object3(exchange_name):
         # 'vcc': ccxt.vcc(),
         'wavesexchange': ccxt.wavesexchange(),
         'woo':ccxt.woo(),
-        'wazirx':ccxt.wazirx(),
+        'wazirx':ccxt.wazirx({
+        'rateLimit': 300,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
         'whitebit': ccxt.whitebit(),
         # 'xbtce': ccxt.xbtce(),
         'xt': ccxt.xt(),
@@ -638,7 +641,10 @@ def get_exchange_object6(exchange_name):
         # 'vcc': ccxt.vcc(),
         'wavesexchange': ccxt.wavesexchange(),
         'woo':ccxt.woo(),
-        'wazirx':ccxt.wazirx(),
+        'wazirx':ccxt.wazirx({
+        'rateLimit': 300,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
         'whitebit': ccxt.whitebit(),
         # 'xbtce': ccxt.xbtce(),
         # 'xena': ccxt.xena(),
@@ -1491,6 +1497,8 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://www.binance.com/en/futures/{trading_pair.replace('/','').upper()}"
     elif exchange_id == 'huobipro':
         return f"https://www.huobi.com/en-us/futures/linear_swap/exchange#contract_code={base}-{quote}&contract_type=swap&type=isolated"
+    elif exchange_id == 'huobi':
+        return f"https://www.huobi.com/en-us/futures/linear_swap/exchange#contract_code={base}-{quote}&contract_type=swap&type=isolated"
     elif exchange_id == 'bybit':
         return f"https://www.bybit.com/trade/{quote.lower()}/{trading_pair.replace('/','').upper()}"
     elif exchange_id == 'hitbtc3':
@@ -1538,6 +1546,16 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://ascendex.com/en/futures-perpetualcontract-trading/{base.lower()}-perp"
     elif exchange_id == 'bigone':
         return f"https://big.one/contract/trade/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'xt':
+        return f"https://www.xt.com/en/futures/trade/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'woo':
+        return f"https://x.woo.org/en/trade/{base.upper()}_PERP"
+    elif exchange_id == 'okex5':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'okex':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'okx':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
     else:
         return "Exchange not supported"
 
@@ -1640,6 +1658,8 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.binance.com/en/trade/{market['base']}_{''.join(market['quote'].split('/'))}?layout=pro&type=spot"
     elif exchange_id == 'huobipro':
         return f"https://www.huobi.com/en-us/exchange/{market['base'].lower()}_{market['quote'].lower()}/"
+    elif exchange_id == 'huobi':
+        return f"https://www.huobi.com/en-us/exchange/{market['base'].lower()}_{market['quote'].lower()}/"
     elif exchange_id == 'bybit':
         return f"https://www.bybit.com/ru-RU/trade/spot/{market['base']}/{market['quote']}"
     elif exchange_id == 'hitbtc3':
@@ -1692,6 +1712,16 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
     elif exchange_id == 'bigone':
         return f"https://big.one/en/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'xt':
+        return f"https://www.xt.com/en/trade/{market['base'].lower()}_{market['quote'].lower()}"
+    elif exchange_id == 'woo':
+        return f"https://x.woo.org/en/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'okex5':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'okex':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'okx':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
     else:
         return "Exchange not supported"
 
@@ -2067,6 +2097,18 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'huobipro':
         exchange_object = ccxt.huobipro()
         limit = 1000
+    elif exchange_name == 'hollaex':
+        exchange_object = ccxt.hollaex()
+        limit = 1000
+    elif exchange_name == 'huobijp':
+        exchange_object = ccxt.huobijp()
+        limit = 1000
+    elif exchange_name == 'upbit':
+        exchange_object = ccxt.upbit()
+        limit = 1000
+    elif exchange_name == 'huobi':
+        exchange_object = ccxt.huobi()
+        limit = 1000
     elif exchange_name == 'bybit':
         exchange_object = ccxt.bybit()
         limit = 200
@@ -2091,6 +2133,61 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         'enableRateLimit': True  # Enable rate limiting
     })
         limit = 1000
+    elif exchange_name == 'bitvavo':
+        exchange_object = ccxt.bitvavo()
+        limit = 100
+    elif exchange_name == 'ndax':
+        exchange_object = ccxt.ndax()
+        limit = 100
+    elif exchange_name == 'oceanex':
+        exchange_object = ccxt.oceanex()
+        limit = 100
+    elif exchange_name == 'okcoin':
+        exchange_object = ccxt.okcoin()
+        limit = 100
+    elif exchange_name == 'okex5':
+        exchange_object = ccxt.okex5()
+        limit = 100
+    elif exchange_name == 'okex':
+        exchange_object = ccxt.okex()
+        limit = 100
+    elif exchange_name == 'okx':
+        exchange_object = ccxt.okx()
+        limit = 100
+    elif exchange_name == 'paymium':
+        exchange_object = ccxt.paymium()
+        limit = 100
+    elif exchange_name == 'phemex':
+        exchange_object = ccxt.phemex()
+        limit = 100
+    elif exchange_name == 'poloniex':
+        exchange_object = ccxt.poloniex()
+        limit = 100
+    elif exchange_name == 'poloniexfutures':
+        exchange_object = ccxt.poloniexfutures()
+        limit = 100
+    elif exchange_name == 'probit':
+        exchange_object = ccxt.probit()
+        limit = 100
+    elif exchange_name == 'stex':
+        exchange_object = ccxt.stex()
+        limit = 100
+    elif exchange_name == 'tidex':
+        exchange_object = ccxt.tidex()
+        limit = 100
+    elif exchange_name == 'timex':
+        exchange_object = ccxt.timex()
+        limit = 100
+    elif exchange_name == 'tokocrypto':
+        exchange_object = ccxt.tokocrypto()
+        limit = 100
+    # elif exchange_name == 'upbit':
+    #     exchange_object = ccxt.upbit()
+    #     limit = 100
+
+    elif exchange_name == 'novadax':
+        exchange_object = ccxt.novadax()
+        limit = 100
     elif exchange_name == 'exmo':
         exchange_object = ccxt.exmo()
         limit = 2000
@@ -2119,9 +2216,9 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'zb':
         # exchange_object = ccxt.zb()
         limit = 1000
-    elif exchange_name == 'tokocrypto':
-        exchange_object = ccxt.tokocrypto()
-        limit = 1000
+    # elif exchange_name == 'tokocrypto':
+    #     exchange_object = ccxt.tokocrypto()
+    #     limit = 1000
     elif exchange_name == 'currencycom':
         exchange_object = ccxt.currencycom()
         limit = 1000
@@ -2134,12 +2231,12 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'bitmart':
         exchange_object = ccxt.bitmart()
         limit = 1000
-    elif exchange_name == 'probit':
-        exchange_object = ccxt.probit()
-        limit = 1000
+    # elif exchange_name == 'probit':
+    #     exchange_object = ccxt.probit()
+    #     limit = 1000
     elif exchange_name == 'whitebit':
         exchange_object = ccxt.whitebit()
-        limit = 1000
+        limit = 30
     elif exchange_name == 'latoken':
         exchange_object = ccxt.latoken()
         limit = 100
@@ -2383,7 +2480,10 @@ def get_exchange_object2(exchange_name):
         # 'vcc': ccxt.vcc(),
         'wavesexchange': ccxt.wavesexchange(),
         'woo':ccxt.woo(),
-        'wazirx':ccxt.wazirx(),
+        'wazirx':ccxt.wazirx({
+        'rateLimit': 300,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
         'whitebit': ccxt.whitebit(),
         # 'xbtce': ccxt.xbtce(),
         # 'xena': ccxt.xena(),

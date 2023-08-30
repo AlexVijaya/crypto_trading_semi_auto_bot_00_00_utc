@@ -270,7 +270,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
         # if exchange in ["huobipro"]:
         #     active_trading_pairs_list_from_huobipro = get_active_trading_pairs_from_huobipro()
         exchange_object=get_exchange_object6(exchange)
-        exchange_object.enableRateLimit()
+        exchange_object.enableRateLimit = True
         # exchange_object.fetch_markets()
         # exchange_object_huobipro=np.nan
 

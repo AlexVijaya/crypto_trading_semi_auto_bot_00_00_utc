@@ -22,6 +22,7 @@ import pprint
 from verify_that_asset_has_enough_volume import check_volume
 from get_info_from_load_markets import get_asset_type2
 from get_info_from_load_markets import if_margin_true_for_an_asset
+
 from get_info_from_load_markets import get_fees
 from get_info_from_load_markets import fetch_huobipro_ohlcv
 from get_info_from_load_markets import get_active_trading_pairs_from_huobipro
@@ -35,7 +36,9 @@ from get_info_from_load_markets import get_perpetual_swap_url
 from constant_update_of_ohlcv_db_to_plot_later import get_list_of_exchange_ids_for_todays_pairs
 from constant_update_of_ohlcv_db_to_plot_later import get_list_of_todays_trading_pairs
 from get_info_from_load_markets import get_exchange_object6
+from async_update_historical_USDT_pairs_for_1D import get_list_of_tables_in_db
 from async_update_historical_USDT_pairs_for_1D import connect_to_postgres_db_without_deleting_it_first
+
 def get_maker_and_taker_fees_and_is_shortable(exchange, trading_pair):
 
     maker_fee=np.nan
@@ -256,12 +259,14 @@ not_active_pair_counter = 0
 list_of_inactive_pairs=[]
 
 def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchange,
-                                                            engine,timeframe='1d'):
+                                                            engine,
+                                                      timeframe,
+                                                      list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db):
     print("exchange=",exchange)
     global new_counter
     global list_of_inactive_pairs
     global not_active_pair_counter
-    exchange_object=False
+    exchange_object=""
     limit_of_daily_candles=1000
     active_trading_pairs_list=[]
     # active_trading_pairs_list_from_huobipro=[]
@@ -270,7 +275,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
         # if exchange in ["huobipro"]:
         #     active_trading_pairs_list_from_huobipro = get_active_trading_pairs_from_huobipro()
         exchange_object=get_exchange_object6(exchange)
-        exchange_object.enableRateLimit = True
+        exchange_object.enableRateLimit=True
         # exchange_object.fetch_markets()
         # exchange_object_huobipro=np.nan
 
@@ -322,10 +327,16 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
         #     list_of_all_symbols_from_exchange=active_trading_pairs_list_from_huobipro
 
         database_name1 = 'levels_formed_by_highs_and_lows_for_cryptos_0000'
-        list_of_todays_trading_pairs=get_list_of_todays_trading_pairs(database_name1)
+        list_of_todays_trading_pairs_in_db_with_models=get_list_of_todays_trading_pairs(database_name1)
 
-        print("list_of_todays_trading_pairs1")
-        print(list_of_todays_trading_pairs)
+        print("list_of_todays_trading_pairs_in_db_with_models")
+        print(list_of_todays_trading_pairs_in_db_with_models)
+
+
+        print(f"list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db ")
+        print(list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db)
+
+
         for trading_pair in list_of_all_symbols_from_exchange:
             # for item in counter_gen():
             #     print ("item=",item)
@@ -333,9 +344,25 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
             # print("trading_pair1")
             # print(trading_pair)
 
-            if trading_pair not in list_of_todays_trading_pairs:
+            # if trading_pair!="MONG/USDT":
+            #     continue
+
+            if trading_pair not in list_of_todays_trading_pairs_in_db_with_models:
                 continue
             print("program_got_here21")
+
+            # check if the list of already downloaded pairs in ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs has any pairs
+            # from the database levels_formed_by_highs_and_lows_for_cryptos_0000
+            string_to_compare_with_pair_from_levels_formed_by_highs_and_lows_for_cryptos_0000=trading_pair.replace("/","_")+"_on_"+exchange
+            print("string_to_compare_with_pair_from_levels_formed_by_highs_and_lows_for_cryptos_0000")
+            print(string_to_compare_with_pair_from_levels_formed_by_highs_and_lows_for_cryptos_0000)
+
+            if string_to_compare_with_pair_from_levels_formed_by_highs_and_lows_for_cryptos_0000 in list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db:
+                continue
+
+            print(f"{string_to_compare_with_pair_from_levels_formed_by_highs_and_lows_for_cryptos_0000} is not in db")
+
+
 
 
             try:
@@ -419,6 +446,27 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     #
                     # except:
                     #     traceback.print_exc()
+
+                    # Fetch the most recent 100 days of data for latoken exchange
+                    try:
+                        # exchange latoken has a specific limit of one request number of candles
+                        if isinstance(exchange_object, ccxt.latoken):
+                            print("exchange is latoken")
+                            limit_of_daily_candles = 100
+                    except:
+                        traceback.print_exc()
+
+                    # Fetch the most recent 200 days of data bybit exchange
+                    try:
+                        # exchange bybit has a specific limit of one request number of candles
+                        if isinstance(exchange_object, ccxt.bybit):
+                            print("exchange is bybit")
+                            limit_of_daily_candles = 200
+                    except:
+                        traceback.print_exc()
+
+
+
                     try:
                         data_df=fetch_entire_ohlcv(exchange_object,exchange,trading_pair,timeframe,limit_of_daily_candles)
                     except:
@@ -634,7 +682,8 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                         not_active_pair_counter=not_active_pair_counter+1
                         print("not_active_pair_counter=",not_active_pair_counter)
                         list_of_inactive_pairs.append(f"{trading_pair}_on_{exchange}")
-                        continue
+                        data_df["pair_is_inactive"]=True
+
 
                     print("1program got here")
                     # try:
@@ -709,6 +758,9 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                         continue
 
                     print(f"{trading_pair} was added to df")
+
+                    print(
+                        f"{string_to_compare_with_pair_from_levels_formed_by_highs_and_lows_for_cryptos_0000} added to db")
 
 
                     data_df.to_sql ( f"{trading_pair}_on_{exchange}" ,
@@ -793,7 +845,7 @@ def get_real_time_bitcoin_price():
     last_bitcoin_price=btc_ticker['close']
     return last_bitcoin_price
 
-def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchanges_list,timeframe):
+def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchanges_list,timeframe,list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db):
     start=time.perf_counter()
     # exchanges_list=['aax', 'ascendex', 'bequant', 'bibox', 'bigone',
     #                 'binance', 'binancecoinm', 'binanceus', 'binanceusdm',
@@ -836,19 +888,21 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
     #
     database_name = 'levels_formed_by_highs_and_lows_for_cryptos_0000'
     list_of_exchanges_for_todays_pairs = get_list_of_exchange_ids_for_todays_pairs(database_name)
+    print("list_of_exchanges_for_todays_pairs2")
+    print(list_of_exchanges_for_todays_pairs)
 
     for exchange in exchanges_list:
-        # if exchange not in list_of_exchanges_for_todays_pairs:
-        #     continue
+        if exchange not in list_of_exchanges_for_todays_pairs:
+            continue
 
-        # if exchange!="bitfinex" or exchange!="bitfinex2":
+        # if exchange!="btcex" :
         #     continue
 
         if exchange!="bitforex":
             continue
 
         get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price, exchange,
-                                                          engine, timeframe)
+                                                          engine, timeframe,list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db)
     #connection_to_usdt_trading_pairs_daily_ohlcv.close()
     # connection_to_usdt_trading_pairs_4h_ohlcv.close ()
     print("list_of_inactive_pairs\n",list_of_inactive_pairs)
@@ -860,10 +914,21 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
 
 def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
 
-    engine , connection_to_ohlcv_for_usdt_pairs =connect_to_postgres_db_without_deleting_it_first(database_name)
+    # engine , connection_to_ohlcv_for_usdt_pairs =\
+    #     connect_to_postgres_db_with_deleting_it_first(database_name)
+
+    engine_for_db_with_todays_ohlcv , connection_to_ohlcv_for_usdt_pairs=\
+        connect_to_postgres_db_without_deleting_it_first(database_name)
+
+
+    
+
     exchanges_list = ccxt.exchanges
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50
+
+    # database_name_with_ohlcv_of_todays_pairs="ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+    list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db=get_list_of_tables_in_db(engine_for_db_with_todays_ohlcv)
 
     # fetch_historical_usdt_pairs_asynchronously(engine,exchanges_list)
 
@@ -885,8 +950,9 @@ def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
 
         p = multiprocessing.Process ( target =
                                       fetch_historical_usdt_pairs_asynchronously ,
-                                      args = (last_bitcoin_price,engine , exchanges_list[
-                                                       exchange_counter:exchange_counter + step_for_exchanges],timeframe) )
+                                      args = (last_bitcoin_price,engine_for_db_with_todays_ohlcv , exchanges_list[
+                                                       exchange_counter:exchange_counter + step_for_exchanges],
+                                              timeframe,list_of_tables_in_usdt_pairs_0000_for_todays_pairs_db) )
         p.start ()
         process_list.append ( p )
     for process in process_list:

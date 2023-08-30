@@ -1025,6 +1025,9 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                         except:
                                                             traceback.print_exc()
 
+                                                        df_with_level_atr_bpu_bsu_etc.loc[
+                                                            0, "ticker"] = stock_name
+
                                                         df_with_level_atr_bpu_bsu_etc.to_sql (
                                                             table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be ,
                                                             engine_for_db_where_ticker_which_may_have_fast_breakout_situations ,
@@ -1157,6 +1160,30 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                     0)
                                             except:
                                                 traceback.print_exc()
+
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "ticker_last_column"] = stock_name
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "ticker_will_be_traced_and_position_entered"] = False
+
+                                            side = "buy"
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "side"] = side
+
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "stop_loss_is_technical"] = False
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "stop_loss_is_calculated"] = False
+
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "market_or_limit_stop_loss"] = 'market'
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "market_or_limit_take_profit"] = 'limit'
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "position_size"] = 0
+
+                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                0, "take_profit_x_to_one"] = 3
 
                                             df_with_level_atr_bpu_bsu_etc.to_sql (
                                                 table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be ,

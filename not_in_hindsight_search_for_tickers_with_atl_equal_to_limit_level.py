@@ -904,6 +904,9 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                             0)
                     except:
                         traceback.print_exc()
+
+                    df_with_level_atr_bpu_bsu_etc.loc[
+                        0, "ticker_last_column"] = stock_name
                     df_with_level_atr_bpu_bsu_etc.to_sql(
                         table_where_ticker_which_had_atl_equal_to_limit_level,
                         engine_for_db_where_levels_formed_by_rebound_level_will_be,

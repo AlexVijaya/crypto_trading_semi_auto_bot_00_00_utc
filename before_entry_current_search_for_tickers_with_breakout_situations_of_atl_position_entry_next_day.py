@@ -28,7 +28,18 @@ from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
-
+from create_order_on_crypto_exchange2 import create_limit_buy_order
+from create_order_on_crypto_exchange2 import create_limit_sell_order
+from get_info_from_load_markets import get_exchange_object6
+from place_order_sl_and_tp import place_limit_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_market_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_market_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_buy_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_limit_sell_order_with_market_sl_and_limit_tp
+from place_order_sl_and_tp import place_stop_limit_buy_order_with_market_sl_and_limit_tp
 
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
@@ -668,7 +679,7 @@ def create_text_file_and_writ_text_to_it(text, subdirectory_name):
 
 
 def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_is_stored,
-                                                db_where_ticker_which_may_have_fast_breakout_situations,
+                                                db_where_ticker_which_may_have_breakout_situations,
                                                 table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
                                                 table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
                                                 advanced_atr_over_this_period,
@@ -681,8 +692,8 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
         connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored)
 
     engine_for_db_where_ticker_which_may_have_breakout_situations, \
-        connection_to_db_where_ticker_which_may_have_fast_breakout_situations = \
-        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_fast_breakout_situations)
+        connection_to_db_where_ticker_which_may_have_breakout_situations = \
+        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_breakout_situations)
 
     # drop_table(table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
     #            engine_for_db_where_ticker_which_may_have_breakout_situations)
@@ -1141,21 +1152,21 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             except:
                 traceback.print_exc()
 
-            try:
-                #############################################
-                # add info to dataframe about whether level was broken on other exchanges
-                df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
-                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_0000,
-                                                                                                       db_where_ohlcv_data_for_stocks_is_stored_1600,
-                                                                                                       table_with_ohlcv_data_df,
-                                                                                                       engine_for_ohlcv_data_for_stocks_0000,
-                                                                                                       engine_for_ohlcv_data_for_stocks_1600,
-                                                                                                       all_time_low,
-                                                                                                       list_of_tables_in_ohlcv_db_1600,
-                                                                                                       df_with_level_atr_bpu_bsu_etc,
-                                                                                                       0)
-            except:
-                traceback.print_exc()
+            # try:
+            #     #############################################
+            #     # add info to dataframe about whether level was broken on other exchanges
+            #     df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
+            #                                                                                            db_where_ohlcv_data_for_stocks_is_stored_0000,
+            #                                                                                            db_where_ohlcv_data_for_stocks_is_stored_1600,
+            #                                                                                            table_with_ohlcv_data_df,
+            #                                                                                            engine_for_ohlcv_data_for_stocks_0000,
+            #                                                                                            engine_for_ohlcv_data_for_stocks_1600,
+            #                                                                                            all_time_low,
+            #                                                                                            list_of_tables_in_ohlcv_db_1600,
+            #                                                                                            df_with_level_atr_bpu_bsu_etc,
+            #                                                                                            0)
+            # except:
+            #     traceback.print_exc()
 
 
             df_with_level_atr_bpu_bsu_etc.to_sql(
@@ -1183,9 +1194,10 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
 if __name__ == "__main__":
     start_time = time.time()
+    side = "sell"
     db_where_ohlcv_data_for_stocks_is_stored = "ohlcv_1d_data_for_usdt_pairs_0000"
     count_only_round_level = False
-    db_where_ticker_which_may_have_fast_breakout_situations = \
+    db_where_ticker_which_may_have_breakout_situations = \
         "levels_formed_by_highs_and_lows_for_cryptos_0000"
     table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be = \
         "current_breakout_situations_of_ath_position_entry_next_day"
@@ -1193,7 +1205,7 @@ if __name__ == "__main__":
         "current_breakout_situations_of_atl_position_entry_next_day"
 
     if count_only_round_level:
-        db_where_ticker_which_may_have_fast_breakout_situations = \
+        db_where_ticker_which_may_have_breakout_situations = \
             "round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     # 0.05 means 5%
 
@@ -1201,10 +1213,10 @@ if __name__ == "__main__":
     advanced_atr_over_this_period = 30
     number_of_bars_in_suppression_to_check_for_volume_acceptance = 14
     factor_to_multiply_atr_by_to_check_suppression = 1
-    count_min_volume_over_this_many_days = 30
+    count_min_volume_over_this_many_days = 7
     search_for_tickers_with_breakout_situations(
         db_where_ohlcv_data_for_stocks_is_stored,
-        db_where_ticker_which_may_have_fast_breakout_situations,
+        db_where_ticker_which_may_have_breakout_situations,
         table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
         table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
         advanced_atr_over_this_period,

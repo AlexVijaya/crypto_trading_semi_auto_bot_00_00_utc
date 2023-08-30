@@ -732,7 +732,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             print ( f'{stock_name} is'
                     f' number {counter} out of {len ( list_of_tables_in_ohlcv_db )}\n' )
 
-            # if stock_name!="CAT":
+            # if stock_name!="HBAR_USDT:USDT_on_woo":
             #     continue
 
 
@@ -998,10 +998,10 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             take_profit_when_sl_is_calculated_4_to_1 = (buy_order - calculated_stop_loss) * 4 + buy_order
 
             # round decimals for ease of looking at
-            buy_order = round(buy_order,20)
-            calculated_stop_loss = round(calculated_stop_loss,20)
-            take_profit_when_sl_is_calculated_3_to_1 = round(take_profit_when_sl_is_calculated_3_to_1,20)
-            take_profit_when_sl_is_calculated_4_to_1 = round(take_profit_when_sl_is_calculated_4_to_1,20)
+            # buy_order = round(buy_order,20)
+            # calculated_stop_loss = round(calculated_stop_loss,20)
+            # take_profit_when_sl_is_calculated_3_to_1 = round(take_profit_when_sl_is_calculated_3_to_1,20)
+            # take_profit_when_sl_is_calculated_4_to_1 = round(take_profit_when_sl_is_calculated_4_to_1,20)
 
 
 
@@ -1014,13 +1014,13 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             distance_between_technical_stop_loss_and_buy_order_in_atr = \
                 distance_between_technical_stop_loss_and_buy_order / advanced_atr
             # round technical stop loss and take profit for ease of looking at
-            technical_stop_loss = round(technical_stop_loss,20)
-            take_profit_when_sl_is_technical_3_to_1 = \
-                round(take_profit_when_sl_is_technical_3_to_1,20)
-            take_profit_when_sl_is_technical_4_to_1 = \
-                round(take_profit_when_sl_is_technical_4_to_1,20)
-            distance_between_technical_stop_loss_and_buy_order_in_atr = \
-                round(distance_between_technical_stop_loss_and_buy_order_in_atr,20)
+            # technical_stop_loss = round(technical_stop_loss,20)
+            # take_profit_when_sl_is_technical_3_to_1 = \
+            #     round(take_profit_when_sl_is_technical_3_to_1,20)
+            # take_profit_when_sl_is_technical_4_to_1 = \
+            #     round(take_profit_when_sl_is_technical_4_to_1,20)
+            # distance_between_technical_stop_loss_and_buy_order_in_atr = \
+            #     round(distance_between_technical_stop_loss_and_buy_order_in_atr,20)
 
             list_of_stocks_which_broke_ath.append(stock_name)
             print("list_of_stocks_which_broke_ath")
@@ -1124,6 +1124,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             try:
                 #############################################
                 # add info to dataframe about whether level was broken on other exchanges
+
                 df_with_level_atr_bpu_bsu_etc = fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
                                                                                                        db_where_ohlcv_data_for_stocks_is_stored_0000,
                                                                                                        db_where_ohlcv_data_for_stocks_is_stored_1600,
@@ -1136,6 +1137,33 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                                                                        0)
             except:
                 traceback.print_exc()
+
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "ticker_last_column"] = stock_name
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "ticker_will_be_traced_and_position_entered"] = False
+
+            side = "buy"
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "side"] = side
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "stop_loss_is_technical"] = False
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "stop_loss_is_calculated"] = False
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "market_or_limit_stop_loss"] = 'market'
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "market_or_limit_take_profit"] = 'limit'
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "position_size"] = 0
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "take_profit_x_to_one"] = 3
+
+
             df_with_level_atr_bpu_bsu_etc.to_sql(
                 table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
                 engine_for_db_where_ticker_which_may_have_fast_breakout_situations,
