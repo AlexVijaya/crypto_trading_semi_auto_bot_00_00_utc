@@ -59,9 +59,9 @@ def get_file_name_for_deletion(subdirectory_name='current_rebound_breakout_and_f
     file_path = os.path.join(subdirectory_path, "crypto_" + today + '.txt')
     return file_path
 
-database_name="ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
-engine_for_db_with_todays_ohlcv1, connection_to_ohlcv_for_usdt_pairs1 = \
-    connect_to_postgres_db_without_deleting_it_first(database_name)
+# database_name="ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+# engine_for_db_with_todays_ohlcv1, connection_to_ohlcv_for_usdt_pairs1 = \
+#     connect_to_postgres_db_without_deleting_it_first(database_name)
 
 def run_multiple_search_current_rebound_breakout_false_breakout_situations():
     # Run the Python script and capture its output

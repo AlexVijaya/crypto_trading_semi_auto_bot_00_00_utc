@@ -14,6 +14,7 @@ import db_config
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 from sqlalchemy import text
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 # from huobi_client.generic import GenericClient
 def get_all_time_high_low(exchange_object, symbol):
 
@@ -216,6 +217,10 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
     elif exchange_id == 'okx':
         return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'poloniexfutures':
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/margin-trading/{quote.lower()}/{base.lower()}"
 
     else:
         return "Exchange not supported"
@@ -383,6 +388,10 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
     elif exchange_id == 'okx':
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'probit':
+        return f"https://www.probit.com/app/exchange/{market['base'].upper()}-{market['quote'].upper()}"
     else:
         return "Exchange not supported"
 
@@ -410,7 +419,7 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
     data = []
     header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
     data_df1 = pd.DataFrame(columns=header)
-    data_df=np.nan
+    data_df=pd.DataFrame()
 
     # Fetch the most recent 200 days of data
     data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
@@ -770,6 +779,10 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
 
 def get_all_exchanges():
     exchanges = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges=[value for value in exchanges if value not in exclusion_list]
     return exchanges
 
     # if exchange_name == 'binance':

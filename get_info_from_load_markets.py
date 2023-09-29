@@ -1,8 +1,6 @@
 from datetime import datetime
 
-import ccxt
 import pprint
-import ccxt
 import ccxt
 import pandas as pd
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
@@ -10,9 +8,8 @@ import time
 import traceback
 import re
 import numpy as np
-import huobi
-import huobi_client
-import streamlit
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
+
 
 import db_config
 from sqlalchemy import create_engine
@@ -49,7 +46,7 @@ async def async_fetch_entire_ohlcv_without_exchange_name(exchange_object,trading
         data = []
         header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
         data_df1 = pd.DataFrame(columns=header)
-        data_df=np.nan
+        data_df=pd.DataFrame()
         exchange_id=""
 
         # Fetch the most recent 100 days of data
@@ -156,7 +153,7 @@ async def async_fetch_entire_ohlcv_without_exchange_name_with_load_markets(excha
         data = []
         header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
         data_df1 = pd.DataFrame(columns=header)
-        data_df = np.nan
+        data_df=pd.DataFrame()
         exchange_id = ""
         print("exchange_object")
         print(exchange_object)
@@ -525,6 +522,7 @@ def get_exchange_object6(exchange_name):
         'bl3p': ccxt.bl3p(),
         # 'bleutrade': ccxt.bleutrade(),
         # 'braziliex': ccxt.braziliex(),
+         'btcex': ccxt.btcex(),
         'bkex': ccxt.bkex(),
         'btcalpha': ccxt.btcalpha(),
         'btcbox': ccxt.btcbox(),
@@ -618,7 +616,7 @@ def get_exchange_object6(exchange_name):
         'huobi': ccxt.huobi(),
         'lbank2': ccxt.lbank2(),
         'blockchaincom': ccxt.blockchaincom(),
-        'btcex': ccxt.btcex(),
+        # 'btcex': ccxt.btcex(),
         'kucoinfutures': ccxt.kucoinfutures(),
         # 'okex3': ccxt.okex3(),
         # 'p2pb2b': ccxt.p2pb2b(),
@@ -630,7 +628,7 @@ def get_exchange_object6(exchange_name):
         # 'qtrade': ccxt.qtrade(),
         # 'ripio': ccxt.ripio(),
         # 'southxchange': ccxt.southxchange(),
-        'stex': ccxt.stex(),
+        # 'stex': ccxt.stex(),
         # 'stronghold': ccxt.stronghold(),
         # 'surbitcoin': ccxt.surbitcoin(),
         # 'therock': ccxt.therock(),
@@ -648,7 +646,7 @@ def get_exchange_object6(exchange_name):
         'whitebit': ccxt.whitebit(),
         # 'xbtce': ccxt.xbtce(),
         # 'xena': ccxt.xena(),
-        'xt' : ccxt.xt(),
+        # 'xt' : ccxt.xt(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
         # 'zb': ccxt.zb(),
@@ -1302,7 +1300,7 @@ def fetch_entire_ohlcv_without_exchange_name(exchange_object,trading_pair, timef
     data = []
     header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
     data_df1 = pd.DataFrame(columns=header)
-    data_df=np.nan
+    data_df=pd.DataFrame()
 
     # Fetch the most recent 100 days of data for latoken exchange
     try:
@@ -1556,6 +1554,10 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
     elif exchange_id == 'okx':
         return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'poloniexfutures':
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/margin-trading/{quote.lower()}/{base.lower()}"
     else:
         return "Exchange not supported"
 
@@ -1722,6 +1724,10 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
     elif exchange_id == 'okx':
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'probit':
+        return f"https://www.probit.com/app/exchange/{market['base'].upper()}-{market['quote'].upper()}"
     else:
         return "Exchange not supported"
 
@@ -1756,7 +1762,7 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
     data = []
     header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
     data_df1 = pd.DataFrame(columns=header)
-    data_df=np.nan
+    data_df=pd.DataFrame()
 
     # Fetch the most recent 100 days of data for latoken exchange
     try:
@@ -2258,6 +2264,10 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
 
 def get_all_exchanges():
     exchanges = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges=[value for value in exchanges if value not in exclusion_list]
     return exchanges
 
     # if exchange_name == 'binance':
@@ -2791,6 +2801,10 @@ def remove_trading_pairs_which_contain_stablecoin_as_base(filtered_pairs,stablec
 if __name__=="__main__":
 
     exchanges_list=ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     print("exchanges_list")
     print(exchanges_list)
     for exchange_name in exchanges_list:

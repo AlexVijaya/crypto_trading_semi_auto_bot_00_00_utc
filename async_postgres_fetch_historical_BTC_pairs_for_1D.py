@@ -8,7 +8,7 @@ import traceback
 import db_config
 import sqlalchemy
 import psycopg2
-
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 import pandas as pd
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 # import talib
@@ -390,6 +390,10 @@ def fetch_all_ohlcv_tables(timeframe,database_name):
     engine , connection_to_ohlcv_for_usdt_pairs =\
         connect_to_postgres_db_with_deleting_it_first (database_name)
     exchanges_list = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50
 

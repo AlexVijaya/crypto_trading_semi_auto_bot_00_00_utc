@@ -1296,9 +1296,7 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
             distance_between_calculated_stop_loss_and_sell_order = calculated_stop_loss - sell_order
             distance_between_calculated_stop_loss_and_sell_order_in_atr = \
                 distance_between_calculated_stop_loss_and_sell_order / advanced_atr
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "distance_between_calculated_stop_loss_and_sell_order_in_atr"] = \
-                distance_between_calculated_stop_loss_and_sell_order_in_atr
+
 
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "technical_stop_loss"] = technical_stop_loss
@@ -1308,6 +1306,9 @@ def search_for_tickers_with_breakout_situations(list_of_tables_in_ohlcv_db,db_wh
                 0, "take_profit_when_sl_is_technical_4_to_1"] = take_profit_when_sl_is_technical_4_to_1
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "distance_between_technical_sl_and_sell_order_in_atr"] = distance_between_technical_stop_loss_and_sell_order_in_atr
+
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "distance_between_technical_sl_and_sell_order"] = distance_between_technical_stop_loss_and_sell_order
 
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "suppression_by_highs"] = suppression_flag_for_highs

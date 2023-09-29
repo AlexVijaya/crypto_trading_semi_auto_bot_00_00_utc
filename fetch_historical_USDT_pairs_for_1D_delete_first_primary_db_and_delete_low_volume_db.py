@@ -33,6 +33,8 @@ from get_info_from_load_markets import get_limit_of_daily_candles_original_limit
 from get_info_from_load_markets import fetch_entire_ohlcv
 from get_info_from_load_markets import get_perpetual_swap_url
 
+def remove_values_from_list(exclusion_list, target_list):
+    return [value for value in target_list if value not in exclusion_list]
 def get_maker_and_taker_fees_and_is_shortable(exchange, trading_pair):
 
     maker_fee=np.nan
@@ -351,7 +353,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
                     # data = exchange_object.fetch_ohlcv ( trading_pair , timeframe, since=1516147200000)
                     #
                     # collect data from 2011 years ago
-                    data_df=np.nan
+                    data_df=pd.DataFrame()
 
                     # if exchange in ["exmo"]:
                     #     try:
@@ -382,6 +384,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
                     #data = exchange_object.fetch_ohlcv(trading_pair, timeframe, since=1293829200000)
                     asset_type=''
                     if_margin_true_for_an_asset_bool=''
+                    spot_asset_is_also_available_as_swap_contract_on_the_same_exchange = False
                     try:
                         asset_type=get_asset_type2(markets, trading_pair.replace("_", "/"))
                         try:
@@ -391,9 +394,24 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
                         print(f"asset_type for {trading_pair} on {exchange}")
 
                         print(asset_type)
+
+                        if asset_type=="spot":
+                            try:
+                                from fetch_additional_historical_USDT_pairs_for_1D_without_deleting_primary_db_and_without_deleting_db_with_low_volume import insert_into_df_whether_swap_contract_is_also_available_for_swap
+                                spot_asset_is_also_available_as_swap_contract_on_the_same_exchange=insert_into_df_whether_swap_contract_is_also_available_for_swap(data_df,
+                                                                                                exchange_object,
+                                                                                                markets,
+                                                                                                trading_pair)
+                                print(f"info about swap contract availability inserted for {trading_pair} on {exchange}")
+                            except:
+                                traceback.print_exc()
+
+
                         if asset_type=="option":
                             continue
                         if asset_type=="future":
+                            continue
+                        if asset_type=="swap":
                             continue
                     except:
                         traceback.print_exc()
@@ -413,6 +431,18 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
                         data_df=fetch_entire_ohlcv(exchange_object,exchange,trading_pair,timeframe,limit_of_daily_candles)
                     except:
                         traceback.print_exc()
+
+                    # if asset_type == "spot":
+                    #     try:
+                    #         from fetch_additional_historical_USDT_pairs_for_1D_without_deleting_primary_db_and_without_deleting_db_with_low_volume import \
+                    #             insert_into_df_whether_swap_contract_is_also_available_for_swap
+                    #         spot_asset_is_also_available_as_swap_contract_on_the_same_exchange=insert_into_df_whether_swap_contract_is_also_available_for_swap(data_df,
+                    #                                                                                   exchange_object,
+                    #                                                                                   markets,
+                    #                                                                                   trading_pair)
+                    #         print(f"info about swap contract availability inserted for {trading_pair} on {exchange}")
+                    #     except:
+                    #         traceback.print_exc()
 
                     # if exchange in ["huobi", "huobipro"]:
                     #     try:
@@ -564,6 +594,21 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
                         data_df['url_of_trading_pair'] = np.nan
                         traceback.print_exc()
 
+                    try:
+                        data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_is_also_available_as_swap_contract_on_the_same_exchange
+                    except:
+                        data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+                        traceback.print_exc()
+
+                    try:
+                        if spot_asset_is_also_available_as_swap_contract_on_the_same_exchange:
+                            data_df["url_of_swap_contract_if_it_exists"]=get_perpetual_swap_url(exchange, trading_pair.replace("_", "/"))
+                            print("url_swap_added")
+                        else:
+                            data_df["url_of_swap_contract_if_it_exists"] = "swap_of_spot_asset_does_not_exist"
+                    except:
+                        traceback.print_exc()
+
                     # add url of trading pair to df
                     if asset_type=='swap':
                         try:
@@ -576,9 +621,22 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
                             data_df['url_of_trading_pair'] = np.nan
                             traceback.print_exc()
 
+                    try:
+                        data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_is_also_available_as_swap_contract_on_the_same_exchange
+                    except:
+                        data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+                        traceback.print_exc()
 
 
 
+                    try:
+                        if spot_asset_is_also_available_as_swap_contract_on_the_same_exchange:
+                            data_df["url_of_swap_contract_if_it_exists"]=get_perpetual_swap_url(exchange, trading_pair.replace("_", "/"))
+                            print("url_swap_added")
+                        else:
+                            data_df["url_of_swap_contract_if_it_exists"] = "swap_of_spot_asset_does_not_exist"
+                    except:
+                        traceback.print_exc()
 
                     # #если  в крипе мало данных , то ее не добавляем
                     # if len(data_df)<10:
@@ -847,9 +905,11 @@ def fetch_historical_usdt_pairs_asynchronously(engine_for_ohlcv_database_without
 
         # if exchange!="bitfinex" or exchange!="bitfinex2":
         #     continue
+        list_of_exchanges_to_exclude_because_they_mirror_other_exchange_names=\
+            ["lbank","huobi","okex","okx","hitbtc","mexc","gate","binanceusdm","binanceus","bitfinex","binancecoinm","huobijp"]
 
-        # if exchange!="bitfinex2":
-        #     continue
+        if exchange in list_of_exchanges_to_exclude_because_they_mirror_other_exchange_names:
+            continue
 
         get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_without_enough_volume,last_bitcoin_price, exchange,
                                                           engine_for_ohlcv_database_with_enough_volume, timeframe)
@@ -870,6 +930,10 @@ def fetch_all_ohlcv_tables(database_name_for_low_volume_pairs,timeframe,database
     engine_for_ohlcv_database_with_enough_volume , connection_to_ohlcv_database_with_enough_volume =\
         connect_to_postgres_db_with_deleting_it_first (database_name)
     exchanges_list = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50
 

@@ -471,6 +471,28 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     ohlcv_data_several_last_rows_df["maker_fee"] = maker_fee
                     ohlcv_data_several_last_rows_df["taker_fee"] = taker_fee
                     ohlcv_data_several_last_rows_df["url_of_trading_pair"] = url_of_trading_pair
+
+                    ####################################
+                    try:
+                        spot_asset_also_available_as_swap_contract_on_same_exchange_bool = \
+                        table_with_ohlcv_data_df["spot_asset_also_available_as_swap_contract_on_same_exchange"].iat[0]
+                        ohlcv_data_several_last_rows_df[
+                            'spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_also_available_as_swap_contract_on_same_exchange_bool
+                    except:
+                        ohlcv_data_several_last_rows_df[
+                            'spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+
+                    try:
+                        url_of_swap_contract_if_it_exists_bool = \
+                        table_with_ohlcv_data_df["url_of_swap_contract_if_it_exists"].iat[0]
+                        ohlcv_data_several_last_rows_df[
+                            'url_of_swap_contract_if_it_exists'] = url_of_swap_contract_if_it_exists_bool
+                    except:
+                        ohlcv_data_several_last_rows_df['url_of_swap_contract_if_it_exists'] = np.nan
+                    ###################################
+
+
+
                     try:
                         if_margin_true_for_an_asset_bool=table_with_ohlcv_data_df["trading_pair_is_traded_with_margin"].iat[0]
                         ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
@@ -682,7 +704,7 @@ def get_list_of_tables_in_db_with_db_as_parameter(database_where_ohlcv_for_crypt
     return list_of_tables_in_db
 
 
-def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchanges_list,timeframe):
+def fetch_historical_usdt_pairs(last_bitcoin_price,engine,exchanges_list,timeframe):
     start=time.perf_counter()
     # exchanges_list=['aax', 'ascendex', 'bequant', 'bibox', 'bigone',
     #                 'binance', 'binancecoinm', 'binanceus', 'binanceusdm',
@@ -725,6 +747,8 @@ def fetch_historical_usdt_pairs_asynchronously(last_bitcoin_price,engine,exchang
 
     database_name = 'levels_formed_by_highs_and_lows_for_cryptos_0000'
     list_of_exchanges_for_todays_pairs = get_list_of_exchange_ids_for_todays_pairs(database_name)
+    print("list_of_exchanges_for_todays_pairs")
+    print(list_of_exchanges_for_todays_pairs)
     for exchange in exchanges_list:
         if exchange not in list_of_exchanges_for_todays_pairs:
             continue
@@ -754,10 +778,14 @@ def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
     engine , connection_to_ohlcv_for_usdt_pairs =\
         connect_to_postgres_db_without_deleting_it_first (database_name)
     exchanges_list = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50
 
-    # fetch_historical_usdt_pairs_asynchronously(engine,exchanges_list)
+    # fetch_historical_usdt_pairs(engine,exchanges_list)
 
     process_list = []
     for exchange_counter in \
@@ -776,7 +804,7 @@ def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
                 exchange_counter:exchange_counter + step_for_exchanges] )
 
         p = multiprocessing.Process ( target =
-                                      fetch_historical_usdt_pairs_asynchronously ,
+                                      fetch_historical_usdt_pairs ,
                                       args = (last_bitcoin_price,engine , exchanges_list[
                                                        exchange_counter:exchange_counter + step_for_exchanges],timeframe) )
         p.start ()

@@ -731,6 +731,15 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 continue
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
+
+            spot_asset_also_available_as_swap_contract_on_same_exchange = ""
+            url_of_swap_contract_if_it_exists = ""
+            try:
+                spot_asset_also_available_as_swap_contract_on_same_exchange = table_with_ohlcv_data_df.loc[
+                    0, "spot_asset_also_available_as_swap_contract_on_same_exchange"]
+                url_of_swap_contract_if_it_exists = table_with_ohlcv_data_df.loc[0, "url_of_swap_contract_if_it_exists"]
+            except:
+                traceback.print_exc()
             # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
@@ -1277,6 +1286,29 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
                                                         df_with_level_atr_bpu_bsu_etc.loc[
                                                             0, "take_profit_x_to_one"] = 3
+
+                                                        # Choose whether to use spot trading or margin trading with either cross or isolated margin
+                                                        df_with_level_atr_bpu_bsu_etc.loc[
+                                                            0, "spot_without_margin"] = False
+                                                        df_with_level_atr_bpu_bsu_etc.loc[0, "margin"] = False
+                                                        df_with_level_atr_bpu_bsu_etc.loc[0, "cross_margin"] = False
+                                                        df_with_level_atr_bpu_bsu_etc.loc[0, "isolated_margin"] = False
+
+                                                        try:
+                                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                                0, "final_position_entry_price"] = sell_order
+                                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                                0, "final_stop_loss_price"] = technical_stop_loss
+                                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                                0, "final_position_entry_price_default_value"] = sell_order
+                                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                                0, "final_stop_loss_price_default_value"] = technical_stop_loss
+                                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                                0, "final_take_profit_price"] = take_profit_when_stop_loss_is_technical_3_to_1
+                                                            df_with_level_atr_bpu_bsu_etc.loc[
+                                                                0, "final_take_profit_price_default_value"] = take_profit_when_stop_loss_is_technical_3_to_1
+                                                        except:
+                                                            traceback.print_exc()
 
                                                         df_with_level_atr_bpu_bsu_etc.to_sql (
                                                             table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be ,

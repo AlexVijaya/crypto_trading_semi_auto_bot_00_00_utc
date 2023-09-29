@@ -5,7 +5,7 @@ def check_volume(trading_pair,
                  last_bitcoin_price):
     """
     Checks if the trading pair has enough volume over the specified number of days
-    and if the volume is not less than 2 prices of bitcoin for USD pairs or the minimum volume for BTC pairs.
+    and if the volume is not less than n prices of bitcoin for USD pairs or the minimum volume for BTC pairs.
 
     Args:
         trading_pair (str): The trading pair to check for volume.

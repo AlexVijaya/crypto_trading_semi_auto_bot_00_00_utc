@@ -77,6 +77,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                        price_of_limit_order, amount_of_asset_for_entry,side_of_limit_order):
     output_file = "output_for_place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp.txt"
     file_path = os.path.join(os.getcwd(), output_file)
+    exchange_object_where_api_is_required=None
     with open(file_path, "a") as file:
         # Retrieve the arguments passed to the script
         file.write(f"12began writing to {__file__} at {datetime.now()}\n")
@@ -90,11 +91,14 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         file.write(str(exchange_object_where_api_is_required))
         exchange_object_without_api = get_exchange_object6(exchange_id)
         file.write("\n")
-        file.write(side_of_limit_order)
+        # file.write(side_of_limit_order)
 
         if side_of_limit_order=="buy":
             file.write(f"placing buy limit order on {exchange_id}")
-            limit_buy_order=exchange_object_where_api_is_required.create_limit_buy_order(trading_pair,amount_of_asset_for_entry,price_of_limit_order)
+            try:
+                limit_buy_order=exchange_object_where_api_is_required.create_limit_buy_order(trading_pair,amount_of_asset_for_entry,price_of_limit_order)
+            except:
+                file.write(str(traceback.format_exc()))
             limit_buy_order_id=get_order_id(limit_buy_order)
 
 
@@ -161,8 +165,10 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
         elif side_of_limit_order=="sell":
             file.write(f"placing sell limit order on {exchange_id}")
+            limit_sell_order = None
             try:
                 limit_sell_order=exchange_object_where_api_is_required.create_limit_sell_order(trading_pair, amount_of_asset_for_entry,price_of_limit_order)
+                file.write(f"placed sell limit order on {exchange_id}")
             except:
                 file.write(str(traceback.format_exc()))
             limit_sell_order_id=get_order_id(limit_sell_order)

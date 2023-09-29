@@ -19,6 +19,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 import ccxt
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 def print_df_to_file(dataframe, subdirectory_name):
     series = dataframe.squeeze()
     # get today's date
@@ -572,6 +573,10 @@ def check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level(acceptable_backlash , atr
 
 def get_exchange_list_dataframe():
     exchanges = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges=[value for value in exchanges if value not in exclusion_list]
     exchange_dict = dict()
     for exchange in exchanges:
         exchange = getattr(ccxt, exchange)()
@@ -588,6 +593,10 @@ def get_exchange_list_dataframe():
 
 def get_www_of_exchanges_dataframe():
     exchanges = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges=[value for value in exchanges if value not in exclusion_list]
     exchange_list = []
     for exchange in exchanges:
         exchange = getattr(ccxt, exchange)()

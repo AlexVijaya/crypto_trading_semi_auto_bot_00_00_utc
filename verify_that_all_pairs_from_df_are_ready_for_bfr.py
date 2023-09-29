@@ -3,7 +3,8 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_a
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
 import pandas as pd
 import sys
-from subprocess import Popen
+
+from subprocess import Popen, PIPE
 import subprocess
 from get_info_from_load_markets import get_exchange_object6
 from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_close_into_atl_level
@@ -35,7 +36,101 @@ from current_search_for_tickers_with_rebound_situations_off_atl import get_last_
 from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
 from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
 import math
+def return_args_for_placing_limit_or_stop_order(row_df):
+    # trading_pair = base_slash_quote
+    # price_of_sl = 0
+    # price_of_tp = 0
 
+    amount_of_asset_for_entry_in_quote_currency = row_df.loc[index, "position_size"]
+    # position_size_in_shares_of_asset = position_size_in_usd / current_price_of_asset
+    # amount_of_asset_for_entry = position_size_in_shares_of_asset
+    # price_of_limit_order = row_df.loc[index, "buy_order"]
+    # amount_of_sl = position_size_in_shares_of_asset
+    # amount_of_tp = position_size_in_shares_of_asset
+    # stop_loss_is_calculated = row_df.loc[index, "stop_loss_is_calculated"]
+    # stop_loss_is_technical = row_df.loc[index, "stop_loss_is_technical"]
+    type_of_sl = row_df.loc[index, "market_or_limit_stop_loss"]
+    type_of_tp = row_df.loc[index, "market_or_limit_take_profit"]
+    price_of_tp = row_df.loc[index, "final_take_profit_price"]
+    price_of_sl = row_df.loc[index, "final_stop_loss_price"]
+    price_of_limit_or_stop_order = row_df.loc[index, "final_position_entry_price"]
+
+    # market_or_limit_take_profit = row_df.loc[index, "market_or_limit_take_profit"]
+    # take_profit_x_to_one = row_df.loc[index, "take_profit_x_to_one"]
+    # take_profit_when_sl_is_technical_3_to_1 = row_df.loc[
+    #     index, "take_profit_when_sl_is_technical_3_to_1"]
+    # take_profit_when_sl_is_calculated_3_to_1 = row_df.loc[
+    #     index, "take_profit_when_sl_is_calculated_3_to_1"]
+
+    spot_cross_or_isolated_margin = ""
+
+    spot_without_margin_bool = row_df.loc[index, "spot_without_margin"]
+    cross_margin_bool = row_df.loc[index, "cross_margin"]
+    isolated_margin_bool = row_df.loc[index, "isolated_margin"]
+
+    if spot_without_margin_bool == True:
+        spot_cross_or_isolated_margin = "spot"
+    elif cross_margin_bool == True:
+        spot_cross_or_isolated_margin = "cross"
+    elif isolated_margin_bool == True:
+        spot_cross_or_isolated_margin = "isolated"
+    else:
+        print(f"{spot_cross_or_isolated_margin} is not spot, cross or isolated")
+
+    # take_profit_3_1 = np.nan
+    # if "take_profit_3_1" in row_df.columns:
+    #     take_profit_3_1 = row_df.loc[index, "take_profit_3_1"]
+    # if is_not_nan(take_profit_3_1):
+    #     price_of_tp = take_profit_3_1 * take_profit_x_to_one / 3.0
+    #
+    # if stop_loss_is_technical:
+    #     price_of_sl = row_df.loc[index, "technical_stop_loss"]
+    #     if is_not_nan(take_profit_when_sl_is_technical_3_to_1):
+    #         price_of_tp = take_profit_when_sl_is_technical_3_to_1 * take_profit_x_to_one / 3.0
+    # if stop_loss_is_calculated:
+    #     price_of_sl = row_df.loc[index, "calculated_stop_loss"]
+    #     if is_not_nan(take_profit_when_sl_is_calculated_3_to_1):
+    #         price_of_tp = take_profit_when_sl_is_calculated_3_to_1 * take_profit_x_to_one / 3.0
+
+    # if market_or_limit_stop_loss == 'market':
+    #     type_of_sl = 'market'
+    # if market_or_limit_stop_loss == 'limit':
+    #     type_of_sl = 'limit'
+    # 
+    # if market_or_limit_take_profit == 'market':
+    #     type_of_tp = 'market'
+    # if market_or_limit_take_profit == 'limit':
+    #     type_of_tp = 'limit'
+
+    side_of_limit_or_stop_order = row_df.loc[index, "side"]
+    post_only_for_limit_tp_bool = False
+
+    # args = [exchange_id,
+    #         trading_pair,
+    #         price_of_sl,
+    #         type_of_sl,
+    #         amount_of_sl,
+    #         price_of_tp,
+    #         type_of_tp,
+    #         amount_of_tp,
+    #         post_only_for_limit_tp_bool,
+    #         price_of_limit_order,
+    #         amount_of_asset_for_entry,
+    #         side_of_limit_order,
+    #         spot_cross_or_isolated_margin]
+
+    return price_of_sl,\
+        type_of_sl,\
+        price_of_tp,\
+        type_of_tp,\
+        side_of_limit_or_stop_order,\
+        price_of_limit_or_stop_order,\
+        spot_cross_or_isolated_margin,\
+        amount_of_asset_for_entry_in_quote_currency
+def convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,price_of_entry_order):
+    amount_of_asset_for_entry_in_base_currency = float(amount_of_asset_for_entry_in_quote_currency) / float(
+        price_of_entry_order)
+    return amount_of_asset_for_entry_in_base_currency
 def run_separate_file_that_enters_position(row_df,index,current_price_of_asset,exchange_id,base_slash_quote):
     sell_order_price = row_df.loc[index, "sell_order"]
     if current_price_of_asset < sell_order_price:
@@ -88,6 +183,21 @@ def run_separate_file_that_enters_position(row_df,index,current_price_of_asset,e
         side_of_limit_order = row_df.loc[index, "side"]
         post_only_for_limit_tp_bool = False
 
+        spot_cross_or_isolated_margin = ""
+
+        spot_without_margin_bool = row_df.loc[index, "spot_without_margin"]
+        cross_margin_bool = row_df.loc[index, "cross_margin"]
+        isolated_margin_bool = row_df.loc[index, "isolated_margin"]
+
+        if spot_without_margin_bool == True:
+            spot_cross_or_isolated_margin = "spot"
+        elif cross_margin_bool == True:
+            spot_cross_or_isolated_margin = "cross"
+        elif isolated_margin_bool == True:
+            spot_cross_or_isolated_margin = "isolated"
+        else:
+            print(f"{spot_cross_or_isolated_margin} is not spot, cross or isolated")
+
         args = [exchange_id,
                 trading_pair,
                 price_of_sl,
@@ -99,21 +209,25 @@ def run_separate_file_that_enters_position(row_df,index,current_price_of_asset,e
                 post_only_for_limit_tp_bool,
                 price_of_limit_order,
                 amount_of_asset_for_entry,
-                side_of_limit_order]
+                side_of_limit_order,
+                                  spot_cross_or_isolated_margin]
 
         # convert all elements in the args list into string because this is how popen works
         args = convert_list_elements_to_string(args)
 
-        command_args = [sys.executable, 'place_limit_order_on_exchange_with_sl_and_tp.py'] + args
+        # command_args = [sys.executable, 'place_limit_order_on_exchange_with_sl_and_tp.py'] + args
+        # print("executing place_place_limit_order_on_exchange_with_sl_and_tp.py as popen ")
 
-        print("executing place_place_limit_order_on_exchange_with_sl_and_tp.py as popen ")
+        command_args = [sys.executable, 'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+        print("executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+
         print("command_args")
         print(command_args)
         # Run the command using subprocess Popen
 
-        process = Popen(command_args)
+        process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        pass
     else:
         # run file that places sell stop market order
 
@@ -138,6 +252,21 @@ def run_separate_file_that_enters_position(row_df,index,current_price_of_asset,e
             index, "take_profit_when_sl_is_technical_3_to_1"]
         take_profit_when_sl_is_calculated_3_to_1 = row_df.loc[
             index, "take_profit_when_sl_is_calculated_3_to_1"]
+
+        spot_cross_or_isolated_margin = ""
+
+        spot_without_margin_bool = row_df.loc[index, "spot_without_margin"]
+        cross_margin_bool = row_df.loc[index, "cross_margin"]
+        isolated_margin_bool = row_df.loc[index, "isolated_margin"]
+
+        if spot_without_margin_bool == True:
+            spot_cross_or_isolated_margin = "spot"
+        elif cross_margin_bool == True:
+            spot_cross_or_isolated_margin = "cross"
+        elif isolated_margin_bool == True:
+            spot_cross_or_isolated_margin = "isolated"
+        else:
+            print(f"{spot_cross_or_isolated_margin} is not spot, cross or isolated")
 
         take_profit_3_1 = np.nan
         if "take_profit_3_1" in row_df.columns:
@@ -180,15 +309,22 @@ def run_separate_file_that_enters_position(row_df,index,current_price_of_asset,e
                 post_only_for_limit_tp_bool,
                 price_of_buy_or_sell_market_stop_order,
                 amount_of_asset_for_entry,
-                side_of_buy_or_sell_market_stop_order]
+                side_of_buy_or_sell_market_stop_order,
+                spot_cross_or_isolated_margin]
 
         # convert all elements in the args list into string because this is how popen works
         args = convert_list_elements_to_string(args)
         print("args")
         print(args)
-        command_args3 = [sys.executable, 'place_buy_or_sell_stop_order_with_sl_and_tp.py'] + args
-        #
-        print("4executing place_buy_or_sell_stop_order_with_sl_and_tp.py as popen ")
+        # command_args3 = [sys.executable, 'place_buy_or_sell_stop_order_with_sl_and_tp.py'] + args
+        # #
+        # print("4executing place_buy_or_sell_stop_order_with_sl_and_tp.py as popen ")
+
+        command_args3 = [sys.executable,
+                         'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+        print(
+            "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
         print("command_args3")
         print(command_args3)
 
@@ -197,7 +333,7 @@ def run_separate_file_that_enters_position(row_df,index,current_price_of_asset,e
         # command_args2=[sys.executable, "test.py"]+[phrase_to_print]
         # print("command_args2")
         # print(command_args2)
-        process = Popen(command_args3)
+        process = Popen(command_args3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 def convert_to_necessary_types_values_from_bfr_dataframe(stop_loss_is_calculated,
                                                          stop_loss_is_technical,
                                                          price_of_sl,
@@ -3556,150 +3692,83 @@ if __name__=="__main__":
                         verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_the_next_day(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period)
-
                     print("trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day")
                     print(trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day)
 
                     if trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day:
-                        current_price_of_asset=get_current_price_of_asset(
-                            exchange_object,base_slash_quote)
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
 
-                        sell_order_price=row_df.loc[index, "sell_order"]
-                        if current_price_of_asset<sell_order_price:
-                            #run file that places sell limit order
-                            trading_pair=base_slash_quote
-                            price_of_sl = 0
-                            price_of_tp=0
-                            type_of_sl=None
-                            type_of_tp=None
-                            position_size_in_usd = row_df.loc[index, "position_size"]
-                            position_size_in_shares_of_asset=position_size_in_usd/current_price_of_asset
-                            amount_of_asset_for_entry=position_size_in_shares_of_asset
-                            price_of_limit_order = row_df.loc[index, "sell_order"]
-                            amount_of_sl=position_size_in_shares_of_asset
-                            amount_of_tp=position_size_in_shares_of_asset
-                            stop_loss_is_calculated=row_df.loc[index, "stop_loss_is_calculated"]
-                            stop_loss_is_technical=row_df.loc[index, "stop_loss_is_technical"]
-                            market_or_limit_stop_loss=row_df.loc[index, "market_or_limit_stop_loss"]
+                        sell_order_price = row_df.loc[index, "sell_order"]
+                        if current_price_of_asset < sell_order_price:
+                            # run file that places sell limit order
+                            trading_pair = base_slash_quote
 
-                            market_or_limit_take_profit=row_df.loc[index, "market_or_limit_take_profit"]
-                            take_profit_x_to_one=row_df.loc[index, "take_profit_x_to_one"]
-                            take_profit_when_sl_is_technical_3_to_1 = row_df.loc[index, "take_profit_when_sl_is_technical_3_to_1"]
-                            take_profit_when_sl_is_calculated_3_to_1 = row_df.loc[index, "take_profit_when_sl_is_calculated_3_to_1"]
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
 
-                            take_profit_3_1 = np.nan
-                            if "take_profit_3_1" in row_df.columns:
-                                take_profit_3_1=row_df.loc[index, "take_profit_3_1"]
-                            if is_not_nan(take_profit_3_1):
-                                price_of_tp=take_profit_3_1*take_profit_x_to_one/3.0
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
 
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
 
-                            if stop_loss_is_technical:
-                                price_of_sl = row_df.loc[index, "technical_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_technical_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_technical_3_to_1 * take_profit_x_to_one / 3.0
-                            if stop_loss_is_calculated:
-                                price_of_sl = row_df.loc[index, "calculated_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_calculated_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_calculated_3_to_1 * take_profit_x_to_one / 3.0
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
 
-                            if market_or_limit_stop_loss=='market':
-                                type_of_sl='market'
-                            if market_or_limit_stop_loss=='limit':
-                                type_of_sl='limit'
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
 
-                            if market_or_limit_take_profit=='market':
-                                type_of_tp='market'
-                            if market_or_limit_take_profit=='limit':
-                                type_of_tp='limit'
-
-                            side_of_limit_order = row_df.loc[index, "side"]
-                            post_only_for_limit_tp_bool=False
-
-                            args=[exchange_id,
-                                  trading_pair,
-                                  price_of_sl,
-                                  type_of_sl,
-                                  amount_of_sl,
-                                  price_of_tp,
-                                  type_of_tp,
-                                  amount_of_tp,
-                                  post_only_for_limit_tp_bool,
-                                  price_of_limit_order,
-                                  amount_of_asset_for_entry,
-                                  side_of_limit_order]
-
-                            #convert all elements in the args list into string because this is how popen works
-                            args=convert_list_elements_to_string(args)
-
-                            command_args = [sys.executable, 'place_limit_order_on_exchange_with_sl_and_tp.py'] + args
-
-                            print("executing place_place_limit_order_on_exchange_with_sl_and_tp.py as popen ")
                             print("command_args")
                             print(command_args)
                             # Run the command using subprocess Popen
 
-                            process = Popen(command_args)
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-
-                            pass
                         else:
-                            #run file that places sell stop market order
+                            # run file that places sell stop market order
 
                             trading_pair = base_slash_quote
-                            price_of_sl = 0
-                            price_of_tp = 0
-                            type_of_sl = None
-                            type_of_tp = None
-                            position_size_in_usd = row_df.loc[index, "position_size"]
-                            position_size_in_shares_of_asset = position_size_in_usd / current_price_of_asset
-                            amount_of_asset_for_entry = position_size_in_shares_of_asset
-                            price_of_buy_or_sell_market_stop_order = row_df.loc[index, "sell_order"]
-                            amount_of_sl = position_size_in_shares_of_asset
-                            amount_of_tp = position_size_in_shares_of_asset
-                            stop_loss_is_calculated = row_df.loc[index, "stop_loss_is_calculated"]
-                            stop_loss_is_technical = row_df.loc[index, "stop_loss_is_technical"]
-                            market_or_limit_stop_loss = row_df.loc[index, "market_or_limit_stop_loss"]
 
-                            market_or_limit_take_profit = row_df.loc[index, "market_or_limit_take_profit"]
-                            take_profit_x_to_one = row_df.loc[index, "take_profit_x_to_one"]
-                            take_profit_when_sl_is_technical_3_to_1 = row_df.loc[
-                                index, "take_profit_when_sl_is_technical_3_to_1"]
-                            take_profit_when_sl_is_calculated_3_to_1 = row_df.loc[
-                                index, "take_profit_when_sl_is_calculated_3_to_1"]
-
-                            take_profit_3_1 = np.nan
-                            if "take_profit_3_1" in row_df.columns:
-                                take_profit_3_1 = row_df.loc[index, "take_profit_3_1"]
-                            if is_not_nan(take_profit_3_1):
-                                price_of_tp = take_profit_3_1 * take_profit_x_to_one / 3.0
-
-                            if stop_loss_is_technical:
-                                price_of_sl = row_df.loc[index, "technical_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_technical_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_technical_3_to_1 * take_profit_x_to_one / 3.0
-                            if stop_loss_is_calculated:
-                                price_of_sl = row_df.loc[index, "calculated_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_calculated_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_calculated_3_to_1 * take_profit_x_to_one / 3.0
-
-                            if market_or_limit_stop_loss == 'market':
-                                type_of_sl = 'market'
-                            if market_or_limit_stop_loss == 'limit':
-                                type_of_sl = 'limit'
-
-                            if market_or_limit_take_profit == 'market':
-                                type_of_tp = 'market'
-                            if market_or_limit_take_profit == 'limit':
-                                type_of_tp = 'limit'
-
-                            side_of_buy_or_sell_market_stop_order = row_df.loc[index, "side"]
                             post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
 
                             args = [exchange_id,
                                     trading_pair,
-                                    stop_loss_is_calculated,
-                                    stop_loss_is_technical,
                                     price_of_sl,
                                     type_of_sl,
                                     amount_of_sl,
@@ -3708,25 +3777,30 @@ if __name__=="__main__":
                                     amount_of_tp,
                                     post_only_for_limit_tp_bool,
                                     price_of_buy_or_sell_market_stop_order,
-                                    amount_of_asset_for_entry,
-                                    side_of_buy_or_sell_market_stop_order]
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
 
                             # convert all elements in the args list into string because this is how popen works
                             args = convert_list_elements_to_string(args)
                             print("args")
                             print(args)
-                            command_args3 = [sys.executable, 'place_buy_or_sell_stop_order_with_sl_and_tp.py'] + args
-                            #
-                            print("4executing place_buy_or_sell_stop_order_with_sl_and_tp.py as popen ")
-                            print("command_args3")
-                            print(command_args3)
 
-                            # # #delete this when debug is finished
-                            # phrase_to_print="what is your name"
-                            # command_args2=[sys.executable, "test.py"]+[phrase_to_print]
-                            # print("command_args2")
-                            # print(command_args2)
-                            process = Popen(command_args3)
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
+
+
 
                 elif model_type == "ПРОБОЙ_ATH_с_подтверждением_вход_на_следующий_день":
                     trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day = \
@@ -3735,53 +3809,110 @@ if __name__=="__main__":
                             last_bitcoin_price, advanced_atr_over_this_period)
                     print("trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day")
                     print(trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day)
-                    current_price_of_asset = get_current_price_of_asset(
-                        exchange_object, base_slash_quote)
-                    buy_order_price = row_df.loc[index, "buy_order"]
-                    if current_price_of_asset > buy_order_price:
-                        # run file that places buy limit order
-                        print("current_price_of_asset > buy_order_price")
 
-                        # #delete this when debug is finished
-                        phrase_to_print = "1what is your name\n"
-                        command_args2 = [sys.executable, "test.py"] + [phrase_to_print]
-                        print("command_args2")
-                        print(command_args2)
-                        process2 = Popen(command_args2)
-                        # Wait for the command to finish and get the output
-                        # stdout2, stderr2 = process2.communicate()
-                        #
-                        # # Decode the output from bytes to string
-                        # stdout2 = stdout2.decode()
-                        # stderr2 = stderr2.decode()
-                        #
-                        # # Print the output
-                        # print("Standard Output:")
-                        # print(stdout2)
-                        # print("Error Output:")
-                        # print(stderr2)
-                    else:
-                        # run file that places buy stop market order
-                        print("current_price_of_asset <= buy_order_price")
+                    if trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
 
-                        # #delete this when debug is finished
-                        phrase_to_print = "2what is your name\n"
-                        command_args2 = [sys.executable, "test.py"] + [phrase_to_print]
-                        print("command_args2")
-                        print(command_args2)
-                        Popen(command_args2)
-                        # Wait for the command to finish and get the output
-                        # stdout2, stderr2 = process2.communicate()
-                        #
-                        # # Decode the output from bytes to string
-                        # stdout2 = stdout2.decode()
-                        # stderr2 = stderr2.decode()
-                        #
-                        # # Print the output
-                        # print("Standard Output:")
-                        # print(stdout2)
-                        # print("Error Output:")
-                        # print(stderr2)
+                        buy_order_price = row_df.loc[index, "buy_order"]
+                        if current_price_of_asset > buy_order_price:
+                            # run file that places buy limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places buy stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
                 elif model_type == "ПРОБОЙ_ATL_с_подтверждением_вход_на_2й_день":
                     trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two = \
                         verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(
@@ -3789,221 +3920,910 @@ if __name__=="__main__":
                             last_bitcoin_price, advanced_atr_over_this_period)
                     print("trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two")
                     print(trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two)
+
                     if trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two:
-                        current_price_of_asset=get_current_price_of_asset(
-                            exchange_object,base_slash_quote)
-                        sell_order_price=row_df.loc[index, "sell_order"]
-                        if current_price_of_asset<sell_order_price:
-                            #run file that places sell limit order
-                            print("running file that places sell limit order")
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
 
-                            trading_pair=base_slash_quote
-                            price_of_sl = 0
-                            price_of_tp=0
-                            type_of_sl=None
-                            type_of_tp=None
-                            position_size_in_usd = row_df.loc[index, "position_size"]
-                            position_size_in_shares_of_asset=position_size_in_usd/current_price_of_asset
-                            amount_of_asset_for_entry=position_size_in_shares_of_asset
-                            price_of_limit_order = row_df.loc[index, "sell_order"]
-                            amount_of_sl=position_size_in_shares_of_asset
-                            amount_of_tp=position_size_in_shares_of_asset
-                            stop_loss_is_calculated=row_df.loc[index, "stop_loss_is_calculated"]
-                            stop_loss_is_technical=row_df.loc[index, "stop_loss_is_technical"]
-                            market_or_limit_stop_loss=row_df.loc[index, "market_or_limit_stop_loss"]
+                        sell_order_price = row_df.loc[index, "sell_order"]
+                        if current_price_of_asset < sell_order_price:
+                            # run file that places sell limit order
+                            trading_pair = base_slash_quote
 
-                            market_or_limit_take_profit=row_df.loc[index, "market_or_limit_take_profit"]
-                            take_profit_x_to_one=row_df.loc[index, "take_profit_x_to_one"]
-                            take_profit_when_sl_is_technical_3_to_1 = row_df.loc[index, "take_profit_when_sl_is_technical_3_to_1"]
-                            take_profit_when_sl_is_calculated_3_to_1 = row_df.loc[index, "take_profit_when_sl_is_calculated_3_to_1"]
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
 
-                            take_profit_3_1 = np.nan
-                            if "take_profit_3_1" in row_df.columns:
-                                take_profit_3_1=row_df.loc[index, "take_profit_3_1"]
-                            if is_not_nan(take_profit_3_1):
-                                price_of_tp=take_profit_3_1*take_profit_x_to_one/3.0
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
 
-
-                            if stop_loss_is_technical:
-                                price_of_sl = row_df.loc[index, "technical_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_technical_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_technical_3_to_1 * take_profit_x_to_one / 3.0
-                            if stop_loss_is_calculated:
-                                price_of_sl = row_df.loc[index, "calculated_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_calculated_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_calculated_3_to_1 * take_profit_x_to_one / 3.0
-
-                            if market_or_limit_stop_loss=='market':
-                                type_of_sl='market'
-                            if market_or_limit_stop_loss=='limit':
-                                type_of_sl='limit'
-
-                            if market_or_limit_take_profit=='market':
-                                type_of_tp='market'
-                            if market_or_limit_take_profit=='limit':
-                                type_of_tp='limit'
-
-                            side_of_limit_order = row_df.loc[index, "side"]
-                            post_only_for_limit_tp_bool=False
-
-                            args=[exchange_id,trading_pair,price_of_sl, type_of_sl,
-                                  amount_of_sl,
-                                  price_of_tp,
-                                  type_of_tp,
-                                  amount_of_tp,
-                                  post_only_for_limit_tp_bool,
-                                  price_of_limit_order,
-                                  amount_of_asset_for_entry,
-                                  side_of_limit_order]
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
 
                             # convert all elements in the args list into string because this is how popen works
                             args = convert_list_elements_to_string(args)
 
-                            command_args = [sys.executable, 'place_limit_order_on_exchange_with_sl_and_tp.py'] + args
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
 
-                            print("executing place_limit_order_on_exchange_with_sl_and_tp.py as popen ")
                             print("command_args")
                             print(command_args)
                             # Run the command using subprocess Popen
-                            process = Popen(command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                            # # Wait for the command to finish and get the output
-                            # stdout, stderr = process.communicate()
-                            #
-                            # # Decode the output from bytes to string
-                            # stdout = stdout.decode()
-                            # stderr = stderr.decode()
-                            #
-                            # # Print the output
-                            # print("Standard Output:")
-                            # print(stdout)
-                            # print("Error Output:")
-                            # print(stderr)
-                            # print("---------------------------")
-                            # pass
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
                         else:
-                            #run file that places sell stop market order
-                            print("running file that places sell stop market order")
+                            # run file that places sell stop market order
+
                             trading_pair = base_slash_quote
-                            price_of_sl = 0
-                            price_of_tp = 0
-                            type_of_sl = None
-                            type_of_tp = None
-                            position_size_in_usd = row_df.loc[index, "position_size"]
-                            position_size_in_shares_of_asset = position_size_in_usd / current_price_of_asset
-                            amount_of_asset_for_entry = position_size_in_shares_of_asset
-                            price_of_buy_or_sell_market_stop_order = row_df.loc[index, "sell_order"]
-                            amount_of_sl = position_size_in_shares_of_asset
-                            amount_of_tp = position_size_in_shares_of_asset
-                            stop_loss_is_calculated = row_df.loc[index, "stop_loss_is_calculated"]
-                            stop_loss_is_technical = row_df.loc[index, "stop_loss_is_technical"]
-                            market_or_limit_stop_loss = row_df.loc[index, "market_or_limit_stop_loss"]
 
-                            market_or_limit_take_profit = row_df.loc[index, "market_or_limit_take_profit"]
-                            take_profit_x_to_one = row_df.loc[index, "take_profit_x_to_one"]
-                            take_profit_when_sl_is_technical_3_to_1 = row_df.loc[
-                                index, "take_profit_when_sl_is_technical_3_to_1"]
-                            take_profit_when_sl_is_calculated_3_to_1 = row_df.loc[
-                                index, "take_profit_when_sl_is_calculated_3_to_1"]
-
-                            take_profit_3_1=np.nan
-                            if "take_profit_3_1" in row_df.columns:
-                                take_profit_3_1 = row_df.loc[index, "take_profit_3_1"]
-                            if is_not_nan(take_profit_3_1):
-                                price_of_tp = take_profit_3_1 * take_profit_x_to_one / 3.0
-
-                            if stop_loss_is_technical:
-                                price_of_sl = row_df.loc[index, "technical_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_technical_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_technical_3_to_1 * take_profit_x_to_one / 3.0
-                            if stop_loss_is_calculated:
-                                price_of_sl = row_df.loc[index, "calculated_stop_loss"]
-                                if is_not_nan(take_profit_when_sl_is_calculated_3_to_1):
-                                    price_of_tp = take_profit_when_sl_is_calculated_3_to_1 * take_profit_x_to_one / 3.0
-
-                            if market_or_limit_stop_loss == 'market':
-                                type_of_sl = 'market'
-                            if market_or_limit_stop_loss == 'limit':
-                                type_of_sl = 'limit'
-
-                            if market_or_limit_take_profit == 'market':
-                                type_of_tp = 'market'
-                            if market_or_limit_take_profit == 'limit':
-                                type_of_tp = 'limit'
-
-                            side_of_buy_or_sell_market_stop_order = row_df.loc[index, "side"]
                             post_only_for_limit_tp_bool = False
 
-                            args = [exchange_id, trading_pair, stop_loss_is_calculated,stop_loss_is_technical,
-                                    price_of_sl, type_of_sl,
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
                                     amount_of_sl,
                                     price_of_tp,
                                     type_of_tp,
                                     amount_of_tp,
                                     post_only_for_limit_tp_bool,
                                     price_of_buy_or_sell_market_stop_order,
-                                    amount_of_asset_for_entry,
-                                    side_of_buy_or_sell_market_stop_order]
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
 
                             # convert all elements in the args list into string because this is how popen works
                             args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
 
-                            command_args = [sys.executable, 'place_buy_or_sell_stop_order_with_sl_and_tp.py'] + args
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
 
-                            # Run the command using subprocess Popen
-                            print("executing place_buy_or_sell_stop_order_with_sl_and_tp.py as popen ")
-                            print("command_args")
-                            print(command_args)
-                            process = Popen(command_args)
+                            print("command_args7")
+                            print(command_args7)
 
-                            # # Wait for the command to finish and get the output
-                            # stdout, stderr = process.communicate()
-                            #
-                            # # Decode the output from bytes to string
-                            # stdout = stdout.decode()
-                            # stderr = stderr.decode()
-                            #
-                            # # Print the output
-                            # print("Standard Output:")
-                            # print(stdout)
-                            # print("Error Output:")
-                            # print(stderr)
-                            # print("---------------------------")
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
+
+
+
                 elif model_type == "ПРОБОЙ_ATH_с_подтверждением_вход_на_2й_день":
                     trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two = \
                         verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_ath_position_entry_on_day_two(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period)
+                    print("trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two")
+                    print(trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two)
+
+                    if trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
+
+                        buy_order_price = row_df.loc[index, "buy_order"]
+                        if current_price_of_asset > buy_order_price:
+                            # run file that places buy limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places buy stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
                 elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_1Б":
                     trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar = \
                         verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_atl_by_one_bar(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period)
+
+                    print("trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar")
+                    print(trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar)
+
+                    if trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
+
+                        buy_order_price = row_df.loc[index, "buy_order"]
+                        if current_price_of_asset > buy_order_price:
+                            # run file that places buy limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places buy stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print("5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+                            print("process")
+                            print(process)
+
                 elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_1Б":
                     trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar = \
                         verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_ath_by_one_bar(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period)
+
+                    print("trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar")
+                    print(trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar)
+
+                    if trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
+
+                        sell_order_price = row_df.loc[index, "sell_order"]
+                        if current_price_of_asset < sell_order_price:
+                            # run file that places sell limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places sell stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
+
+
                 elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_2Б":
                     trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars = \
                         verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_atl_by_two_bars(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period)
+
+                    print("trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars")
+                    print(trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars)
+
+                    if trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
+
+                        buy_order_price = row_df.loc[index, "buy_order"]
+                        if current_price_of_asset > buy_order_price:
+                            # run file that places buy limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places buy stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
                 elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_2Б":
                     trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars = \
                         verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_ath_by_two_bars(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period)
+
+                    print("trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars")
+                    print(trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars)
+
+                    if trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
+
+                        sell_order_price = row_df.loc[index, "sell_order"]
+                        if current_price_of_asset < sell_order_price:
+                            # run file that places sell limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places sell stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
+
                 elif model_type == "ОТБОЙ_от_ATL":
                     trading_pair_is_ready_for_rebound_situations_off_atl = \
                         verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_off_atl(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period, acceptable_backlash)
+
+                    print("trading_pair_is_ready_for_rebound_situations_off_atl")
+                    print(trading_pair_is_ready_for_rebound_situations_off_atl)
+
+                    if trading_pair_is_ready_for_rebound_situations_off_atl:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
+
+                        buy_order_price = row_df.loc[index, "buy_order"]
+                        if current_price_of_asset > buy_order_price:
+                            # run file that places buy limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places buy stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
                 elif model_type == "ОТБОЙ_от_ATH":
                     trading_pair_is_ready_for_rebound_situations_off_ath = \
                         verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_off_ath(
                             stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
                             last_bitcoin_price, advanced_atr_over_this_period, acceptable_backlash)
+                    print("trading_pair_is_ready_for_rebound_situations_off_ath")
+                    print(trading_pair_is_ready_for_rebound_situations_off_ath)
+
+                    if trading_pair_is_ready_for_rebound_situations_off_ath:
+                        current_price_of_asset = get_current_price_of_asset(
+                            exchange_object, base_slash_quote)
+
+                        sell_order_price = row_df.loc[index, "sell_order"]
+                        if current_price_of_asset < sell_order_price:
+                            # run file that places sell limit order
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+                            #
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_limit_order, \
+                                price_of_limit_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_limit_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_limit_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+
+                            command_args = [sys.executable,
+                                            'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "executing place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args")
+                            print(command_args)
+                            # Run the command using subprocess Popen
+
+                            process = Popen(command_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                        else:
+                            # run file that places sell stop market order
+
+                            trading_pair = base_slash_quote
+
+                            post_only_for_limit_tp_bool = False
+
+                            amount_of_sl = 0
+                            amount_of_tp = 0
+
+                            price_of_sl, \
+                                type_of_sl, \
+                                price_of_tp, \
+                                type_of_tp, \
+                                side_of_buy_or_sell_market_stop_order, \
+                                price_of_buy_or_sell_market_stop_order, \
+                                spot_cross_or_isolated_margin, \
+                                amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
+                                row_df)
+
+                            args = [exchange_id,
+                                    trading_pair,
+                                    price_of_sl,
+                                    type_of_sl,
+                                    amount_of_sl,
+                                    price_of_tp,
+                                    type_of_tp,
+                                    amount_of_tp,
+                                    post_only_for_limit_tp_bool,
+                                    price_of_buy_or_sell_market_stop_order,
+                                    amount_of_asset_for_entry_in_quote_currency,
+                                    side_of_buy_or_sell_market_stop_order,
+                                    spot_cross_or_isolated_margin]
+
+                            # convert all elements in the args list into string because this is how popen works
+                            args = convert_list_elements_to_string(args)
+                            print("args")
+                            print(args)
+
+                            command_args7 = [sys.executable,
+                                             'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
+                            print(
+                                "5executing place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py as popen ")
+
+                            print("command_args7")
+                            print(command_args7)
+
+                            process = Popen(command_args7, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                            print("process")
+                            print(process)
+
+
+
                 else:
                     print("no_bfr_model_yet")
 

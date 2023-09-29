@@ -689,6 +689,16 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 continue
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
+
+            spot_asset_also_available_as_swap_contract_on_same_exchange = ""
+            url_of_swap_contract_if_it_exists = ""
+            try:
+                spot_asset_also_available_as_swap_contract_on_same_exchange = table_with_ohlcv_data_df.loc[
+                    0, "spot_asset_also_available_as_swap_contract_on_same_exchange"]
+                url_of_swap_contract_if_it_exists = table_with_ohlcv_data_df.loc[0, "url_of_swap_contract_if_it_exists"]
+            except:
+                traceback.print_exc()
+
             # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
@@ -1080,8 +1090,8 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
 
 
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "stop_loss"] = stop_loss
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "calculated_sell_order"] = sell_order
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "calculated_stop_loss"] = stop_loss
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "sell_order"] = sell_order
                         # df_with_level_atr_bpu_bsu_etc.loc[0, "приемлемый_люфт"] = calculated_backlash_from_advanced_atr
                         df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_when_sl_is_calculated_3_to_1"] = take_profit_3_to_1
                         df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_when_sl_is_calculated_4_to_1"] = take_profit_4_to_1
@@ -1101,6 +1111,16 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                             try:
                                 df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
                                     get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
+                            except:
+                                traceback.print_exc()
+
+                            try:
+                                df_with_level_atr_bpu_bsu_etc.loc[
+                                    0, "spot_asset_also_available_as_swap_contract_on_same_exchange"] = \
+                                    spot_asset_also_available_as_swap_contract_on_same_exchange
+                                df_with_level_atr_bpu_bsu_etc.loc[
+                                    0, "url_of_swap_contract_if_it_exists"] = \
+                                    url_of_swap_contract_if_it_exists
                             except:
                                 traceback.print_exc()
                         except:
@@ -1146,6 +1166,28 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "take_profit_x_to_one"] = 3
+
+                        # Choose whether to use spot trading or margin trading with either cross or isolated margin
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "spot_without_margin"] = False
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "margin"] = False
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "cross_margin"] = False
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "isolated_margin"] = False
+
+                        try:
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "final_position_entry_price"] = sell_order
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "final_stop_loss_price"] = stop_loss
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "final_position_entry_price_default_value"] = sell_order
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "final_stop_loss_price_default_value"] = stop_loss
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "final_take_profit_price"] = take_profit_3_to_1
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "final_take_profit_price_default_value"] = take_profit_3_to_1
+                        except:
+                            traceback.print_exc()
 
                         df_with_level_atr_bpu_bsu_etc.to_sql (
                             table_where_ticker_which_had_rebound_situations_from_ath_will_be ,

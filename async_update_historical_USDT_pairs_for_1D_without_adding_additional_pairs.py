@@ -20,7 +20,7 @@ from sqlalchemy_utils import create_database,database_exists
 from sqlalchemy import inspect
 import datetime as dt
 from sqlalchemy import text
-
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 
 def drop_table(table_name, engine):
     conn = engine.connect()
@@ -627,6 +627,10 @@ def fetch_all_ohlcv_tables(timeframe,
     engine , connection_to_ohlcv_for_usdt_pairs =\
         connect_to_postgres_db_without_deleting_it_first (database_for_ohlcv_data)
     exchanges_list = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50
 

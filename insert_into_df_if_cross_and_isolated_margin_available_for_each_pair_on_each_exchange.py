@@ -1,6 +1,6 @@
-# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
+import ccxt
 import pprint
-
+import ccxt
 import ccxt
 import pandas as pd
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
@@ -8,18 +8,18 @@ import time
 import traceback
 import re
 import numpy as np
-
+import huobi
+import huobi_client
 import db_config
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
-from sqlalchemy import text
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 # from huobi_client.generic import GenericClient
-def get_all_time_high_low(exchange_object, symbol):
-
-    ticker = exchange_object.fetch_ticker(symbol)
-    all_time_high = ticker['high']
-    all_time_low = ticker['low']
-    return all_time_high, all_time_low
+def if_margin_true_for_an_asset(markets, trading_pair):
+    market = markets[trading_pair]
+    # print(f" markets[{trading_pair}]")
+    # pprint.pprint(market)
+    return market['margin']
 def connect_to_postgres_db_without_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
@@ -204,8 +204,11 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
     elif exchange_id == 'poloniexfutures':
         return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'poloniexfutures':
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
     elif exchange_id == 'ascendex':
         return f"https://ascendex.com/en/margin-trading/{quote.lower()}/{base.lower()}"
+
     else:
         return "Exchange not supported"
 
@@ -372,8 +375,6 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
     elif exchange_id == 'okx':
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
-    # elif exchange_id == 'bitstamp':
-    #     return f"https://www.bitstamp.net/markets/{market['base'].lower()}/{market['quote'].lower()}/"
     elif exchange_id == 'ascendex':
         return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
     elif exchange_id == 'probit':
@@ -746,6 +747,9 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'gateio':
         exchange_object = ccxt.gateio()
         limit = 1000
+    elif exchange_name == 'gate':
+        exchange_object = ccxt.gate()
+        limit = 1000
     elif exchange_name == 'kucoin':
         exchange_object = ccxt.kucoin()
         limit = 2000
@@ -761,6 +765,24 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'lbank':
         exchange_object = ccxt.lbank()
         limit = 1000
+
+    elif exchange_name == 'zb':
+        exchange_object = ccxt.zb()
+        limit = 1000
+    elif exchange_name == 'tokocrypto':
+        exchange_object = ccxt.tokocrypto()
+        limit = 1000
+    elif exchange_name == 'currencycom':
+        exchange_object = ccxt.currencycom()
+        limit = 1000
+    elif exchange_name == 'cryptocom':
+        exchange_object = ccxt.cryptocom()
+        limit = 1000
+    elif exchange_name == 'delta':
+        exchange_object = ccxt.delta()
+        limit = 1000
+
+
     return exchange_object, limit
 
 def get_all_exchanges():
@@ -970,7 +992,7 @@ def get_exchange_object2(exchange_name):
         'blockchaincom': ccxt.blockchaincom(),
         'btcex': ccxt.btcex(),
         'kucoinfutures': ccxt.kucoinfutures(),
-        # 'okex3': ccxt.okex3(),
+        # 'okex4': ccxt.okex4(),
         # 'p2pb2b': ccxt.p2pb2b(),
         # 'paribu': ccxt.paribu(),
         'phemex': ccxt.phemex(),
@@ -997,10 +1019,11 @@ def get_exchange_object2(exchange_name):
     }),
         'whitebit': ccxt.whitebit(),
         # 'xbtce': ccxt.xbtce(),
-        'xt': ccxt.xt(),
+        # 'xena': ccxt.xena(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
         # 'zb': ccxt.zb(),
+        'xt':ccxt.xt(),
         'zonda':ccxt.zonda()
     }
     exchange_object = exchange_objects.get(exchange_name)
@@ -1225,7 +1248,6 @@ def get_exchanges_for_trading_pairs(df):
     # Create a dictionary to store the exchanges where each trading pair is traded
     trading_pair_exchanges = {}
     for pair in trading_pairs:
-        print("pair")
         print(pair)
         exchanges = [col for col in df.columns if pair in df[col].values]
         trading_pair_exchanges[pair] = '_'.join(exchanges)
@@ -1235,47 +1257,21 @@ def get_exchanges_for_trading_pairs(df):
     new_df.index.name = 'trading_pair'
 
     return new_df
-
-def remove_not_needed_exchanges(reduced_list, list_of_not_needed_exchanges):
-    print("reduced_list")
-    print(reduced_list)
-    print("list_of_not_needed_exchanges")
-    print(list_of_not_needed_exchanges)
-    return [exchange for exchange in reduced_list if exchange not in list_of_not_needed_exchanges]
-
 def extract_unique_exchanges(row):
-    exchanges_list = row['exchanges_where_pair_is_traded'].split('_')
-    reduced_list = []
-    list_of_not_needed_exchanges=[]
-    # for exchange in exchanges:
-    for exchange in exchanges_list:
-        found = False
-        for other_exchange in exchanges_list:
-            if other_exchange.startswith(exchange) and other_exchange != exchange:
-                found = True
-                list_of_not_needed_exchanges.append(other_exchange)
+    exchanges = row['exchanges_where_pair_is_traded'].split('_')
+    unique_exchanges = []
+    for exchange in exchanges:
+        is_unique = True
+        for e in unique_exchanges:
+            print("inside for loop")
+            if exchange != e and e.startswith(exchange):
+                is_unique = False
                 break
-        if not found:
-
-            reduced_list.append(exchange)
-
-    print("list_of_not_needed_exchanges")
-    print(list_of_not_needed_exchanges)
-    reduced_list_ultimate=remove_not_needed_exchanges(exchanges_list, list_of_not_needed_exchanges)
-
-    return '_'.join(reduced_list_ultimate)
-def calculate_number_of_exchanges_where_trading_pair_is_traded_on(row):
-    exchanges_list = row.split('_')
-    return(len(exchanges_list))
-
-def get_base_of_trading_pair(row):
-    base=""
-    try:
-        base_slash_quote = row.split('/')
-        base=base_slash_quote[0]
-    except:
-        traceback.print_exc()
-    return base
+        if is_unique:
+            unique_exchanges.append(exchange)
+        print("unique_exchanges")
+        print(unique_exchanges)
+    return '_'.join(unique_exchanges)
 def get_exchange_map_from_exchange_id_to_exchange_name(exchange_ids):
     exchange_map = {}
     for exchange_id in exchange_ids:
@@ -1320,120 +1316,120 @@ def add_exchange_count2(df, exchange_map):
     result_df.set_index('trading_pair', inplace=True)
 
     return result_df
-
-def drop_table(table_name, engine):
-    conn = engine.connect()
-    query = text(f'''DROP TABLE IF EXISTS "{table_name}"''')
-    conn.execute(query)
-    conn.close()
 def remove_trading_pairs_which_contain_stablecoin_as_base(filtered_pairs,stablecoin_bases_with_slash_list):
     filtered_pairs = [pair for pair in filtered_pairs if
                       not any(pair.startswith(ticker) for ticker in stablecoin_bases_with_slash_list)]
     return filtered_pairs
-def add_trading_pair_column(df):
-    """
-    Adds a new column to the given dataframe called 'trading_pair' which is created from the index of the dataframe
-    """
-    df['trading_pair_new_column'] = df.index
-    return df
-def get_all_time_high_low_string(df_with_strings_where_each_pair_is_traded):
-    for i, row in df_with_strings_where_each_pair_is_traded.iterrows():
-        exchanges_where_pair_is_traded = row["exchanges_where_pair_is_traded"]
-        all_time_high_str, all_time_low_str = [], []
-        for exchange_id in exchanges_where_pair_is_traded.split("_"):
-            all_time_high, all_time_low = get_all_time_high_low(exchange_id, row.name)
-            all_time_high_str.append(str(all_time_high))
-            all_time_low_str.append(str(all_time_low))
-        all_time_high_str = "_".join(all_time_high_str)
-        all_time_low_str = "_".join(all_time_low_str)
-        df_with_strings_where_each_pair_is_traded.loc[i, "string_of_all_aths"] = all_time_high_str
-        df_with_strings_where_each_pair_is_traded.loc[i, "string_of_all_atls"] = all_time_low_str
-    return df_with_strings_where_each_pair_is_traded
 if __name__=="__main__":
 
     db_with_trading_pair_statistics="db_with_trading_pair_statistics"
-    table_name_where_exchanges_with_all_available_trading_pairs_are="available_trading_pairs_for_each_exchange"
-    table_with_strings_where_each_pair_is_traded="exchanges_where_each_pair_is_traded"
+    table_name_where_exchanges_will_be_with_all_available_trading_pairs="if_cross_and_isolated_margin_available"
+    # table_with_strings_where_each_pair_is_traded="exchanges_where_each_pair_is_traded"
     engine_for_db_with_trading_pair_statistics, connection_to_db_with_trading_pair_statistics=\
-        connect_to_postgres_db_without_deleting_it_first(db_with_trading_pair_statistics)
-    drop_table(table_with_strings_where_each_pair_is_traded,engine_for_db_with_trading_pair_statistics)
-    # list_of_all_exchanges=get_all_exchanges()
-    # data_dict={}
-    # # exchange_map=get_exchange_map_from_exchange_id_to_exchange_name(list_of_all_exchanges)
-    # # print("exchange_map")
-    # # print(exchange_map)
-    # for exchange_name in list_of_all_exchanges:
-    #     try:
-    #         exchange_object=get_exchange_object2(exchange_name)
-    #         list_of_trading_pairs_for_one_exchange=get_trading_pairs(exchange_object)
-    #
-    #         print(f"list_of_trading_pairs_for_one_exchange for {exchange_name}" )
-    #         print(list_of_trading_pairs_for_one_exchange)
-    #         print(f"number of all pairs for {exchange_name} is  {len(list_of_trading_pairs_for_one_exchange)}")
-    #
-    #         filtered_pairs = [pair for pair in list_of_trading_pairs_for_one_exchange if "/USDT" in pair]
-    #         print(f"filtered_pairs for {exchange_name}")
-    #         print(filtered_pairs)
-    #         print(f"number of all usdt pairs for {exchange_name} is  {len(filtered_pairs)}")
-    #         stablecoin_bases_with_slash_list=return_list_of_all_stablecoin_bases_with_slash()
-    #         filtered_pairs =\
-    #             remove_trading_pairs_which_contain_stablecoin_as_base(
-    #                 filtered_pairs,
-    #                 stablecoin_bases_with_slash_list)
-    #         print(filtered_pairs)
-    #         filtered_pairs=remove_leveraged_pairs(filtered_pairs)
-    #         filtered_pairs=remove_futures_with_expiration_and_options(filtered_pairs)
-    #         print(f"number of all usdt pairs without stablecoin base and without levereged tokens "
-    #               f"for {exchange_name} is  {len(filtered_pairs)}")
-    #         data_dict[exchange_name] = filtered_pairs
-    #
-    #     except:
-    #         traceback.print_exc()
-    # df_with_trading_pairs_for_each_exchange = pd.DataFrame.from_dict(data_dict, orient='index')
-    # df_with_trading_pairs_for_each_exchange = df_with_trading_pairs_for_each_exchange.transpose()
-    # # print("df_with_trading_pairs")
-    # # print(df_with_trading_pairs_for_each_exchange.head(200).to_string())
-    # # trading_pair="PIAS/USDT"
-    # # exchanges_for_trading_pair_list=get_exchanges_for_trading_pair(df_with_trading_pairs_for_each_exchange)
-    # # print("exchanges_for_"trading_pair_list")
-    # # print(exchanges_for_tra"ding_pair_list)
+        connect_to_postgres_db_with_deleting_it_first(db_with_trading_pair_statistics)
+    list_of_all_exchanges=get_all_exchanges()
+    data_dict={}
+    # exchange_map=get_exchange_map_from_exchange_id_to_exchange_name(list_of_all_exchanges)
+    # print("exchange_map")
+    # print(exchange_map)
+    exchanges_that_have_set_margin_mode_true_false_or_none_df=pd.DataFrame(columns=["setMarginMode_is_True",
+                                                                                    "setMarginMode_is_False",
+                                                                                    "setMarginMode_is_None"],
+                                                                           index=list_of_all_exchanges)
+    for exchange_id in list_of_all_exchanges:
+        try:
+            exchange_object=get_exchange_object2(exchange_id)
+            list_of_trading_pairs_for_one_exchange=get_trading_pairs(exchange_object)
 
-    #
-    # # df_with_strings_where_each_pair_is_traded_plus_exchange_count=\
-    # #     add_exchange_count2(df_with_strings_where_each_pair_is_traded, exchange_map)
-    #
-    # # apply the function to each row and create the new column
+            # print(f"list_of_trading_pairs_for_one_exchange for {exchange_id}" )
+            # print(list_of_trading_pairs_for_one_exchange)
+            # print(f"number of all pairs for {exchange_id} is  {len(list_of_trading_pairs_for_one_exchange)}")
+
+            filtered_pairs = [pair for pair in list_of_trading_pairs_for_one_exchange if "/USDT" in pair]
+            # print(f"filtered_pairs for {exchange_id}")
+            # print(filtered_pairs)
+            # print(f"number of all usdt pairs for {exchange_id} is  {len(filtered_pairs)}")
+            stablecoin_bases_with_slash_list=return_list_of_all_stablecoin_bases_with_slash()
+            filtered_pairs =\
+                remove_trading_pairs_which_contain_stablecoin_as_base(
+                    filtered_pairs,
+                    stablecoin_bases_with_slash_list)
+            # print(filtered_pairs)
+            filtered_pairs=remove_leveraged_pairs(filtered_pairs)
+            filtered_pairs=remove_futures_with_expiration_and_options(filtered_pairs)
+            # print(f"number of all usdt pairs without stablecoin base and without levereged tokens "
+            #       f"for {exchange_id} is  {len(filtered_pairs)}")
+
+            # print(f"filtered_pairs for {exchange_id}")
+            # print(filtered_pairs)
+
+            # markets = np.nan
+            # try:
+            #     markets = exchange_object.load_markets()
+            # except:
+            #     pass
+            #     # traceback.print_exc()
+
+
+            exchange_has_set_margin_mode_bool=exchange_object.has['setMarginMode']
+
+            # print(f"{exchange_id} dir (exchange)")
+            # print(dir(exchange_object))
+
+            # if exchange_has_set_margin_mode_bool==True:
+            print(f"{exchange_id} has set margin mode = {exchange_has_set_margin_mode_bool}")
+            if exchange_has_set_margin_mode_bool == True:
+
+                exchanges_that_have_set_margin_mode_true_false_or_none_df["setMarginMode_is_True"].at[exchange_id]=exchange_has_set_margin_mode_bool
+            elif exchange_has_set_margin_mode_bool == False:
+                exchanges_that_have_set_margin_mode_true_false_or_none_df["setMarginMode_is_False"].at[exchange_id]=exchange_has_set_margin_mode_bool
+            else:
+                exchanges_that_have_set_margin_mode_true_false_or_none_df["setMarginMode_is_None"].at[exchange_id]=exchange_has_set_margin_mode_bool
+
+            # for trading_pair in filtered_pairs:
+            #     margin_available_for_trading_pair_bool = if_margin_true_for_an_asset(markets, trading_pair)
+            #     # pair_info = exchange_object.describe_trading_pair(trading_pair)
+            #     #
+            #     # # Check if cross margin mode is available for the trading pair
+            #     # cross_margin_available = 'cross' in pair_info.get('margin', {})
+            #     #
+            #     # # Check if isolated margin mode is available for the trading pair
+            #     # isolated_margin_available = 'isolated' in pair_info.get('margin', {})
+            #
+            # data_dict[exchange_id] = filtered_pairs
+
+        except:
+            pass
+            # traceback.print_exc()
+    print(exchanges_that_have_set_margin_mode_true_false_or_none_df.to_string())
+    df_with_trading_pairs_for_each_exchange = pd.DataFrame.from_dict(data_dict, orient='index')
+    df_with_trading_pairs_for_each_exchange = df_with_trading_pairs_for_each_exchange.transpose()
+    # print("df_with_trading_pairs")
+    # print(df_with_trading_pairs_for_each_exchange.head(200).to_string())
+    # trading_pair="PIAS/USDT"
+    # exchanges_for_trading_pair_list=get_exchanges_for_trading_pair(df_with_trading_pairs_for_each_exchange)
+    # print("exchanges_for_"trading_pair_list")
+    # print(exchanges_for_tra"ding_pair_list)
+
+
+    # df_with_strings_where_each_pair_is_traded=get_exchanges_for_trading_pairs(df_with_trading_pairs_for_each_exchange)
+
+    # df_with_strings_where_each_pair_is_traded_plus_exchange_count=\
+    #     add_exchange_count2(df_with_strings_where_each_pair_is_traded, exchange_map)
+
+    # apply the function to each row and create the new column
     # df_with_strings_where_each_pair_is_traded['unique_exchanges_where_pair_is_traded'] =\
     #     df_with_strings_where_each_pair_is_traded.apply(extract_unique_exchanges, axis=1)
+
+
     #
-    # df_with_trading_pairs_for_each_exchange.to_sql(table_name_where_exchanges_with_all_available_trading_pairs_are,
+    # df_with_trading_pairs_for_each_exchange.to_sql(table_name_where_exchanges_will_be_with_all_available_trading_pairs,
     #                engine_for_db_with_trading_pair_statistics,
     #                if_exists='replace')
-    df_with_trading_pairs_for_each_exchange = \
-        pd.read_sql_query(f'''select * from "{table_name_where_exchanges_with_all_available_trading_pairs_are}"''',
-                          engine_for_db_with_trading_pair_statistics)
-    print("df_with_trading_pairs_for_each_exchange")
-    print(df_with_trading_pairs_for_each_exchange)
-    df_with_trading_pairs_for_each_exchange = df_with_trading_pairs_for_each_exchange.drop('index', axis=1)
-    df_with_strings_where_each_pair_is_traded = get_exchanges_for_trading_pairs(df_with_trading_pairs_for_each_exchange)
+    #
+    #
 
 
-    df_with_strings_where_each_pair_is_traded=add_trading_pair_column(df_with_strings_where_each_pair_is_traded)
-    print("df_with_strings_where_each_pair_is_traded1")
-    print(df_with_strings_where_each_pair_is_traded)
-    df_with_strings_where_each_pair_is_traded['base_of_trading_pair'] = \
-        df_with_strings_where_each_pair_is_traded["trading_pair_new_column"].apply(
-            get_base_of_trading_pair)
-    # apply the function to each row and create the new column
-    df_with_strings_where_each_pair_is_traded['unique_exchanges_where_pair_is_traded'] =\
-        df_with_strings_where_each_pair_is_traded.apply(extract_unique_exchanges, axis=1)
-
-    df_with_strings_where_each_pair_is_traded['number_of_exchanges_where_pair_is_traded_on']=\
-        df_with_strings_where_each_pair_is_traded['unique_exchanges_where_pair_is_traded'].apply(calculate_number_of_exchanges_where_trading_pair_is_traded_on)
-
-
-
-
-    df_with_strings_where_each_pair_is_traded.to_sql(table_with_strings_where_each_pair_is_traded,
-                                                   engine_for_db_with_trading_pair_statistics,
-                                                   if_exists='replace')
+    # df_with_strings_where_each_pair_is_traded.to_sql(table_with_strings_where_each_pair_is_traded,
+    #                                                engine_for_db_with_trading_pair_statistics,
+    #                                                if_exists='replace')

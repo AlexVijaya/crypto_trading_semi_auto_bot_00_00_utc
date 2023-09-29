@@ -23,6 +23,8 @@ google-auth-httplib2 = "*"
 google-api-python-client = "*"
 cryptocompare = "*"
 dash-tvlwc = "*"
+protobuf = "==3.20"
+dash-bootstrap-components = "*"
 
 [dev-packages]
 

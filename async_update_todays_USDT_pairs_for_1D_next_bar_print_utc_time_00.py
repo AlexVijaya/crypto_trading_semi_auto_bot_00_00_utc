@@ -27,6 +27,8 @@ from get_info_from_load_markets import get_exchange_object6
 from constant_update_of_ohlcv_db_to_plot_later import get_list_of_exchange_ids_for_todays_pairs
 from constant_update_of_ohlcv_db_to_plot_later import get_list_of_todays_trading_pairs
 from constant_update_of_ohlcv_db_to_plot_later import get_async_connection_to_db_without_deleting_it_first
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
+
 def is_pair_active(ohlcv_data_several_last_rows_df,
                    last_timestamp_in_df,
                    timeframe,
@@ -749,6 +751,10 @@ def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
     engine , connection_to_ohlcv_for_usdt_pairs =\
         connect_to_postgres_db_without_deleting_it_first (database_name)
     exchanges_list = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50
 

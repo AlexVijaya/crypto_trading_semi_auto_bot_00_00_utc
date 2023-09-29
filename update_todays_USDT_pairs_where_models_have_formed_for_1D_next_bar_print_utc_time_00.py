@@ -545,6 +545,25 @@ def get_hisorical_data_from_exchange_for_many_symbols(exchange_dict,last_bitcoin
                     ohlcv_data_several_last_rows_df["taker_fee"] = taker_fee
                     ohlcv_data_several_last_rows_df["url_of_trading_pair"] = url_of_trading_pair
 
+                    ####################################
+                    try:
+                        spot_asset_also_available_as_swap_contract_on_same_exchange_bool = \
+                        table_with_ohlcv_data_df["spot_asset_also_available_as_swap_contract_on_same_exchange"].iat[0]
+                        ohlcv_data_several_last_rows_df[
+                            'spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_also_available_as_swap_contract_on_same_exchange_bool
+                    except:
+                        ohlcv_data_several_last_rows_df[
+                            'spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+
+                    try:
+                        url_of_swap_contract_if_it_exists_bool = \
+                        table_with_ohlcv_data_df["url_of_swap_contract_if_it_exists"].iat[0]
+                        ohlcv_data_several_last_rows_df[
+                            'url_of_swap_contract_if_it_exists'] = url_of_swap_contract_if_it_exists_bool
+                    except:
+                        ohlcv_data_several_last_rows_df['url_of_swap_contract_if_it_exists'] = np.nan
+                    ###################################
+
 
                     try:
                         if_margin_true_for_an_asset_bool=table_with_ohlcv_data_df["trading_pair_is_traded_with_margin"].iat[0]

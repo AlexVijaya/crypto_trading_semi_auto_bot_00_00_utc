@@ -1157,11 +1157,11 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "technical_stop_loss"] = technical_stop_loss
             df_with_level_atr_bpu_bsu_etc.loc[
-                0, "take_profit_3_to_1"] = take_profit_when_stop_loss_is_technical_3_to_1
+                0, "take_profit_when_sl_is_technical_3_to_1"] = take_profit_when_stop_loss_is_technical_3_to_1
             df_with_level_atr_bpu_bsu_etc.loc[
-                0, "take_profit_4_to_1"] = take_profit_when_stop_loss_is_technical_4_to_1
+                0, "take_profit_when_sl_is_technical_4_to_1"] = take_profit_when_stop_loss_is_technical_4_to_1
             df_with_level_atr_bpu_bsu_etc.loc[
-                0, "distance_between_technical_stop_loss_and_sell_order_in_atr"] = distance_between_technical_stop_loss_and_sell_order_in_atr
+                0, "distance_between_technical_sl_and_sell_order_in_atr"] = distance_between_technical_stop_loss_and_sell_order_in_atr
 
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "suppression_by_lows"] = suppression_flag_for_lows

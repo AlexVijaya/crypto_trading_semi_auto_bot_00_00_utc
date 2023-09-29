@@ -689,6 +689,15 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 continue
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
+
+            spot_asset_also_available_as_swap_contract_on_same_exchange = ""
+            url_of_swap_contract_if_it_exists = ""
+            try:
+                spot_asset_also_available_as_swap_contract_on_same_exchange = table_with_ohlcv_data_df.loc[
+                    0, "spot_asset_also_available_as_swap_contract_on_same_exchange"]
+                url_of_swap_contract_if_it_exists = table_with_ohlcv_data_df.loc[0, "url_of_swap_contract_if_it_exists"]
+            except:
+                traceback.print_exc()
             # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:

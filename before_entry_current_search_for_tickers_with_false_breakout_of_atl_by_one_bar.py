@@ -64,7 +64,7 @@ def print_df_to_file(dataframe, subdirectory_name):
         file.write("\n"+"+" * 111 + "\n")
 
         # print series to file
-        file.write(str(series))
+        file.write(str(series.to_string()))
 
         # print horizontal line again
         file.write("\n" + "+" * 111)
@@ -1113,8 +1113,12 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "take_profit_4_1"] = take_profit_when_stop_loss_is_technical_4_to_1
             df_with_level_atr_bpu_bsu_etc.loc[
-                0, "distance_between_technical_stop_loss_and_buy_order_in_atr"] =\
+                0, "distance_between_technical_sl_and_buy_order_in_atr"] =\
                 distance_between_technical_stop_loss_and_buy_order_in_atr
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "distance_between_technical_sl_and_buy_order"] = \
+                distance_between_technical_stop_loss_and_buy_order
+
             df_with_level_atr_bpu_bsu_etc.loc[
                 0, "row_number_of_false_breakout_bar"] = false_breakout_bar_row_number
 

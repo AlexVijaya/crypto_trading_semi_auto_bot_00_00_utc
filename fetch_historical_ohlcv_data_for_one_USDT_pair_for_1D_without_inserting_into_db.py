@@ -415,6 +415,36 @@ def fetch_one_ohlcv_table(ticker,timeframe,last_bitcoin_price):
             data_df['url_of_trading_pair'] = np.nan
             traceback.print_exc()
 
+        spot_asset_is_also_available_as_swap_contract_on_the_same_exchange=False
+        if asset_type == "spot":
+            try:
+                from fetch_additional_historical_USDT_pairs_for_1D_without_deleting_primary_db_and_without_deleting_db_with_low_volume import \
+                    insert_into_df_whether_swap_contract_is_also_available_for_swap
+                spot_asset_is_also_available_as_swap_contract_on_the_same_exchange = insert_into_df_whether_swap_contract_is_also_available_for_swap(
+                    data_df,
+                    exchange_object,
+                    markets,
+                    trading_pair)
+            except:
+                traceback.print_exc()
+
+        try:
+            data_df[
+                'spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_is_also_available_as_swap_contract_on_the_same_exchange
+        except:
+            data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+            traceback.print_exc()
+
+        try:
+            if spot_asset_is_also_available_as_swap_contract_on_the_same_exchange:
+                data_df["url_of_swap_contract_if_it_exists"] = get_perpetual_swap_url(exchange,
+                                                                                      trading_pair.replace("_", "/"))
+                print("url_swap_added")
+            else:
+                data_df["url_of_swap_contract_if_it_exists"] = "swap_of_spot_asset_does_not_exist"
+        except:
+            traceback.print_exc()
+
         # add url of trading pair to df
         if asset_type=='swap':
             try:
@@ -426,6 +456,23 @@ def fetch_one_ohlcv_table(ticker,timeframe,last_bitcoin_price):
             except:
                 data_df['url_of_trading_pair'] = np.nan
                 traceback.print_exc()
+
+        try:
+            data_df[
+                'spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_is_also_available_as_swap_contract_on_the_same_exchange
+        except:
+            data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+            traceback.print_exc()
+
+        try:
+            if spot_asset_is_also_available_as_swap_contract_on_the_same_exchange:
+                data_df["url_of_swap_contract_if_it_exists"] = get_perpetual_swap_url(exchange,
+                                                                                      trading_pair.replace("_", "/"))
+                print("url_swap_added")
+            else:
+                data_df["url_of_swap_contract_if_it_exists"] = "swap_of_spot_asset_does_not_exist"
+        except:
+            traceback.print_exc()
 
 
 

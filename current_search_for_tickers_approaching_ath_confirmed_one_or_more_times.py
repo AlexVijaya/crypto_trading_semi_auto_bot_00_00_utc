@@ -746,6 +746,15 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                 continue
 
             exchange = table_with_ohlcv_data_df.loc[0 , "exchange"]
+
+            spot_asset_also_available_as_swap_contract_on_same_exchange = ""
+            url_of_swap_contract_if_it_exists = ""
+            try:
+                spot_asset_also_available_as_swap_contract_on_same_exchange = table_with_ohlcv_data_df.loc[
+                    0, "spot_asset_also_available_as_swap_contract_on_same_exchange"]
+                url_of_swap_contract_if_it_exists = table_with_ohlcv_data_df.loc[0, "url_of_swap_contract_if_it_exists"]
+            except:
+                traceback.print_exc()
             # short_name = table_with_ohlcv_data_df.loc[0 , 'short_name']
 
             try:
@@ -1023,6 +1032,15 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                     try:
                         df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
                             get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
+                    except:
+                        traceback.print_exc()
+
+                    try:
+                        df_with_level_atr_bpu_bsu_etc.loc[0, "spot_asset_also_available_as_swap_contract_on_same_exchange"] = \
+                            spot_asset_also_available_as_swap_contract_on_same_exchange
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "url_of_swap_contract_if_it_exists"] = \
+                            url_of_swap_contract_if_it_exists
                     except:
                         traceback.print_exc()
                 except:

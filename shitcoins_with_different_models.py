@@ -28,6 +28,93 @@ import dash
 from dash import html
 import dash_tvlwc
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
+
+def return_list_of_options_for_today_that_are_available_and_not_all_possible_options(engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000):
+    list_of_tables_in_db_with_bfr_models = get_list_of_tables_in_db(
+        engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000)
+    # list_of_all_possible_options_for_choosing_of_different_bfr_models_in_streamlit_app = [
+    #     "Breakout of ATL with position entry next day after breakout",
+    #     "Breakout of ATH with position entry next day after breakout",
+    #     "Breakout of ATL with position entry on second day after breakout",
+    #     "Breakout of ATH with position entry on second day after breakout",
+    #     "False Breakout of ATL by one bar",
+    #     "False Breakout of ATH by one bar",
+    #     "False Breakout of ATL by two bars",
+    #     "False Breakout of ATH by two bars",
+    #     "Complex False Breakout of ATL",
+    #     "Complex False Breakout of ATH",
+    #     "Rebound off ATL",
+    #     "Rebound off ATH",
+    #     "New ATL within last two days",
+    #     "New ATH within last two days",
+    #     "Last close price is closer to ATL than n %ATR",
+    #     "Last close price is closer to ATH than n %ATR",
+    #     "Last close price is closer to ATL than N % of ATR(30)",
+    #     "Last close price is closer to ATH than N % of ATR(30)"
+    #     ]
+    list_of_options_for_today_that_are_available_and_not_all_possible_options = []
+
+    list_of_all_possible_table_names_in_bfr_db = ["current_asset_had_atl_within_two_last_days_period",
+                                                  "current_asset_had_ath_within_two_last_days_period",
+                                                  "current_breakout_situations_of_atl_position_entry_next_day",
+                                                  "current_breakout_situations_of_ath_position_entry_next_day",
+                                                  "current_breakout_situations_of_atl_position_entry_on_day_two",
+                                                  "current_breakout_situations_of_ath_position_entry_on_day_two",
+                                                  "current_false_breakout_of_atl_by_one_bar",
+                                                  "current_false_breakout_of_ath_by_one_bar",
+                                                  "current_false_breakout_of_atl_by_two_bars",
+                                                  "current_false_breakout_of_ath_by_two_bars",
+                                                  "current_rebound_situations_from_atl",
+                                                  "current_rebound_situations_from_ath",
+                                                  "current_asset_approaches_its_atl_closer_than_n_percent_atr",
+                                                  "current_asset_approaches_its_ath_closer_than_n_percent_atr"]
+
+    for table_name in list_of_all_possible_table_names_in_bfr_db:
+        if table_name in list_of_tables_in_db_with_bfr_models:
+            if table_name == "current_asset_had_atl_within_two_last_days_period":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "New ATL within last two days")
+            if table_name == "current_asset_had_ath_within_two_last_days_period":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "New ATH within last two days")
+            if table_name == "current_breakout_situations_of_atl_position_entry_next_day":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Breakout of ATL with position entry next day after breakout")
+            if table_name == "current_breakout_situations_of_ath_position_entry_next_day":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Breakout of ATH with position entry next day after breakout")
+            if table_name == "current_breakout_situations_of_atl_position_entry_on_day_two":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Breakout of ATL with position entry on second day after breakout")
+            if table_name == "current_breakout_situations_of_ath_position_entry_on_day_two":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Breakout of ATH with position entry on second day after breakout")
+            if table_name == "current_false_breakout_of_atl_by_one_bar":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "False Breakout of ATL by one bar")
+            if table_name == "current_false_breakout_of_ath_by_one_bar":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "False Breakout of ATH by one bar")
+            if table_name == "current_false_breakout_of_atl_by_two_bars":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "False Breakout of ATL by two bars")
+            if table_name == "current_false_breakout_of_ath_by_two_bars":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "False Breakout of ATH by two bars")
+            if table_name == "current_rebound_situations_from_atl":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Rebound off ATL")
+            if table_name == "current_rebound_situations_from_ath":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Rebound off ATH")
+            if table_name == "current_asset_approaches_its_atl_closer_than_n_percent_atr":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Last close price is closer to ATL than n %ATR")
+            if table_name == "current_asset_approaches_its_ath_closer_than_n_percent_atr":
+                list_of_options_for_today_that_are_available_and_not_all_possible_options.append(
+                    "Last close price is closer to ATH than n %ATR")
+
+    return list_of_options_for_today_that_are_available_and_not_all_possible_options
 def get_date_with_and_without_time_from_timestamp(timestamp):
     open_time = \
         datetime.datetime.fromtimestamp ( timestamp  )
@@ -293,11 +380,14 @@ def add_plot_of_order_sl_and_tp(index_of_trading_pair_to_select,ticker,df_with_m
 
 
 def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-               table_name,row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
+               table_name,row_of_pair_ready_for_model,
+               index_of_trading_pair_to_select,
+               ticker_with_exchange_where_model_was_found,
                df_with_resulting_table_of_certain_models,
                entire_ohlcv_df,
                crypto_ticker,
-               asset_type,height,width,key_for_placeholder):
+               asset_type,
+               height,width,key_for_placeholder):
 
     print(f"entire_ohlcv_df_in_plot for {crypto_ticker}")
     print(entire_ohlcv_df.tail(5).to_string())
@@ -308,6 +398,8 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
 
         exchange=""
+        trading_pair_is_traded_with_margin_bool=False
+        url_of_trading_pair=""
         try:
             exchange = entire_ohlcv_df.iloc[-1, entire_ohlcv_df.columns.get_loc("exchange")]
             # st.write("exchange11")
@@ -323,8 +415,126 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
         else:
             crypto_ticker=entire_ohlcv_df["ticker"].iat[0]+"_on_"+exchange
 
+        if "trading_pair_is_traded_with_margin" in entire_ohlcv_df.columns:
+            trading_pair_is_traded_with_margin_bool=entire_ohlcv_df["trading_pair_is_traded_with_margin"].iat[0]
+
+        if "url_of_trading_pair" in entire_ohlcv_df.columns:
+            url_of_trading_pair = entire_ohlcv_df["url_of_trading_pair"].iat[0]
+
+        distance_between_technical_sl_and_buy_order = np.nan
+        distance_between_technical_sl_and_sell_order = np.nan
+        distance_between_calculated_sl_and_buy_order = np.nan
+        distance_between_calculated_sl_and_sell_order = np.nan
+        final_take_profit_price_default_value = np.nan
+        final_stop_loss_price_default_value = np.nan
+        final_position_entry_price_default_value = np.nan
+        final_stop_loss_price = np.nan
+        final_position_entry_price = np.nan
+        side=np.nan
+        sell_order_price=np.nan
+        buy_order_price=np.nan
+        sell_order = np.nan
+        buy_order = np.nan
+        take_profit_when_sl_is_technical_3_to_1=np.nan
+        take_profit_when_sl_is_technical_4_to_1=np.nan
+        take_profit_when_sl_is_calculated_3_to_1=np.nan
+        take_profit_when_sl_is_calculated_4_to_1=np.nan
+        calculated_stop_loss=np.nan
+        technical_stop_loss=np.nan
+        if "distance_between_technical_sl_and_buy_order" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_technical_sl_and_buy_order = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_technical_sl_and_buy_order'].iat[0]
+
+            buy_order_price=df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'buy_order'].iat[0]
+
+        if "distance_between_technical_sl_and_sell_order" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_technical_sl_and_sell_order = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_technical_sl_and_sell_order'].iat[0]
+
+            sell_order_price = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'sell_order'].iat[0]
+
+        if "distance_between_calculated_sl_and_buy_order" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_calculated_sl_and_buy_order = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_calculated_sl_and_buy_order'].iat[0]
+
+            buy_order_price = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'buy_order'].iat[0]
+
+        if "distance_between_calculated_sl_and_sell_order" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_calculated_sl_and_sell_order = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_calculated_sl_and_sell_order'].iat[0]
+
+            sell_order_price = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'sell_order'].iat[0]
+
+        if "side" in df_with_resulting_table_of_certain_models.columns:
+            side = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'side'].iat[0]
+
+        if "final_take_profit_price_default_value" in df_with_resulting_table_of_certain_models.columns:
+            final_take_profit_price_default_value = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'final_take_profit_price_default_value'].iat[0]
+
+        if "take_profit_when_sl_is_technical_3_to_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_technical_3_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_when_sl_is_technical_3_to_1'].iat[0]
+
+        if "take_profit_when_sl_is_technical_4_to_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_technical_4_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_when_sl_is_technical_4_to_1'].iat[0]
+
+        if "take_profit_when_sl_is_calculated_3_to_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_calculated_3_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_when_sl_is_calculated_3_to_1'].iat[0]
+
+        if "take_profit_when_sl_is_calculated_4_to_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_calculated_4_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_when_sl_is_calculated_4_to_1'].iat[0]
+
+        if "sell_order" in df_with_resulting_table_of_certain_models.columns:
+            sell_order = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'sell_order'].iat[0]
+
+        if "buy_order" in df_with_resulting_table_of_certain_models.columns:
+            buy_order = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'buy_order'].iat[0]
+
+        if "calculated_stop_loss" in df_with_resulting_table_of_certain_models.columns:
+            calculated_stop_loss = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'calculated_stop_loss'].iat[0]
+
+        if "technical_stop_loss" in df_with_resulting_table_of_certain_models.columns:
+            technical_stop_loss = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'technical_stop_loss'].iat[0]
+
+        if "technical_stop_loss" in df_with_resulting_table_of_certain_models.columns:
+            technical_stop_loss = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'technical_stop_loss'].iat[0]
+
+        if "final_stop_loss_price_default_value" in df_with_resulting_table_of_certain_models.columns:
+            final_stop_loss_price_default_value = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'final_stop_loss_price_default_value'].iat[0]
+
+        if "final_stop_loss_price" in df_with_resulting_table_of_certain_models.columns:
+            final_stop_loss_price = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'final_stop_loss_price'].iat[0]
+
+        if "final_position_entry_price_default_value" in df_with_resulting_table_of_certain_models.columns:
+            final_position_entry_price_default_value = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'final_position_entry_price_default_value'].iat[0]
+
+        if "final_position_entry_price" in df_with_resulting_table_of_certain_models.columns:
+            final_position_entry_price = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'final_position_entry_price'].iat[0]
+
         # st.dataframe(entire_ohlcv_df)
         create_button_show_or_hide_dataframe(entire_ohlcv_df,key_for_placeholder)
+        st.write(f"Number of all available days in database for {crypto_ticker} is {len(entire_ohlcv_df)}")
+        st.write(f"\n If this number is too much round, for example, 1000 or 100 \nthis is suspicious and you'd better check the exchange webside itself"
+                 f"\n to verify that the chart in this app has all available days")
+
         exchange_name_in_list=exchange
 
         # st.write(f"{crypto_ticker} outside create button function")
@@ -336,8 +546,11 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
         url_of_trading_pair_on_trading_view_markets=f'''https://www.tradingview.com/symbols/{crypto_ticker_for_tv.replace("_","")}/markets/'''
         if asset_type=="swap":
             url_of_trading_pair_on_trading_view_markets = f'''https://www.tradingview.com/symbols/{crypto_ticker_for_tv.split(":")[0].replace("_", "")+".P"}/markets/'''
-        link = f'Click this [link]({url_of_trading_pair_on_trading_view_markets}) if you want to go to Trading View to see where {crypto_ticker_for_tv} is traded '
+        link = f'Click [go to Trading View]({url_of_trading_pair_on_trading_view_markets}) if you want to go to Trading View to see all markets where {crypto_ticker_for_tv} is traded '
         st.markdown(link, unsafe_allow_html=True)
+
+        url_of_trading_pair_link=f'Click [{crypto_ticker}]({url_of_trading_pair})  if you want to go to {exchange} website and see the trading pair yourself'
+        st.markdown(url_of_trading_pair_link, unsafe_allow_html=True)
 
         # st.button(label=f"View chart of {crypto_ticker} on Trading View",key=np.random.random(100)
         #           ,on_click=generate_html_of_tv_widget_to_insert_into_streamlit,
@@ -420,113 +633,703 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
             #     set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
             #                            crypto_ticker, table_name, column_name, value)
             #     st.write("on next bar print i will enter the position")
-            with st.form("position_entry_form"):
-                st.write("fill out the necessary data for position entry")
-
-                type_of_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("technical","calculated"),index=1)
-                market_or_limit_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("market","limit"),index=0)
-                # take_profit_x_to_one=st.number_input(
-                #     label='Please enter positive integer value for take profit, for example 4 means your tp will be 4 to 1',
-                #     key=None,value=3,format='d')
-                # take_profit_x_to_one = st.radio("Choose value for take profit, for example 4 means your tp will be 4 to 1'",
-                #                              (2,3,4,5,6,7,8,9,10,11,12,13,14,15),index=1)
-                take_profit_x_to_one=\
-                    st.number_input(label='Please enter positive integer value for TAKE PROFIT, for example 4 means your tp will be 4 to 1',
-                                    value=3,min_value=1,format='%d')
-
-                market_or_limit_take_profit = st.radio("Choose the TAKE PROFIT type that better suits your needs",
-                                                     ("market", "limit"), index=1)
-
-                # position_size_in_base_or_quote_asset=st.radio(f"input position size in {get_base_of_trading_pair(crypto_ticker)} or in USD",
-                #                                               (f"{get_base_of_trading_pair(crypto_ticker)}","USD"),index=1)
-
-
-                position_size_in_usd = \
-                    st.number_input(
-                        label=f'Please enter position size in USD',
-                        value=0, min_value=0)
 
 
 
-                # Every form must have a submit button.
-                submitted = st.form_submit_button("Trace this trading pair and when next bar opens enter position")
-                if submitted:
-                    if type_of_stop_loss == "technical":
-                        column_name = "stop_loss_is_technical"
+            with st.empty():
+                # precalculated values for tp and sp
+                with st.form("position_entry_form_with_precalculated_order_price_sl_and_tp"):
+                    font_size = 24  # Set the desired font size
+                    st.write(f"<span style='font-size: {font_size}px;'>Order price, Take Profit and Stop Loss have been precalculated AUTOMATICALLY.</span>",
+                             unsafe_allow_html=True)
+
+                    st.write("Fill out the necessary data for position entry.")
+
+                    st.write("But you can override them in the next form if you want your own values for STOP LOSS, TAKE PROFIT and ORDER ENTRY PRICE")
+
+                    underlined_text = "STOP LOSS which will be used"
+                    st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                    if "calculated_stop_loss" in df_with_resulting_table_of_certain_models.columns and\
+                            "technical_stop_loss" in df_with_resulting_table_of_certain_models.columns:
+                        phrase_1 = f"Calculated stop loss will be {calculated_stop_loss}"
+                        phrase_2 = f"Technical stop loss will be {technical_stop_loss}"
+                        st.markdown(phrase_1 + "  \n" + phrase_2)
+
+                        type_of_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("technical","calculated"),index=1)
+
+                    elif "calculated_stop_loss" in df_with_resulting_table_of_certain_models.columns and \
+                            "technical_stop_loss" not in df_with_resulting_table_of_certain_models.columns:
+                        st.write(f"Calculated stop loss will be {calculated_stop_loss}")
+
+                        type_of_stop_loss = st.radio("You can choose only calculated stop loss because REBOUND does not have technical stop loss",
+                                                     ("calculated",), index=0)
+
+                    elif "calculated_stop_loss" not in df_with_resulting_table_of_certain_models.columns and \
+                            "technical_stop_loss" in df_with_resulting_table_of_certain_models.columns:
+                        st.write(f"Technical stop loss will be {technical_stop_loss}")
+
+                        type_of_stop_loss = st.radio(
+                            "You can choose only technical stop loss because FALSE BREAKOUT does not have calculated stop loss",
+                            ("technical",), index=0)
+
+                    else:
+                        traceback.print_exc()
+
+                    market_or_limit_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("market","limit"),index=0)
+                    # take_profit_x_to_one=st.number_input(
+                    #     label='Please enter positive integer value for take profit, for example 4 means your tp will be 4 to 1',
+                    #     key=None,value=3,format='d')
+                    # take_profit_x_to_one = st.radio("Choose value for take profit, for example 4 means your tp will be 4 to 1'",
+                    #                              (2,3,4,5,6,7,8,9,10,11,12,13,14,15),index=1)
+
+                    underlined_text = "TAKE PROFIT which will be used"
+                    st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+
+                    if "take_profit_when_sl_is_calculated_3_to_1" in df_with_resulting_table_of_certain_models.columns and\
+                            "take_profit_when_sl_is_technical_3_to_1" in df_with_resulting_table_of_certain_models.columns:
+                        phrase_1 = f"Take profit 3 to 1 when stop loss is calculated will be {take_profit_when_sl_is_calculated_3_to_1}"
+                        phrase_2 = f"Take profit 3 to 1 when stop loss is technical will be {take_profit_when_sl_is_technical_3_to_1}"
+                        phrase_3 = f"Take profit 4 to 1 when stop loss is calculated will be {take_profit_when_sl_is_calculated_4_to_1}"
+                        phrase_4 = f"Take profit 4 to 1 when stop loss is technical will be {take_profit_when_sl_is_technical_4_to_1}"
+                        st.markdown(phrase_1 + "  \n" + phrase_2+ "  \n" + phrase_3+ "  \n" + phrase_4)
+
+
+                    elif "take_profit_when_sl_is_calculated_3_to_1" in df_with_resulting_table_of_certain_models.columns and\
+                            "take_profit_when_sl_is_technical_3_to_1" not in df_with_resulting_table_of_certain_models.columns:
+
+                        phrase_1 = f"Take profit 3 to 1 when stop loss is calculated will be {take_profit_when_sl_is_calculated_3_to_1}"
+                        phrase_2 = f"Take profit 4 to 1 when stop loss is calculated will be {take_profit_when_sl_is_calculated_4_to_1}"
+
+                        st.markdown(phrase_1 + "  \n" + phrase_2)
+
+
+                    elif "take_profit_when_sl_is_calculated_3_to_1" not in df_with_resulting_table_of_certain_models.columns and\
+                            "take_profit_when_sl_is_technical_3_to_1" in df_with_resulting_table_of_certain_models.columns:
+
+
+                        phrase_1 = f"Take profit 3 to 1 when stop loss is technical will be {take_profit_when_sl_is_technical_3_to_1}"
+                        phrase_2 = f"Take profit 4 to 1 when stop loss is technical will be {take_profit_when_sl_is_technical_4_to_1}"
+                        st.markdown(phrase_1 + "  \n" + phrase_2 )
+
+                    else:
+                        traceback.print_exc()
+
+                    take_profit_x_to_one=\
+                        st.number_input(label='Please enter positive integer value for TAKE PROFIT, for example 4 means your tp will be 4 to 1',
+                                        value=3,min_value=1,format='%d')
+
+                    market_or_limit_take_profit = st.radio("Choose the TAKE PROFIT type that better suits your needs",
+                                                         ("market", "limit"), index=1)
+
+                    # position_size_in_base_or_quote_asset=st.radio(f"input position size in {get_base_of_trading_pair(crypto_ticker)} or in USD",
+                    #                                               (f"{get_base_of_trading_pair(crypto_ticker)}","USD"),index=1)
+
+                    # spot_cross_or_isolated_marging=\
+                    #     st.radio("Choose whether to use spot or margin",("spot","cross_margin","isolated_margin"),index=2)
+
+                    spot_or_margin=""
+                    spot_cross_or_isolated_margin=""
+                    if trading_pair_is_traded_with_margin_bool:
+                        spot_cross_or_isolated_margin=st.radio("Choose whether to use spot or margin", ("spot",
+                                                                                                        "cross_margin",
+                                                                                                        "isolated_margin"),
+                                 index=0)
+                    else:
+                        spot_or_margin=st.radio(f"There is no margin trade for {crypto_ticker} so SPOT is the only choice", ("spot",))
+
+                    if "sell_order" in df_with_resulting_table_of_certain_models.columns:
+
+                        underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {sell_order}"
+                        st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                        position_size_in_usd = \
+                            st.number_input(
+                                label=f'Please enter position size in USD',
+                                value=0, min_value=0)
+
+                    if "buy_order" in df_with_resulting_table_of_certain_models.columns:
+                        underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
+                        st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                        position_size_in_usd = \
+                            st.number_input(
+                                label=f'Please enter position size in USD',
+                                value=0, min_value=0)
+
+
+                    # Every form must have a submit button.
+                    submitted_form_for_precalculated_values = st.form_submit_button("Trace this trading pair and enter position when next bar opens ")
+                    if submitted_form_for_precalculated_values:
+                        if type_of_stop_loss == "technical":
+                            column_name = "stop_loss_is_technical"
+                            value = True
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            column_name = "stop_loss_is_calculated"
+                            value = False
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+
+                            if side=="buy":
+                                final_take_profit_price=buy_order_price+distance_between_technical_sl_and_buy_order*take_profit_x_to_one
+                                final_take_profit_price_default_price = buy_order_price + distance_between_technical_sl_and_buy_order * 3
+                                print("final_take_profit_price4")
+                                print(final_take_profit_price)
+                                column_name="final_take_profit_price"
+                                value=final_take_profit_price
+                                conn = set_value_in_sql_table(
+                                    connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                    crypto_ticker, table_name, column_name, value)
+                            elif side=="sell":
+                                final_take_profit_price = sell_order_price - distance_between_technical_sl_and_sell_order * take_profit_x_to_one
+                                final_take_profit_price_default_price = sell_order_price - distance_between_technical_sl_and_sell_order * 3
+                                print("final_take_profit_price3")
+                                print(final_take_profit_price)
+                                column_name = "final_take_profit_price"
+                                value = final_take_profit_price
+                                conn = set_value_in_sql_table(
+                                    connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                    crypto_ticker, table_name, column_name, value)
+                            else:
+                                st.write(f"side={side} is unknown")
+
+                        if type_of_stop_loss == "calculated":
+                            column_name = "stop_loss_is_calculated"
+                            value = True
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            column_name = "stop_loss_is_technical"
+                            value = False
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+
+                            if side=="buy":
+                                final_take_profit_price=buy_order_price+distance_between_calculated_sl_and_buy_order*take_profit_x_to_one
+                                # final_take_profit_price_default_price=buy_order_price+distance_between_calculated_sl_and_buy_order*3
+                                print("distance_between_calculated_sl_and_buy_order1")
+                                print(distance_between_calculated_sl_and_buy_order)
+                                print("final_take_profit_price2")
+                                print(final_take_profit_price)
+                                column_name="final_take_profit_price"
+                                value=final_take_profit_price
+                                conn = set_value_in_sql_table(
+                                    connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                    crypto_ticker, table_name, column_name, value)
+                            elif side=="sell":
+                                final_take_profit_price = sell_order_price - distance_between_calculated_sl_and_sell_order * take_profit_x_to_one
+                                # final_take_profit_price_default_price=sell_order_price - distance_between_calculated_sl_and_sell_order * 3
+                                print("distance_between_calculated_sl_and_sell_order1")
+                                print(distance_between_calculated_sl_and_sell_order)
+                                print("final_take_profit_price2")
+                                print(final_take_profit_price)
+                                column_name = "final_take_profit_price"
+                                value = final_take_profit_price
+                                conn = set_value_in_sql_table(
+                                    connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                    crypto_ticker, table_name, column_name, value)
+                            else:
+                                st.write(f"side={side} is unknown")
+
+                        if market_or_limit_stop_loss == "market":
+                            column_name = "market_or_limit_stop_loss"
+                            value = 'market'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            # column_name = "stop_loss_is_calculated"
+                            # value = False
+                            # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            #                        crypto_ticker, table_name, column_name, value)
+                        if market_or_limit_stop_loss == "limit":
+                            column_name = "market_or_limit_stop_loss"
+                            value = 'limit'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            # column_name = "stop_loss_is_technical"
+                            # value = False
+                            # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            #                        crypto_ticker, table_name, column_name, value)
+                        if market_or_limit_take_profit == "market":
+                            column_name = "market_or_limit_take_profit"
+                            value = 'market'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            # column_name = "stop_loss_is_calculated"
+                            # value = False
+                            # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            #                        crypto_ticker, table_name, column_name, value)
+                        if market_or_limit_take_profit == "limit":
+                            column_name = "market_or_limit_take_profit"
+                            value = 'limit'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            # column_name = "stop_loss_is_technical"
+                            # value = False
+                            # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            #                        crypto_ticker, table_name, column_name, value)
+
+
+                        #set to True or False the following columns in db with bfr models : "spot_without_margin", "cross_margin", "isolated_margin"
+                        if spot_cross_or_isolated_margin == "spot":
+                            column_name = "spot_without_margin"
+                            value = True
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+
+                        if spot_cross_or_isolated_margin == "cross_margin":
+                            column_name = "spot_without_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = True
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+                        #
+                        #
+                        if spot_cross_or_isolated_margin == "isolated_margin":
+                            column_name = "spot_without_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = True
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                        if spot_or_margin == "spot":
+                            column_name = "spot_without_margin"
+                            value = True
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                        if spot_or_margin == "margin":
+                            column_name = "spot_without_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "margin"
+                            value = True
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                          crypto_ticker, table_name, column_name, value)
+
+
+                        column_name = "take_profit_x_to_one"
+                        value = take_profit_x_to_one
+                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                               crypto_ticker, table_name, column_name, value)
+
+                        column_name = "position_size"
+                        value = position_size_in_usd
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "ticker_will_be_traced_and_position_entered"
                         value = True
+
                         conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                                crypto_ticker, table_name, column_name, value)
-                        column_name = "stop_loss_is_calculated"
+
+                        column_name = "spot_without_margin"
                         value = False
-                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                               crypto_ticker, table_name, column_name, value)
-                    if type_of_stop_loss == "calculated":
-                        column_name = "stop_loss_is_calculated"
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "margin"
+                        value = False
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "cross_margin"
+                        value = False
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "isolated_margin"
+                        value = False
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+
+                        st.write("on next bar print i will enter the position")
+
+                        conn.close()
+            with st.empty():
+                # manual input
+                with st.form(
+                        "position_entry_form_with_manual_input_of_stop_loss_take_profit_order_price_and_position_size"):
+                    font_size = 24  # Set the desired font size
+                    st.write(
+                        f"<span style='font-size: {font_size}px;'>Order price, Take Profit and Stop Loss must be input MANUALLY.</span>",
+                        unsafe_allow_html=True)
+
+                    spot_or_margin = ""
+                    spot_cross_or_isolated_margin = ""
+                    if trading_pair_is_traded_with_margin_bool:
+                        spot_cross_or_isolated_margin = st.radio("Choose whether to use spot, cross_margin or isolated margin", ("spot",
+                                                                                                          "cross_margin",
+                                                                                                          "isolated_margin"),
+                                                                 index=0)
+                    else:
+                        spot_or_margin = st.radio(
+                            f"There is no margin trade for {crypto_ticker} so SPOT is the only choice", ("spot",))
+
+                    underlined_text = "STOP LOSS"
+                    st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                    stop_loss_manually_input = \
+                        st.number_input(
+                            label=f'Please enter STOP LOSS price in USD',
+                            value=0.0, min_value=0.0,format="%.10f")
+                    market_or_limit_stop_loss = st.radio("Choose the STOP LOSS type that better suits your needs",
+                                                         ("market", "limit"), index=0)
+
+                    underlined_text = "TAKE PROFIT"
+                    st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                    take_profit_manually_input = \
+                        st.number_input(
+                            label=f'Please enter TAKE PROFIT price in USD',
+                            value=0.0, min_value=0.0,format="%.10f")
+
+                    market_or_limit_take_profit = st.radio("Choose the TAKE PROFIT type that better suits your needs",
+                                                           ("market", "limit"), index=1)
+                    underlined_text = "POSITION SIZE in USD and PRICE"
+                    st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                    position_size_in_usd = \
+                        st.number_input(
+                            label=f'Please enter position size in USD',
+                            value=0, min_value=0)
+
+                    position_price_input_manually = \
+                        st.number_input(
+                            label=f'Please enter position price in USD',
+                            value=0.0, min_value=0.0,format="%.10f")
+
+                    submitted_form_for_manual_input_of_values = st.form_submit_button(
+                        "Trace this trading pair and enter position when next bar opens ")
+                    if submitted_form_for_manual_input_of_values:
+
+                        final_take_profit_price = take_profit_manually_input
+                        column_name = "final_take_profit_price"
+                        value = final_take_profit_price
+                        conn = set_value_in_sql_table(
+                            connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            crypto_ticker, table_name, column_name, value)
+
+                        final_stop_loss_price = stop_loss_manually_input
+                        column_name = "final_stop_loss_price"
+                        value = final_stop_loss_price
+                        conn = set_value_in_sql_table(
+                            connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            crypto_ticker, table_name, column_name, value)
+
+                        column_name = "position_size"
+                        value = position_size_in_usd
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "final_position_entry_price"
+                        value = position_price_input_manually
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "ticker_will_be_traced_and_position_entered"
                         value = True
-                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                               crypto_ticker, table_name, column_name, value)
-                        column_name = "stop_loss_is_technical"
-                        value = False
-                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                               crypto_ticker, table_name, column_name, value)
-                    if market_or_limit_stop_loss == "market":
-                        column_name = "market_or_limit_stop_loss"
-                        value = 'market'
-                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                               crypto_ticker, table_name, column_name, value)
-                        # column_name = "stop_loss_is_calculated"
-                        # value = False
-                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                        #                        crypto_ticker, table_name, column_name, value)
-                    if market_or_limit_stop_loss == "limit":
-                        column_name = "market_or_limit_stop_loss"
-                        value = 'limit'
-                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                               crypto_ticker, table_name, column_name, value)
-                        # column_name = "stop_loss_is_technical"
-                        # value = False
-                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                        #                        crypto_ticker, table_name, column_name, value)
-                    if market_or_limit_take_profit == "market":
-                        column_name = "market_or_limit_take_profit"
-                        value = 'market'
-                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                               crypto_ticker, table_name, column_name, value)
-                        # column_name = "stop_loss_is_calculated"
-                        # value = False
-                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                        #                        crypto_ticker, table_name, column_name, value)
-                    if market_or_limit_stop_loss == "limit":
-                        column_name = "market_or_limit_take_profit"
-                        value = 'limit'
-                        conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                               crypto_ticker, table_name, column_name, value)
-                        # column_name = "stop_loss_is_technical"
-                        # value = False
-                        # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                        #                        crypto_ticker, table_name, column_name, value)
+
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        if market_or_limit_stop_loss == "market":
+                            column_name = "market_or_limit_stop_loss"
+                            value = 'market'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            # column_name = "stop_loss_is_calculated"
+                            # value = False
+                            # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            #                        crypto_ticker, table_name, column_name, value)
+                        if market_or_limit_stop_loss == "limit":
+                            column_name = "market_or_limit_stop_loss"
+                            value = 'limit'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            # column_name = "stop_loss_is_technical"
+                            # value = False
+                            # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            #                        crypto_ticker, table_name, column_name, value)
+                        if market_or_limit_take_profit == "market":
+                            column_name = "market_or_limit_take_profit"
+                            value = 'market'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+                            # column_name = "stop_loss_is_calculated"
+                            # value = False
+                            # conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                            #                        crypto_ticker, table_name, column_name, value)
+                        if market_or_limit_take_profit == "limit":
+                            column_name = "market_or_limit_take_profit"
+                            value = 'limit'
+                            conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                   crypto_ticker, table_name, column_name, value)
+
+
+
+                        # set to True or False the following columns in db with bfr models : "spot_without_margin", "cross_margin", "isolated_margin"
+                        if spot_cross_or_isolated_margin == "spot":
+                            column_name = "spot_without_margin"
+                            value = True
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                        if spot_cross_or_isolated_margin == "cross_margin":
+                            column_name = "spot_without_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = True
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+                        #
+                        #
+                        if spot_cross_or_isolated_margin == "isolated_margin":
+                            column_name = "spot_without_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = True
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                        if spot_or_margin == "spot":
+                            column_name = "spot_without_margin"
+                            value = True
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                        if spot_or_margin == "margin":
+                            column_name = "spot_without_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "margin"
+                            value = True
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "cross_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                            column_name = "isolated_margin"
+                            value = False
+                            conn = set_value_in_sql_table(
+                                connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                crypto_ticker, table_name, column_name, value)
+
+                        st.write("Trace this trading pair and enter position when next bar opens")
+
+            with st.empty():
+                # cancel tracing
+                cancel_tracing_button = st.button(label="Cancel tracing of this trading pair", key=key_for_placeholder + 200 + 5)
+                if cancel_tracing_button:
                     column_name = "take_profit_x_to_one"
-                    value = take_profit_x_to_one
-                    conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                           crypto_ticker, table_name, column_name, value)
+                    value = 3
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
 
                     column_name = "position_size"
-                    value = position_size_in_usd
+                    value = 0
                     conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                                   crypto_ticker, table_name, column_name, value)
 
                     column_name = "ticker_will_be_traced_and_position_entered"
-                    value = True
+                    value = False
 
-                    conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                           crypto_ticker, table_name, column_name, value)
-                    st.write("on next bar print i will enter the position")
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "final_take_profit_price"
+                    value = final_take_profit_price_default_value
+
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "final_stop_loss_price"
+                    value = final_stop_loss_price_default_value
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "final_position_entry_price"
+                    value = final_position_entry_price_default_value
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "market_or_limit_take_profit"
+                    value = 'limit'
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "market_or_limit_stop_loss"
+                    value = 'market'
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "spot_without_margin"
+                    value = False
+                    conn = set_value_in_sql_table(
+                        connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        crypto_ticker, table_name, column_name, value)
+
+                    column_name = "margin"
+                    value = False
+                    conn = set_value_in_sql_table(
+                        connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        crypto_ticker, table_name, column_name, value)
+
+                    column_name = "cross_margin"
+                    value = False
+                    conn = set_value_in_sql_table(
+                        connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        crypto_ticker, table_name, column_name, value)
+
+                    column_name = "isolated_margin"
+                    value = False
+                    conn = set_value_in_sql_table(
+                        connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        crypto_ticker, table_name, column_name, value)
+
+                    if "stop_loss_is_calculated" in df_with_resulting_table_of_certain_models.columns:
+                        column_name = "stop_loss_is_calculated"
+                        value = False
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+                    if "stop_loss_is_technical" in df_with_resulting_table_of_certain_models.columns:
+                        column_name = "stop_loss_is_technical"
+                        value = False
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                    st.write(f"I have canceled any positions if there were any for {crypto_ticker}."
+                             f" On next bar print i will NOT enter the position and will NOT trace it")
 
                     conn.close()
 
         fig.update_xaxes(rangeslider={'visible': False})
-        st.write("all time low for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =',entire_ohlcv_df["low"].min())
-        st.write("all time high for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =', entire_ohlcv_df["high"].max())
+        # st.write("all time low for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =',entire_ohlcv_df["low"].min())
+        # st.write("all time high for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =', entire_ohlcv_df["high"].max())
         fig.update_layout(height=height ,
                           width=width,
                           title_text=f'{crypto_ticker.split("_on_")[0]} on {exchange} ',
@@ -543,11 +1346,12 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
         fig.update_xaxes(showspikes=True,spikesnap ='cursor',spikemode="across+marker",spikethickness=1)
         fig.update_yaxes(showspikes=True,spikesnap ='cursor',spikemode="across+marker",spikethickness=1)
         fig.update_layout(modebar_add=["toggleHover","toggleSpikelines"])
-        # fig.update_layout(hoverlabel_distance=10)
-        if st.button(label="disable info about open,high,low,close,volume on mouse hover",key=key_for_placeholder+10000):
-            fig.update_layout(hovermode=False)
-        if st.button(label="enable info about open,high,low,close,volume on mouse hover",key=key_for_placeholder+1000000+1):
-            fig.update_layout(hovermode="x unified")
+
+        # # fig.update_layout(hoverlabel_distance=10)
+        # if st.button(label="disable info about open,high,low,close,volume on mouse hover",key=key_for_placeholder+10000):
+        #     fig.update_layout(hovermode=False)
+        # if st.button(label="enable info about open,high,low,close,volume on mouse hover",key=key_for_placeholder+1000000+1):
+        #     fig.update_layout(hovermode="x unified")
 
         # # Enable drawing tools with specific configuration
         # fig.update_layout({
@@ -770,6 +1574,11 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
     exchanges_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
         row_of_pair_ready_for_model, 'exchange_id_string_where_trading_pair_is_traded'].iat[0]
 
+    ####################3
+    exchanges_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
+        row_of_pair_ready_for_model, 'exchange_id_string_where_trading_pair_is_traded'].iat[0]
+    ########################
+
 
 
     trading_pair = trading_pair.replace("_", "/")
@@ -777,7 +1586,8 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
     st.write(exchange.iat[0])
     st.write(trading_pair)
 
-    link = f'Click this link if you want to go to {exchange_name} website to see {trading_pair}  [link]({url_of_trading_pair_on_particular_exchange})'
+    # link = f'Click this link if you want to go to {exchange_name} website to see {trading_pair}  [link]({url_of_trading_pair_on_particular_exchange})'
+    link = f'[Go to {exchange_name.upper()} website]({url_of_trading_pair_on_particular_exchange}) to see {trading_pair} '
     st.markdown(link, unsafe_allow_html=True)
 
     string_of_exchanges_where_pair_is_traded = series_of_exchanges_where_pair_is_traded.iat[0]
@@ -818,8 +1628,6 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
     # st.write("list_of_tables_in_todays_pairs_db")
     # st.write(list_of_tables_in_todays_pairs_db)
 
-    t=""
-
     for exchange_id in list_of_exchange_ids_where_pair_is_traded_on:
         key_for_placeholder = get_index_of_exchange_id(list_of_exchange_ids_where_pair_is_traded_on, exchange_id)
 
@@ -858,8 +1666,17 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT","")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
 
-                plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
-                           df_with_resulting_table_of_certain_models,table_with_ohlcv_data_df, trading_pair_to_select, asset_type, height, width,
+                plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                           table_name,
+                           row_of_pair_ready_for_model,
+                           index_of_trading_pair_to_select,
+                           ticker_with_exchange_where_model_was_found,
+                           df_with_resulting_table_of_certain_models,
+                           table_with_ohlcv_data_df,
+                           trading_pair_to_select,
+                           asset_type,
+                           height,
+                           width,
                            key_for_placeholder)
             else:
                 # st.write(f"{table_with_ohlcv_table} is not in db")
@@ -879,8 +1696,8 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
         except:
             traceback.print_exc()
 
-    st.write("------------------------------------")
-    plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trading_pair, height, width, asset_type)
+    # st.write("------------------------------------")
+    # plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trading_pair, height, width, asset_type)
 
 
 
@@ -945,25 +1762,11 @@ def streamlit_func():
         initialize_connection_and_engine(db_where_levels_formed_by_highs_and_lows_for_cryptos_0000)
 
 
-    model=st.selectbox("What is your model?",["Breakout of ATL with position entry next day after breakout",
-                                        "Breakout of ATH with position entry next day after breakout",
-                                        "Breakout of ATL with position entry on second day after breakout",
-                                        "Breakout of ATH with position entry on second day after breakout",
-                                        "False Breakout of ATL by one bar",
-                                        "False Breakout of ATH by one bar",
-                                        "False Breakout of ATL by two bars",
-                                        "False Breakout of ATH by two bars",
-                                        "Complex False Breakout of ATL",
-                                        "Complex False Breakout of ATH",
-                                        "Rebound off ATL",
-                                        "Rebound off ATH",
-                                        "New ATL within last two days",
-                                        "New ATH within last two days",
-                                        "Last close price is closer to ATL than n %ATR",
-                                        "Last close price is closer to ATH than n %ATR",
-                                        "Last close price is closer to ATL than N % of ATR(30)",
-                                        "Last close price is closer to ATH than N % of ATR(30)"
-                                        ])
+    list_of_options_for_today_that_are_available_and_not_all_possible_options=\
+        return_list_of_options_for_today_that_are_available_and_not_all_possible_options(
+            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000)
+
+    model=st.selectbox("What is your model?",list_of_options_for_today_that_are_available_and_not_all_possible_options)
 
     height = 500
     width = 900
@@ -990,12 +1793,16 @@ def streamlit_func():
         # index_of_trading_pair_to_select = trading_pair_to_select.index
         # st.write("index_of_trading_pair_to_select")
         # st.write(index_of_trading_pair_to_select)
-        button = st.button("Next trading pair")
+        # button = st.button("Next trading pair")
         container = st.empty()
         # -------------------------
         index_of_trading_pair_to_select = tuple_of_trading_pairs_with_exchange.index(trading_pair_to_select)
 
-        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select, df_with_resulting_table_of_certain_models,
+        plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                         table_name,
+                                         index_of_trading_pair_to_select,
+                                         trading_pair_to_select,
+                                         df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                          engine_for_ohlcv_data_for_stocks_0000_todays_pairs,height,width)
 

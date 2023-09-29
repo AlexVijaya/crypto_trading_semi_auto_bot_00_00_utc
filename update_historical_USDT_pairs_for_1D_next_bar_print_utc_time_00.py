@@ -23,7 +23,7 @@ from sqlalchemy_utils import create_database,database_exists
 from pytz import timezone
 from verify_that_asset_has_enough_volume import check_volume
 from get_info_from_load_markets import get_limit_of_daily_candles_original_limits
-
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 
 
 def is_pair_active(ohlcv_data_several_last_rows_df,
@@ -472,6 +472,27 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     ohlcv_data_several_last_rows_df["maker_fee"] = maker_fee
                     ohlcv_data_several_last_rows_df["taker_fee"] = taker_fee
                     ohlcv_data_several_last_rows_df["url_of_trading_pair"] = url_of_trading_pair
+
+                    ####################################
+                    try:
+                        spot_asset_also_available_as_swap_contract_on_same_exchange_bool = \
+                        table_with_ohlcv_data_df["spot_asset_also_available_as_swap_contract_on_same_exchange"].iat[0]
+                        ohlcv_data_several_last_rows_df[
+                            'spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_also_available_as_swap_contract_on_same_exchange_bool
+                    except:
+                        ohlcv_data_several_last_rows_df[
+                            'spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+
+                    try:
+                        url_of_swap_contract_if_it_exists_bool = \
+                        table_with_ohlcv_data_df["url_of_swap_contract_if_it_exists"].iat[0]
+                        ohlcv_data_several_last_rows_df[
+                            'url_of_swap_contract_if_it_exists'] = url_of_swap_contract_if_it_exists_bool
+                    except:
+                        ohlcv_data_several_last_rows_df['url_of_swap_contract_if_it_exists'] = np.nan
+                    ###################################
+
+
                     try:
                         if_margin_true_for_an_asset_bool=table_with_ohlcv_data_df["trading_pair_is_traded_with_margin"].iat[0]
                         ohlcv_data_several_last_rows_df['trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
@@ -760,6 +781,10 @@ def fetch_all_ohlcv_tables(timeframe,database_name,last_bitcoin_price):
     engine , connection_to_ohlcv_for_usdt_pairs =\
         connect_to_postgres_db_without_deleting_it_first (database_name)
     exchanges_list = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )
     step_for_exchanges = 50
 

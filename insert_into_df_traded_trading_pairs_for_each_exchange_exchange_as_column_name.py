@@ -13,8 +13,13 @@ import huobi_client
 import db_config
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
+# from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 # from huobi_client.generic import GenericClient
-
+def if_margin_true_for_an_asset(markets, trading_pair):
+    market = markets[trading_pair]
+    print(f" markets[{trading_pair}]")
+    pprint.pprint(market)
+    return market['margin']
 def connect_to_postgres_db_without_deleting_it_first(database):
     dialect = db_config.dialect
     driver = db_config.driver
@@ -197,6 +202,12 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
     elif exchange_id == 'okx':
         return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'poloniexfutures':
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'poloniexfutures':
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/margin-trading/{quote.lower()}/{base.lower()}"
 
     else:
         return "Exchange not supported"
@@ -364,6 +375,10 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
     elif exchange_id == 'okx':
         return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'probit':
+        return f"https://www.probit.com/app/exchange/{market['base'].upper()}-{market['quote'].upper()}"
     else:
         return "Exchange not supported"
 
@@ -391,7 +406,7 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
     data = []
     header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
     data_df1 = pd.DataFrame(columns=header)
-    data_df=np.nan
+    data_df=pd.DataFrame()
 
     # Fetch the most recent 200 days of data
     data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
@@ -772,6 +787,10 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
 
 def get_all_exchanges():
     exchanges = ccxt.exchanges
+
+    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+        "binanceus", "bitfinex", "binancecoinm", "huobijp"]
+    exchanges=[value for value in exchanges if value not in exclusion_list]
     return exchanges
 
     # if exchange_name == 'binance':
@@ -1323,8 +1342,7 @@ if __name__=="__main__":
             print(f"number of all pairs for {exchange_name} is  {len(list_of_trading_pairs_for_one_exchange)}")
 
             filtered_pairs = [pair for pair in list_of_trading_pairs_for_one_exchange if "/USDT" in pair]
-            print(f"filtered_pairs for {exchange_name}")
-            print(filtered_pairs)
+
             print(f"number of all usdt pairs for {exchange_name} is  {len(filtered_pairs)}")
             stablecoin_bases_with_slash_list=return_list_of_all_stablecoin_bases_with_slash()
             filtered_pairs =\
@@ -1336,6 +1354,8 @@ if __name__=="__main__":
             filtered_pairs=remove_futures_with_expiration_and_options(filtered_pairs)
             print(f"number of all usdt pairs without stablecoin base and without levereged tokens "
                   f"for {exchange_name} is  {len(filtered_pairs)}")
+
+
             data_dict[exchange_name] = filtered_pairs
 
         except:
