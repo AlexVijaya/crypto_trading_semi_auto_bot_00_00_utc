@@ -1,5 +1,5 @@
 import traceback
-
+import datetime
 import numpy as np
 import pandas as pd
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
@@ -16,6 +16,303 @@ from get_info_from_load_markets import fetch_entire_ohlcv
 from get_info_from_load_markets import fetch_entire_ohlcv_without_exchange_name
 from async_update_historical_USDT_pairs_for_1D import connect_to_postgres_db_without_deleting_it_first
 from async_update_historical_USDT_pairs_for_1D import get_list_of_tables_in_db
+
+
+def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(
+        df_with_level_atr_bpu_bsu_etc,
+        index_in_iteration,
+        entire_original_table_with_ohlcv_data_df,
+        side,
+        sell_order,
+        take_profit_when_sl_is_technical_3_to_1,
+        technical_stop_loss):
+    try:
+        # add statistical info to df if technical sl and tp have been reached
+        take_profit_when_sl_is_technical_3_to_1_is_reached, \
+            technical_stop_loss_is_reached, \
+            daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
+            timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
+            timestamp_when_technical_stop_loss_was_reached, \
+            sell_order_was_touched, \
+            timestamp_when_sell_order_was_touched, \
+            first_bar_after_bfr_opened_lower_than_sell_order = return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(
+            index_in_iteration,
+            entire_original_table_with_ohlcv_data_df,
+            side,
+            sell_order,
+            take_profit_when_sl_is_technical_3_to_1,
+            technical_stop_loss)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "first_bar_after_bfr_opened_lower_than_sell_order"] = first_bar_after_bfr_opened_lower_than_sell_order
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "take_profit_when_sl_is_technical_3_to_1_is_reached"] = take_profit_when_sl_is_technical_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_take_profit_when_sl_is_technical_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached
+        if pd.isna(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = \
+                datetime.datetime.fromtimestamp(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "technical_stop_loss_is_reached"] = technical_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_technical_stop_loss_was_reached"] = timestamp_when_technical_stop_loss_was_reached
+        if pd.isna(timestamp_when_technical_stop_loss_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_technical_stop_loss_was_reached"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_technical_stop_loss_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_technical_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "sell_order_was_touched"] = sell_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_sell_order_was_touched"] = timestamp_when_sell_order_was_touched
+        if pd.isna(timestamp_when_sell_order_was_touched) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_sell_order_was_touched"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_sell_order_was_touched)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_sell_order_was_touched"] = datetime.datetime.fromtimestamp(
+                0)
+    except:
+        traceback.print_exc()
+    return df_with_level_atr_bpu_bsu_etc
+
+
+def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(
+        df_with_level_atr_bpu_bsu_etc,
+        index_in_iteration,
+        entire_original_table_with_ohlcv_data_df,
+        side,
+        sell_order,
+        take_profit_when_sl_is_calculated_3_to_1,
+        calculated_stop_loss):
+    try:
+        # add statistical info to df if calculated sl and tp have been reached
+        take_profit_when_sl_is_calculated_3_to_1_is_reached, \
+            calculated_stop_loss_is_reached, \
+            daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
+            timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached, \
+            timestamp_when_calculated_stop_loss_was_reached, \
+            sell_order_was_touched, \
+            timestamp_when_sell_order_was_touched, \
+            first_bar_after_bfr_opened_lower_than_sell_order = return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(
+            index_in_iteration,
+            entire_original_table_with_ohlcv_data_df, side,
+            sell_order,
+            take_profit_when_sl_is_calculated_3_to_1,
+            calculated_stop_loss)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "first_bar_after_bfr_opened_lower_than_sell_order"] = first_bar_after_bfr_opened_lower_than_sell_order
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "take_profit_when_sl_is_calculated_3_to_1_is_reached"] = take_profit_when_sl_is_calculated_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached
+        if pd.isna(timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "calculated_stop_loss_is_reached"] = calculated_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_calculated_stop_loss_was_reached"] = timestamp_when_calculated_stop_loss_was_reached
+        if pd.isna(timestamp_when_calculated_stop_loss_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_calculated_stop_loss_was_reached"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_calculated_stop_loss_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_calculated_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "sell_order_was_touched"] = sell_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_sell_order_was_touched"] = timestamp_when_sell_order_was_touched
+        if pd.isna(timestamp_when_sell_order_was_touched) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_sell_order_was_touched"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_sell_order_was_touched)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_sell_order_was_touched"] = datetime.datetime.fromtimestamp(
+                0)
+    except:
+        traceback.print_exc()
+
+    return df_with_level_atr_bpu_bsu_etc
+
+def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(df_with_level_atr_bpu_bsu_etc,
+                                                                                            index_in_iteration,
+                                                                                            entire_original_table_with_ohlcv_data_df,
+                                                                                            side,
+                                                                                            buy_order,
+                                                                                            take_profit_when_sl_is_technical_3_to_1,
+                                                                                            technical_stop_loss):
+
+
+    try:
+        # add statistical info to df if technical sl and tp have been reached
+        take_profit_when_sl_is_technical_3_to_1_is_reached, \
+            technical_stop_loss_is_reached, \
+            daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
+            timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
+            timestamp_when_technical_stop_loss_was_reached, \
+            buy_order_was_touched, \
+            timestamp_when_buy_order_was_touched, \
+            first_bar_after_bfr_opened_lower_than_buy_order = return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(
+            index_in_iteration,
+            entire_original_table_with_ohlcv_data_df,
+            side,
+            buy_order,
+            take_profit_when_sl_is_technical_3_to_1,
+            technical_stop_loss)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "first_bar_after_bfr_opened_lower_than_buy_order"] = first_bar_after_bfr_opened_lower_than_buy_order
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "take_profit_when_sl_is_technical_3_to_1_is_reached"] = take_profit_when_sl_is_technical_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_take_profit_when_sl_is_technical_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached
+        if pd.isna(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = \
+                datetime.datetime.fromtimestamp(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "technical_stop_loss_is_reached"] = technical_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_technical_stop_loss_was_reached"] = timestamp_when_technical_stop_loss_was_reached
+        if pd.isna(timestamp_when_technical_stop_loss_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_technical_stop_loss_was_reached"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_technical_stop_loss_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_technical_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "buy_order_was_touched"] = buy_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_buy_order_was_touched"] = timestamp_when_buy_order_was_touched
+        if pd.isna(timestamp_when_buy_order_was_touched) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_buy_order_was_touched"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_buy_order_was_touched)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_buy_order_was_touched"] = datetime.datetime.fromtimestamp(
+                0)
+    except:
+        traceback.print_exc()
+    return df_with_level_atr_bpu_bsu_etc
+
+def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(
+        df_with_level_atr_bpu_bsu_etc,
+        index_in_iteration,
+        entire_original_table_with_ohlcv_data_df,
+        side,
+        buy_order,
+        take_profit_when_sl_is_calculated_3_to_1,
+        calculated_stop_loss):
+    try:
+        # add statistical info to df if calculated sl and tp have been reached
+        take_profit_when_sl_is_calculated_3_to_1_is_reached, \
+            calculated_stop_loss_is_reached, \
+            daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
+            timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached, \
+            timestamp_when_calculated_stop_loss_was_reached, \
+            buy_order_was_touched, \
+            timestamp_when_buy_order_was_touched, \
+            first_bar_after_bfr_opened_lower_than_buy_order = return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(
+            index_in_iteration,
+            entire_original_table_with_ohlcv_data_df, side,
+            buy_order,
+            take_profit_when_sl_is_calculated_3_to_1,
+            calculated_stop_loss)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "first_bar_after_bfr_opened_lower_than_buy_order"] = first_bar_after_bfr_opened_lower_than_buy_order
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "take_profit_when_sl_is_calculated_3_to_1_is_reached"] = take_profit_when_sl_is_calculated_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached
+        if pd.isna(timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "calculated_stop_loss_is_reached"] = calculated_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_calculated_stop_loss_was_reached"] = timestamp_when_calculated_stop_loss_was_reached
+        if pd.isna(timestamp_when_calculated_stop_loss_was_reached) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_calculated_stop_loss_was_reached"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_calculated_stop_loss_was_reached)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_calculated_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+                0)
+
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "buy_order_was_touched"] = buy_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.loc[
+            0, "timestamp_when_buy_order_was_touched"] = timestamp_when_buy_order_was_touched
+        if pd.isna(timestamp_when_buy_order_was_touched) == False:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_buy_order_was_touched"] = \
+                datetime.datetime.fromtimestamp(
+                    timestamp_when_buy_order_was_touched)
+        else:
+            df_with_level_atr_bpu_bsu_etc.loc[
+                0, "datetime_when_buy_order_was_touched"] = datetime.datetime.fromtimestamp(
+                0)
+    except:
+        traceback.print_exc()
+
+    return df_with_level_atr_bpu_bsu_etc
 # def split_and_remove_letters(string_with_letters):
 #     # Split the list on "_"
 #     split_lst = string_with_letters.split("_")
@@ -33,7 +330,914 @@ from async_update_historical_USDT_pairs_for_1D import get_list_of_tables_in_db
 #     split_lst_without_letters = [elem for elem in split_lst if not (any(char.isalpha() for char in elem) and not (len(elem)==1 and elem=="e"))]
 #
 #     return split_lst_without_letters
+def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(i,
+                                                                         entire_original_table_with_ohlcv_data_df,
 
+                                                                         side,
+                                                                         sell_order,
+                                                                         take_profit_when_sl_is_calculated_3_to_1,
+                                                                         calculated_stop_loss):
+    ####################################################
+    ####################################################
+    ####################################################
+    # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
+
+    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+        entire_original_table_with_ohlcv_data_df.iloc[
+        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+            entire_original_table_with_ohlcv_data_df) + 1]
+
+    open_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+    high_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+    low_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+    close_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+    volume_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+    timestamp_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+    take_profit_when_sl_is_calculated_3_to_1_is_reached = False
+    calculated_stop_loss_is_reached = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_buy_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = False
+    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = np.nan
+    timestamp_when_calculated_stop_loss_was_reached = np.nan
+    sell_order_was_touched=False
+    timestamp_when_sell_order_was_touched=np.nan
+    first_bar_after_bfr_opened_lower_than_sell_order = False
+
+
+
+    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df) + 1):
+        open_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        high_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        low_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        close_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        volume_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+        # check if sell order was touched before sl or tp
+        if sell_order_was_touched == False:
+            if high_of_bar_in_each_iteration_beginning_with_first_bar <= sell_order <= low_of_bar_in_each_iteration_beginning_with_first_bar:
+                sell_order_was_touched = True
+                timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+        if side == "sell":
+            if open_of_first_bar_after_bfr_has_formed > sell_order:
+                # after bfr forming the bar opened higher than sell order
+                first_bar_after_bfr_opened_lower_than_sell_order = False
+                if low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < calculated_stop_loss:
+                    # current price in iteration is between calculated sl and tp 3 to 1
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+
+                    continue
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has not
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_calculated_sl_or_sell_order_was_reached_first = True
+                    calculated_stop_loss_is_reached = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < calculated_stop_loss:
+                    # take_profit_when_sl_is_calculated_3_to_1 is reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = True
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has been reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    calculated_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                else:
+                    print("unknown case1")
+                    continue
+            else:
+                # after bfr forming the bar opened lower than sell order
+                first_bar_after_bfr_opened_lower_than_sell_order = True
+                if low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < calculated_stop_loss:
+                    # current price in iteration is between calculated sl and tp 3 to 1
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+
+                    continue
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has not
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_calculated_sl_or_sell_order_was_reached_first = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    calculated_stop_loss_is_reached = True
+                    break
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < calculated_stop_loss:
+                    # take_profit_when_sl_is_calculated_3_to_1 is reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = True
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    break
+
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_calculated_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has been reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    calculated_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                else:
+                    print("unknown case2")
+                    continue
+        else:
+            print(f"side={side} is incorrect. Use another function")
+    return take_profit_when_sl_is_calculated_3_to_1_is_reached, \
+        calculated_stop_loss_is_reached, \
+        daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
+        timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached, \
+        timestamp_when_calculated_stop_loss_was_reached, \
+        sell_order_was_touched, \
+        timestamp_when_sell_order_was_touched,first_bar_after_bfr_opened_lower_than_sell_order
+
+    ##############################################
+    ##############################################
+    ##############################################
+def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(i,
+                                                                         entire_original_table_with_ohlcv_data_df,
+
+                                                                         side,
+                                                                         buy_order,
+                                                                         take_profit_when_sl_is_calculated_3_to_1,
+                                                                         calculated_stop_loss):
+    ####################################################
+    ####################################################
+    ####################################################
+    # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
+
+
+    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    print("first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached")
+    print(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached)
+    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+        entire_original_table_with_ohlcv_data_df.iloc[
+        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+            entire_original_table_with_ohlcv_data_df) + 1]
+
+    print('df_slice_where_we_need_to_check_if_sl_tp_were_reached.index')
+    print(df_slice_where_we_need_to_check_if_sl_tp_were_reached.index)
+
+    # df_slice_where_we_need_to_check_if_sl_tp_were_reached = entire_original_table_with_ohlcv_data_df.copy()
+
+    open_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+    high_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+    low_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+    close_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+    volume_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+    timestamp_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+    take_profit_when_sl_is_calculated_3_to_1_is_reached = False
+    calculated_stop_loss_is_reached = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_buy_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = False
+    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = np.nan
+    timestamp_when_calculated_stop_loss_was_reached = np.nan
+    buy_order_was_touched=False
+    timestamp_when_buy_order_was_touched=np.nan
+    first_bar_after_bfr_opened_lower_than_buy_order=False
+
+    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df) + 1):
+        open_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        high_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        low_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        close_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        volume_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+        # caluculation when the side is BUY
+
+        # check if buy order was touched before sl or tp
+        if buy_order_was_touched == False:
+            if high_of_bar_in_each_iteration_beginning_with_first_bar >= buy_order >= low_of_bar_in_each_iteration_beginning_with_first_bar:
+                buy_order_was_touched = True
+                timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+        if side == "buy":
+            if open_of_first_bar_after_bfr_has_formed < buy_order:
+                # after bfr forming the bar opened lower than buy order
+                first_bar_after_bfr_opened_lower_than_buy_order = True
+
+
+
+                if high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > calculated_stop_loss:
+                    # current price in iteration is between calculated sl and tp 3 to 1
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+
+                    continue
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has not
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_calculated_sl_or_buy_order_was_reached_first = True
+                    calculated_stop_loss_is_reached = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > calculated_stop_loss:
+                    # take_profit_when_sl_is_calculated_3_to_1 is reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_buy_order_was_reached_first = True
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has been reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    calculated_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                else:
+                    print("unknown case3")
+                    continue
+            else:
+                # after bfr forming the bar opened higher than buy order
+                first_bar_after_bfr_opened_lower_than_buy_order = False
+                if high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > calculated_stop_loss:
+                    # current price in iteration is between calculated sl and tp 3 to 1
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+
+                    continue
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has not
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     daily_data_is_not_enough_to_determine_whether_calculated_sl_or_buy_order_was_reached_first = True
+                    #     buy_order_was_touched = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    calculated_stop_loss_is_reached = True
+                    break
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > calculated_stop_loss:
+                    # take_profit_when_sl_is_calculated_3_to_1 is reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_buy_order_was_reached_first = True
+                    #     buy_order_was_touched = True
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    break
+
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_calculated_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= calculated_stop_loss:
+                    # calculated stop loss has been reached and tp 3 to 1 has been reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    calculated_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_calculated_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+
+                else:
+                    print("unknown case4")
+                    continue
+
+
+        else:
+            print(f"side={side} is incorrect. Use another function")
+    return take_profit_when_sl_is_calculated_3_to_1_is_reached,\
+        calculated_stop_loss_is_reached,\
+        daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first,\
+        timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached,\
+        timestamp_when_calculated_stop_loss_was_reached,\
+        buy_order_was_touched,\
+        timestamp_when_buy_order_was_touched,\
+        first_bar_after_bfr_opened_lower_than_buy_order
+
+    ##############################################
+    ##############################################
+    ##############################################
+
+
+def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(i,
+                                                                          entire_original_table_with_ohlcv_data_df,
+
+                                                                          side,
+                                                                          sell_order,
+                                                                          take_profit_when_sl_is_technical_3_to_1,
+                                                                          technical_stop_loss):
+    ####################################################
+    ####################################################
+    ####################################################
+    # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
+
+
+    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    print("first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached23")
+    print(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached)
+    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+        entire_original_table_with_ohlcv_data_df.iloc[
+        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+            entire_original_table_with_ohlcv_data_df) + 1]
+
+    open_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+    high_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+    low_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+    close_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+    volume_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+    timestamp_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+    print("open_of_first_bar_after_bfr_has_formed")
+    print(open_of_first_bar_after_bfr_has_formed)
+    print("high_of_first_bar_after_bfr_has_formed")
+    print(high_of_first_bar_after_bfr_has_formed)
+
+    take_profit_when_sl_is_technical_3_to_1_is_reached = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_buy_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = False
+    technical_stop_loss_is_reached = False
+    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = False
+    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = np.nan
+    timestamp_when_technical_stop_loss_was_reached = np.nan
+    sell_order_was_touched = False
+    timestamp_when_sell_order_was_touched = np.nan
+    first_bar_after_bfr_opened_lower_than_sell_order = False
+    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df) + 1):
+        open_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        high_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        low_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        close_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        volume_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+        # check if sell order was touched before sl or tp
+        if sell_order_was_touched == False:
+            if high_of_bar_in_each_iteration_beginning_with_first_bar <= sell_order <= low_of_bar_in_each_iteration_beginning_with_first_bar:
+                sell_order_was_touched = True
+                timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+
+        if side == "sell":
+            if open_of_first_bar_after_bfr_has_formed > sell_order:
+                # after bfr forming the bar opened higher than sell order
+                first_bar_after_bfr_opened_lower_than_sell_order = False
+                if low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < technical_stop_loss:
+                    # current price in iteration is between technical sl and tp 3 to 1
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+
+                    continue
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has not
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_technical_sl_or_sell_order_was_reached_first = True
+                    technical_stop_loss_is_reached = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < technical_stop_loss:
+                    # take_profit_when_sl_is_technical_3_to_1 is reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = True
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has been reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    technical_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                else:
+                    print("unknown case5")
+                    continue
+            else:
+                # after bfr forming the bar opened lower than sell order
+                first_bar_after_bfr_opened_lower_than_sell_order = True
+                if low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < technical_stop_loss:
+                    # current price in iteration is between technical sl and tp 3 to 1
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+
+                    continue
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has not
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_technical_sl_or_sell_order_was_reached_first = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    technical_stop_loss_is_reached = True
+                    break
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar < technical_stop_loss:
+                    # take_profit_when_sl_is_technical_3_to_1 is reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = True
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    break
+
+                elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_technical_3_to_1 \
+                        and high_of_bar_in_each_iteration_beginning_with_first_bar >= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has been reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < sell_order:
+                    #     sell_order_was_touched = False
+                    # else:
+                    #     timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     sell_order_was_touched = True
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    technical_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                else:
+                    print("unknown case6")
+                    print("low_of_bar_in_each_iteration_beginning_with_first_bar")
+                    print(low_of_bar_in_each_iteration_beginning_with_first_bar)
+                    print("timestamp_of_bar_in_each_iteration_beginning_with_first_bar")
+                    print(timestamp_of_bar_in_each_iteration_beginning_with_first_bar)
+                    print("datetime_of_bar_in_each_iteration_beginning_with_first_bar")
+                    print(datetime.datetime.fromtimestamp(timestamp_of_bar_in_each_iteration_beginning_with_first_bar))
+                    print("take_profit_when_sl_is_technical_3_to_1")
+                    print(take_profit_when_sl_is_technical_3_to_1)
+                    print("high_of_bar_in_each_iteration_beginning_with_first_bar")
+                    print(high_of_bar_in_each_iteration_beginning_with_first_bar)
+                    print("technical_stop_loss")
+                    print(technical_stop_loss)
+                    print("sell_order")
+                    print(sell_order)
+                    continue
+        else:
+            print(f"side={side} is incorrect. Use another function")
+    return take_profit_when_sl_is_technical_3_to_1_is_reached, \
+        technical_stop_loss_is_reached, \
+        daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
+        timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
+        timestamp_when_technical_stop_loss_was_reached, \
+        sell_order_was_touched, \
+        timestamp_when_sell_order_was_touched,first_bar_after_bfr_opened_lower_than_sell_order
+
+    ##############################################
+    ##############################################
+    ##############################################
+
+
+def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
+                                                                         entire_original_table_with_ohlcv_data_df,
+
+                                                                         side,
+                                                                         buy_order,
+                                                                         take_profit_when_sl_is_technical_3_to_1,
+                                                                         technical_stop_loss):
+    ####################################################
+    ####################################################
+    ####################################################
+    # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
+
+    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+        entire_original_table_with_ohlcv_data_df.iloc[
+        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+            entire_original_table_with_ohlcv_data_df) + 1]
+
+    print("first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached1")
+    print(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached)
+
+    open_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+    high_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+    low_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+    close_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+    volume_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+    timestamp_of_first_bar_after_bfr_has_formed = \
+        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+    print("open_of_first_bar_after_bfr_has_formed")
+    print(open_of_first_bar_after_bfr_has_formed)
+    print("high_of_first_bar_after_bfr_has_formed")
+    print(high_of_first_bar_after_bfr_has_formed)
+
+    take_profit_when_sl_is_technical_3_to_1_is_reached = False
+    technical_stop_loss_is_reached = False
+
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first=False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_buy_order_was_reached_first=False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = False
+    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = False
+    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = np.nan
+    timestamp_when_technical_stop_loss_was_reached = np.nan
+    buy_order_was_touched = False
+    timestamp_when_buy_order_was_touched = np.nan
+    first_bar_after_bfr_opened_lower_than_buy_order = False
+    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df) + 1):
+        open_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        high_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        low_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        close_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        volume_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
+            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+        print("open_of_bar_in_each_iteration_beginning_with_first_bar")
+        print(open_of_bar_in_each_iteration_beginning_with_first_bar)
+
+        # calculation when the side is BUY
+
+        # check if buy order was touched before sl or tp
+        if buy_order_was_touched == False:
+            if high_of_bar_in_each_iteration_beginning_with_first_bar >= buy_order >= low_of_bar_in_each_iteration_beginning_with_first_bar:
+                buy_order_was_touched = True
+                timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+        if side == "buy":
+            if open_of_first_bar_after_bfr_has_formed < buy_order:
+                # after bfr forming the bar opened lower than buy order
+                first_bar_after_bfr_opened_lower_than_buy_order = True
+
+
+
+                if high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > technical_stop_loss:
+                    # current price in iteration is between technical sl and tp 3 to 1
+
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+
+                    continue
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has not
+
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_technical_sl_or_buy_order_was_reached_first = True
+                    technical_stop_loss_is_reached = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > technical_stop_loss:
+                    # take_profit_when_sl_is_technical_3_to_1 is reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first = True
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has been reached
+                    # if high_of_bar_in_each_iteration_beginning_with_first_bar < buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    technical_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                else:
+                    print("unknown case7")
+                    continue
+            else:
+                # after bfr forming the bar opened higher than buy order
+                first_bar_after_bfr_opened_lower_than_buy_order = False
+
+                # # check if buy order was touched before sl or tp
+                # if buy_order_was_touched == False:
+                #     if high_of_bar_in_each_iteration_beginning_with_first_bar >= buy_order >= low_of_bar_in_each_iteration_beginning_with_first_bar:
+                #         buy_order_was_touched = True
+                #         timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+                if high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > technical_stop_loss:
+                    # current price in iteration is between technical sl and tp 3 to 1
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+
+                    continue
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has not
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_technical_sl_or_buy_order_was_reached_first = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    technical_stop_loss_is_reached = True
+                    break
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar > technical_stop_loss:
+                    # take_profit_when_sl_is_technical_3_to_1 is reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first = True
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    break
+
+                elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_technical_3_to_1 \
+                        and low_of_bar_in_each_iteration_beginning_with_first_bar <= technical_stop_loss:
+                    # technical stop loss has been reached and tp 3 to 1 has been reached
+                    # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                    #     buy_order_was_touched = False
+                    # else:
+                    #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    #     buy_order_was_touched = True
+                    take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    technical_stop_loss_is_reached = True
+                    daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                    timestamp_when_technical_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    break
+                else:
+                    print("unknown case8")
+                    continue
+
+
+        else:
+            print(f"side={side} is incorrect. Use another function")
+    return take_profit_when_sl_is_technical_3_to_1_is_reached, \
+        technical_stop_loss_is_reached, \
+        daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
+        timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
+        timestamp_when_technical_stop_loss_was_reached, \
+        buy_order_was_touched, \
+        timestamp_when_buy_order_was_touched, first_bar_after_bfr_opened_lower_than_buy_order
+
+    ##############################################
+    ##############################################
+    ##############################################
+def return_exchange_ids_names_and_number_of_exchanges_where_crypto_is_traded(df_with_strings_of_exchanges_where_pair_is_traded,stock_name):
+    # get base of trading pair
+    base = get_base_of_trading_pair(trading_pair=stock_name)
+    quote = get_quote_of_trading_pair(trading_pair=stock_name)
+    base_slash_quote = base + "/" + quote
+    #########################################################
+    # find row where base is equal to base from df_with_strings_of_exchanges_where_pair_is_traded
+    exchange_id_string_where_trading_pair_is_traded = ""
+    exchange_names_string_where_trading_pair_is_traded = ""
+    number_of_exchanges_where_pair_is_traded_on = np.nan
+    try:
+
+        exchange_id_string_where_trading_pair_is_traded = \
+            df_with_strings_of_exchanges_where_pair_is_traded.loc[base_slash_quote, "exchanges_where_pair_is_traded"]
+        exchange_names_string_where_trading_pair_is_traded = \
+            df_with_strings_of_exchanges_where_pair_is_traded.loc[
+                base_slash_quote, "unique_exchanges_where_pair_is_traded"]
+        number_of_exchanges_where_pair_is_traded_on = \
+            df_with_strings_of_exchanges_where_pair_is_traded.loc[
+                base_slash_quote, "number_of_exchanges_where_pair_is_traded_on"]
+
+
+    except:
+        traceback.print_exc()
+
+    return exchange_id_string_where_trading_pair_is_traded,\
+        exchange_names_string_where_trading_pair_is_traded,\
+        number_of_exchanges_where_pair_is_traded_on
 def split_and_remove_letters(string_with_letters):
     # Split the list on "_"
     split_lst = string_with_letters.split("_")
@@ -532,6 +1736,8 @@ def fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
         #######################################################################################################
         # get base of trading pair
         base = get_base_of_trading_pair(trading_pair=stock_name)
+        quote = get_quote_of_trading_pair(trading_pair=stock_name)
+        base_slash_quote = base + "/" + quote
 
         #########################################################
         # find row where base is equal to base from df_with_strings_of_exchanges_where_pair_is_traded
@@ -539,13 +1745,14 @@ def fill_df_with_info_if_ath_was_broken_on_other_exchanges(stock_name,
         exchange_names_string_where_trading_pair_is_traded = ""
         number_of_exchanges_where_pair_is_traded_on = np.nan
         try:
-            df_with_strings_of_exchanges_where_pair_is_traded.set_index("base_of_trading_pair", inplace=True)
+            df_with_strings_of_exchanges_where_pair_is_traded.set_index("trading_pair_new_column", inplace=True)
+
             exchange_id_string_where_trading_pair_is_traded = \
-                df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "exchanges_where_pair_is_traded"]
+                df_with_strings_of_exchanges_where_pair_is_traded.loc[base_slash_quote, "exchanges_where_pair_is_traded"]
             exchange_names_string_where_trading_pair_is_traded = \
-                df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "unique_exchanges_where_pair_is_traded"]
+                df_with_strings_of_exchanges_where_pair_is_traded.loc[base_slash_quote, "unique_exchanges_where_pair_is_traded"]
             number_of_exchanges_where_pair_is_traded_on = \
-                df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "number_of_exchanges_where_pair_is_traded_on"]
+                df_with_strings_of_exchanges_where_pair_is_traded.loc[base_slash_quote, "number_of_exchanges_where_pair_is_traded_on"]
 
             print("exchange_id_string_where_trading_pair_is_traded")
             print(exchange_id_string_where_trading_pair_is_traded)
@@ -849,8 +2056,8 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
         #######################################################################################################
         # get base of trading pair
         base = get_base_of_trading_pair(trading_pair=stock_name)
-        print("base12")
-        print(base)
+        quote = get_quote_of_trading_pair(trading_pair=stock_name)
+        base_slash_quote = base + "/" + quote
         # df_with_strings_of_exchanges_where_pair_is_traded["base_of_trading_pair"]=base
 
 
@@ -861,13 +2068,13 @@ def fill_df_with_info_if_atl_was_broken_on_other_exchanges(stock_name,
         number_of_exchanges_where_pair_is_traded_on = np.nan
         try:
 
-            df_with_strings_of_exchanges_where_pair_is_traded.set_index("base_of_trading_pair", inplace=True)
+            df_with_strings_of_exchanges_where_pair_is_traded.set_index("trading_pair_new_column", inplace=True)
             exchange_id_string_where_trading_pair_is_traded = \
-                df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "exchanges_where_pair_is_traded"]
+                df_with_strings_of_exchanges_where_pair_is_traded.loc[base_slash_quote, "exchanges_where_pair_is_traded"]
             exchange_names_string_where_trading_pair_is_traded = \
-                df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "unique_exchanges_where_pair_is_traded"]
+                df_with_strings_of_exchanges_where_pair_is_traded.loc[base_slash_quote, "unique_exchanges_where_pair_is_traded"]
             number_of_exchanges_where_pair_is_traded_on = \
-                df_with_strings_of_exchanges_where_pair_is_traded.loc[base, "number_of_exchanges_where_pair_is_traded_on"]
+                df_with_strings_of_exchanges_where_pair_is_traded.loc[base_slash_quote, "number_of_exchanges_where_pair_is_traded_on"]
 
 
 

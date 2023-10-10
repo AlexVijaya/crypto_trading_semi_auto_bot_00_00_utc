@@ -281,7 +281,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
         limit_of_daily_candles = 4000
     # you can return bitget limit back to 100
     if exchange == "bitget":
-        limit_of_daily_candles = 4000
+        limit_of_daily_candles = 1000
     if exchange == "bitrue":
         limit_of_daily_candles = 4000
     if exchange == "bittrex":
@@ -291,9 +291,9 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
     if exchange == "cryptocom":
         limit_of_daily_candles = 4000
     if exchange == "fmfwio":
-        limit_of_daily_candles = 4000
+        limit_of_daily_candles = 1000
     if exchange == "hitbtc3":
-        limit_of_daily_candles = 4000
+        limit_of_daily_candles = 1000
 
     if exchange == "oceanex":
         limit_of_daily_candles = 4000

@@ -75,7 +75,7 @@ def return_args_for_placing_limit_or_stop_order(row_df):
     elif isolated_margin_bool == True:
         spot_cross_or_isolated_margin = "isolated"
     else:
-        print(f"{spot_cross_or_isolated_margin} is not spot, cross or isolated")
+        print(f"{spot_cross_or_isolated_margin} is not spot, cross or isolated1")
 
     # take_profit_3_1 = np.nan
     # if "take_profit_3_1" in row_df.columns:
@@ -3834,6 +3834,11 @@ if __name__=="__main__":
                                 amount_of_asset_for_entry_in_quote_currency = return_args_for_placing_limit_or_stop_order(
                                 row_df)
 
+                            print("1side_of_limit_order")
+                            print(side_of_limit_order)
+                            print("1spot_cross_or_isolated_margin")
+                            print(spot_cross_or_isolated_margin)
+
                             args = [exchange_id,
                                     trading_pair,
                                     price_of_sl,
@@ -3850,6 +3855,9 @@ if __name__=="__main__":
 
                             # convert all elements in the args list into string because this is how popen works
                             args = convert_list_elements_to_string(args)
+
+                            print("1args")
+                            print(args)
 
                             command_args = [sys.executable,
                                             'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.py'] + args
@@ -4728,7 +4736,6 @@ if __name__=="__main__":
                             trading_pair = base_slash_quote
 
                             post_only_for_limit_tp_bool = False
-                            #
                             amount_of_sl = 0
                             amount_of_tp = 0
 

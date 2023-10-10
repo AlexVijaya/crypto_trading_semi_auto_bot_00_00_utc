@@ -970,7 +970,7 @@ def fetch_historical_usdt_pairs_asynchronously(engine_for_ohlcv_database_without
 # ###################################################
 #         if exchange!="whitebit":
 #             continue
-##################################################3
+# #################################################3
 
         get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_without_enough_volume,
                                                           database_name_for_low_volume_pairs,last_bitcoin_price, exchange,
@@ -997,7 +997,7 @@ def fetch_all_ohlcv_tables(database_name_for_low_volume_pairs,timeframe,database
         connect_to_postgres_db_without_deleting_it_first(database_name_for_low_volume_pairs)
 
     exchanges_list = ccxt.exchanges
-
+    #
     exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges_list=[value for value in exchanges_list if value not in exclusion_list]

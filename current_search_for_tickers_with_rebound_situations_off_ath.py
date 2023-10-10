@@ -24,6 +24,7 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import return_
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_last_ath_timestamp_and_row_number
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_last_atl_timestamp_and_row_number
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
@@ -602,6 +603,10 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
     connection_to_db_where_levels_formed_by_rebound_level_will_be = \
         connect_to_postgres_db_without_deleting_it_first ( db_where_levels_formed_by_rebound_level_will_be )
 
+    engine_for_db_where_levels_formed_by_rebound_level_will_be_no_drop, \
+        connection_to_db_where_levels_formed_by_rebound_level_will_be_no_drop = \
+        connect_to_postgres_db_without_deleting_it_first(db_where_levels_formed_by_rebound_level_will_be+"_no_drop")
+
     drop_table ( table_where_ticker_which_had_rebound_situations_from_ath_will_be ,
                  engine_for_db_where_levels_formed_by_rebound_level_will_be )
     # drop_table ( table_where_ticker_which_had_rebound_situations_from_atl_will_be ,
@@ -1145,6 +1150,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "ticker_last_column"] = stock_name
+                        try:
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
+                        except:
+                            traceback.print_exc()
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "ticker_will_be_traced_and_position_entered"] = False
 
@@ -1186,6 +1196,19 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                                 0, "final_take_profit_price"] = take_profit_3_to_1
                             df_with_level_atr_bpu_bsu_etc.loc[
                                 0, "final_take_profit_price_default_value"] = take_profit_3_to_1
+
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "timestamp_when_bfr_was_found"] = int(time.time())
+                            df_with_level_atr_bpu_bsu_etc.loc[
+                                0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
+                        except:
+                            traceback.print_exc()
+
+                        try:
+                            df_with_level_atr_bpu_bsu_etc.to_sql(
+                                table_where_ticker_which_had_rebound_situations_from_ath_will_be,
+                                engine_for_db_where_levels_formed_by_rebound_level_will_be_no_drop,
+                                if_exists='append')
                         except:
                             traceback.print_exc()
 

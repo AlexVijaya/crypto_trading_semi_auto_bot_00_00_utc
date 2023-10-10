@@ -13,6 +13,7 @@ from create_order_on_crypto_exchange2 import get_exchange_object_with_api_key
 from create_order_on_crypto_exchange2 import get_public_api_private_api_and_trading_password
 from get_info_from_load_markets import get_exchange_object6
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 import numpy as np
 
 def convert_back_from_string_args_to_necessary_types(price_of_sl,
@@ -564,7 +565,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -606,7 +612,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # print(closed_orders_on_spot)
 
         # OpenOrder=exchange_object_where_api_is_required.fetchOpenOrder(id, symbol=None, params={})
-        # exchange_object_where_api_is_required.load_markets()
+        #
+        # try:
+        #     exchange_object_where_api_is_required.load_markets()
+        # except ccxt.BadRequest:
+        #     file.write(str(traceback.format_exc()))
+        # except Exception:
+        #     file.write(str(traceback.format_exc()))
 
         # closed_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_closedorders({
         #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
@@ -862,7 +874,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # __________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1193,7 +1211,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1496,7 +1520,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # # __________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1831,7 +1861,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2068,7 +2104,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 #__________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2361,7 +2403,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # # __________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2819,7 +2867,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # # __________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
             try:
@@ -3218,7 +3272,13 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
 
                 # Load the valid trading symbols
-                exchange_object_where_api_is_required.load_markets()
+
+                try:
+                    exchange_object_where_api_is_required.load_markets()
+                except ccxt.BadRequest:
+                    file.write(str(traceback.format_exc()))
+                except Exception:
+                    file.write(str(traceback.format_exc()))
 
                 # Get the symbol details
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -3703,12 +3763,29 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-                exchange_object_where_api_is_required.load_markets()
-                symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
-
+                file.write("\n"+"going to load markets")
                 try:
-                    # Get the minimum notional value for the symbol
-                    min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                    exchange_object_where_api_is_required.load_markets()
+                except ccxt.BadRequest:
+                    file.write(str(traceback.format_exc()))
+                except Exception:
+                    file.write(str(traceback.format_exc()))
+                file.write("\n"+"markets loaded")
+                symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
+                file.write("\n"+"symbol_details")
+                file.write("\n"+str(symbol_details))
+                try:
+                    file.write("\n"+"symbol_details['info']")
+                    file.write("\n"+str(symbol_details['info']))
+                    if exchange_id=="binance":
+                        # Get the minimum notional value for the symbol
+                        min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                    elif exchange_id=="gateio" or exchange_id=="gate":
+                        min_notional_value = symbol_details['info']['min_quote_amount']
+                    elif exchange_id=="mexc" or exchange_id=="mexc3":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                    else:
+                        file.write(f"min_notional_value={min_notional_value}. Something is wrong")
 
                     file.write("\n"+"min_notional_value in USD")
                     file.write("\n"+str(min_notional_value))
@@ -4128,7 +4205,12 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-                exchange_object_where_api_is_required.load_markets()
+                try:
+                    exchange_object_where_api_is_required.load_markets()
+                except ccxt.BadRequest:
+                    file.write(str(traceback.format_exc()))
+                except Exception:
+                    file.write(str(traceback.format_exc()))
 
                 # Get the symbol details
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -4600,7 +4682,13 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-                exchange_object_where_api_is_required.load_markets()
+
+                try:
+                    exchange_object_where_api_is_required.load_markets()
+                except ccxt.BadRequest:
+                    file.write(str(traceback.format_exc()))
+                except Exception:
+                    file.write(str(traceback.format_exc()))
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
                 try:
@@ -5023,7 +5111,13 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-                exchange_object_where_api_is_required.load_markets()
+
+                try:
+                    exchange_object_where_api_is_required.load_markets()
+                except ccxt.BadRequest:
+                    file.write(str(traceback.format_exc()))
+                except Exception:
+                    file.write(str(traceback.format_exc()))
 
                 # Get the symbol details
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -5495,7 +5589,13 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-                exchange_object_where_api_is_required.load_markets()
+
+                try:
+                    exchange_object_where_api_is_required.load_markets()
+                except ccxt.BadRequest:
+                    file.write(str(traceback.format_exc()))
+                except Exception:
+                    file.write(str(traceback.format_exc()))
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
                 try:

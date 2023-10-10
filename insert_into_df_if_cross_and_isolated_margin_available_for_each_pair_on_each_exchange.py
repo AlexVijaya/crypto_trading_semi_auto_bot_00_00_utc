@@ -208,7 +208,8 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
     elif exchange_id == 'ascendex':
         return f"https://ascendex.com/en/margin-trading/{quote.lower()}/{base.lower()}"
-
+    elif exchange_id == 'phemex':
+        return f"https://phemex.com/trade/{base.upper()}{quote.upper()}"
     else:
         return "Exchange not supported"
 
@@ -320,7 +321,7 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
     elif exchange_id == 'mexc' or exchange_id == 'mexc3':
         return f"https://www.mexc.com/exchange/{market['base']}_{market['quote']}"
     elif exchange_id == 'bitfinex' or exchange_id == 'bitfinex2':
-        return f"https://trading.bitfinex.com/t/{market['base']}:{market['quote']}?type=exchange"
+        return f"https://trading.bitfinex.com/t/{market['base']}:UST?type=exchange"
     elif exchange_id == 'exmo':
         return f"https://exmo.me/en/trade/{market['base']}_{market['quote']}"
     elif exchange_id == 'gateio':
@@ -379,6 +380,10 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
     elif exchange_id == 'probit':
         return f"https://www.probit.com/app/exchange/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'oceanex':
+        return f"https://oceanex.pro/en/trades/{market['base'].lower()}{market['quote'].lower()}"
+    elif exchange_id == 'phemex':
+        return f"https://phemex.com/margin/trade/{market['base'].upper()}{market['quote'].upper()}"
     else:
         return "Exchange not supported"
 

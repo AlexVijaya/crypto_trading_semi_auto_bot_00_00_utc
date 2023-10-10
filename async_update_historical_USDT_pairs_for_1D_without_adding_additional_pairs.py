@@ -469,16 +469,8 @@ async def get_hisorical_data_from_exchange_for_many_symbols(list_of_crypto_plus_
 
                     continue
 
-
-
-
-
                 else:
                     continue
-
-
-
-
 
 
                     #print ( "data=" , data )

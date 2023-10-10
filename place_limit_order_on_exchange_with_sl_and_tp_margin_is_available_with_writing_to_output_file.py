@@ -13,6 +13,7 @@ from create_order_on_crypto_exchange2 import get_exchange_object_with_api_key
 from create_order_on_crypto_exchange2 import get_public_api_private_api_and_trading_password
 from get_info_from_load_markets import get_exchange_object6
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 import numpy as np
 def convert_back_from_string_args_to_necessary_types(price_of_sl,
                                                          amount_of_sl,
@@ -547,16 +548,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         limit_buy_order_status_on_spot = ""
         order_id = ""
 
-        # we want to place a buy order with isolated margin
+
         params = {}
 
         limit_buy_order = None
         order_id = ""
 
         # ---------------------------------------------------------
-        spot_balance = exchange_object_where_api_is_required.fetch_balance()
-        file.write("\n"+"spot_balance")
-        file.write("\n"+str(spot_balance))
+        try:
+            spot_balance = exchange_object_where_api_is_required.fetch_balance()
+            file.write("\n"+"spot_balance")
+            file.write("\n"+str(spot_balance))
+        except:
+            file.write(str(traceback.format_exc()))
 
         # # show balance on isolated margin
         # isolated_margin_balance = exchange_object_where_api_is_required.sapi_get_margin_isolated_account()  # not uniform, see dir(exchange)
@@ -565,7 +569,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -574,16 +583,40 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         min_notional_value = None
         min_quantity = None
         try:
-            min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-            file.write("\n"+"min_notional_value in USD")
-            file.write("\n"+str(min_notional_value))
+            # file.write("\n" + "symbol_details")
+            # file.write("\n" + str(symbol_details))
+            # file.write("\n" + "symbol_details['info']")
+            # file.write("\n" + str(symbol_details['info']))
+            if exchange_id == "lbank" or exchange_id == "lbank2":
+                min_quantity=symbol_details['limits']['amount']['min']
+                min_notional_value=min_quantity*float(price_of_limit_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+            elif exchange_id == "binance":
+                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                file.write("\n"+"min_notional_value in USD")
+                file.write("\n"+str(min_notional_value))
 
-            # Calculate the minimum quantity based on the minimum notional value
-            min_quantity = float(min_notional_value) / float(price_of_limit_order)
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_limit_order)
 
-            file.write("\n"+
-                f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-            file.write("\n"+str(min_quantity))
+                file.write("\n"+
+                    f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n"+str(min_quantity))
+            else:
+                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                file.write("\n"+"min_notional_value in USD")
+                file.write("\n"+str(min_notional_value))
+
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_limit_order)
+
+                file.write("\n"+
+                    f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n"+str(min_quantity))
         except:
             file.write("\n"+str(traceback.format_exc()))
 
@@ -667,6 +700,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
                         f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
                     raise SystemExit
+            except Exception:
+                file.write("\n" + str(traceback.format_exc()))
 
             file.write("\n"+f"placed buy limit order on {exchange_id}")
             file.write("\n"+"limit_buy_order")
@@ -869,7 +904,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # __________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1210,7 +1250,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1514,7 +1559,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # # __________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1850,7 +1900,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2091,7 +2146,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 #__________________________
 
             # Load the valid trading symbols
-            exchange_object_where_api_is_required.load_markets()
+            try:
+                exchange_object_where_api_is_required.load_markets()
+            except ccxt.BadRequest:
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                file.write(str(traceback.format_exc()))
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2388,7 +2448,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2844,7 +2909,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
         try:
@@ -3244,7 +3314,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -3700,7 +3775,12 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        exchange_object_where_api_is_required.load_markets()
+        try:
+            exchange_object_where_api_is_required.load_markets()
+        except ccxt.BadRequest:
+            file.write(str(traceback.format_exc()))
+        except Exception:
+            file.write(str(traceback.format_exc()))
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
         try:
@@ -4060,7 +4140,7 @@ if __name__=="__main__":
         print("Arguments:", args)
 
         exchange_id = sys.argv[1]
-        file.write("\n"+exchange_id)
+
 
         trading_pair = sys.argv[2]
         price_of_sl = sys.argv[3]
@@ -4075,7 +4155,19 @@ if __name__=="__main__":
         side_of_limit_order = sys.argv[12]
         spot_cross_or_isolated_margin = sys.argv[13]
         # Print the values
-        file.write("\n"+f"Exchange ID :{exchange_id}")
+        file.write("\n" + f"exchange_id :{exchange_id}")
+        file.write("\n" + f"trading_pair :{trading_pair}")
+        file.write("\n" + f"price_of_sl :{price_of_sl}")
+        file.write("\n" + f"type_of_sl :{type_of_sl}")
+        file.write("\n" + f"amount_of_sl :{amount_of_sl}")
+        file.write("\n" + f"price_of_tp :{price_of_tp}")
+        file.write("\n" + f"type_of_tp :{type_of_tp}")
+        file.write("\n" + f"amount_of_tp :{amount_of_tp}")
+        file.write("\n" + f"post_only_for_limit_tp_bool :{post_only_for_limit_tp_bool}")
+        file.write("\n" + f"price_of_limit_order :{price_of_limit_order}")
+        file.write("\n" + f"amount_of_asset_for_entry_in_quote_currency :{amount_of_asset_for_entry_in_quote_currency}")
+        file.write("\n" + f"side_of_limit_order :{spot_cross_or_isolated_margin}")
+        file.write("\n"+f"spot_cross_or_isolated_margin :{spot_cross_or_isolated_margin}")
 
         # exchange_id="binance"
         # file.write("\n"+exchange_id)
@@ -4135,6 +4227,7 @@ if __name__=="__main__":
             check_if_entry_price_is_between_sl_and_tp(file, price_of_sl, price_of_tp, price_of_limit_order,
                                                       side_of_limit_order)
         if entry_price_is_between_sl_and_tp:
+            file.write("\n"+f"spot_cross_or_isolated_margin={spot_cross_or_isolated_margin}")
             if spot_cross_or_isolated_margin=="spot":
                 place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account(file, exchange_id,
                                                                                                   trading_pair,
@@ -4173,5 +4266,7 @@ if __name__=="__main__":
                                                                                                                   price_of_limit_order,
                                                                                                                   amount_of_asset_for_entry_in_quote_currency,
                                                                                                                   side_of_limit_order)
+            else:
+                file.write(f"{spot_cross_or_isolated_margin} is neither spot, cross, or isolated")
         else:
             file.write("\n"+"entry price is not between take profit and stop loss")

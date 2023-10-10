@@ -20,8 +20,9 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
-
-
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import return_df_with_strings_where_pair_is_traded
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -916,6 +917,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
                     df_with_level_atr_bpu_bsu_etc.loc[
                         0, "ticker_last_column"] = stock_name
+                    try:
+                        df_with_level_atr_bpu_bsu_etc.loc[
+                            0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
+                    except:
+                        traceback.print_exc()
                     df_with_level_atr_bpu_bsu_etc.to_sql(
                         table_where_ticker_which_had_atl_equal_to_limit_level,
                         engine_for_db_where_levels_formed_by_rebound_level_will_be,

@@ -28,6 +28,7 @@ import dash
 from dash import html
 import dash_tvlwc
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 
 def return_list_of_options_for_today_that_are_available_and_not_all_possible_options(engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000):
     list_of_tables_in_db_with_bfr_models = get_list_of_tables_in_db(
@@ -729,13 +730,18 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
                     spot_or_margin=""
                     spot_cross_or_isolated_margin=""
+
                     if trading_pair_is_traded_with_margin_bool:
                         spot_cross_or_isolated_margin=st.radio("Choose whether to use spot or margin", ("spot",
                                                                                                         "cross_margin",
                                                                                                         "isolated_margin"),
                                  index=0)
                     else:
-                        spot_or_margin=st.radio(f"There is no margin trade for {crypto_ticker} so SPOT is the only choice", ("spot",))
+                        spot_cross_or_isolated_margin=st.radio(f"There is no margin trade for {crypto_ticker} so SPOT is the only choice", ("spot",))
+                        # spot_cross_or_isolated_margin="spot"
+
+                    # st.write("spot_cross_or_isolated_margin")
+                    # st.write(spot_cross_or_isolated_margin)
 
                     if "sell_order" in df_with_resulting_table_of_certain_models.columns:
 
@@ -867,7 +873,11 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
 
                         #set to True or False the following columns in db with bfr models : "spot_without_margin", "cross_margin", "isolated_margin"
+                        # print("2spot_cross_or_isolated_margin1")
+                        # print(spot_cross_or_isolated_margin)
                         if spot_cross_or_isolated_margin == "spot":
+                            # print("1spot_cross_or_isolated_margin1")
+                            # print(spot_cross_or_isolated_margin)
                             column_name = "spot_without_margin"
                             value = True
                             conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
@@ -882,6 +892,10 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                             value = False
                             conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                                           crypto_ticker, table_name, column_name, value)
+
+                            # print("1spot_cross_or_isolated_margin1")
+                            # print(spot_cross_or_isolated_margin)
+                            # time.sleep(111111)
 
 
                         if spot_cross_or_isolated_margin == "cross_margin":
@@ -981,25 +995,25 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                         conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                                crypto_ticker, table_name, column_name, value)
 
-                        column_name = "spot_without_margin"
-                        value = False
-                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                                      crypto_ticker, table_name, column_name, value)
-
-                        column_name = "margin"
-                        value = False
-                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                                      crypto_ticker, table_name, column_name, value)
-
-                        column_name = "cross_margin"
-                        value = False
-                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                                      crypto_ticker, table_name, column_name, value)
-
-                        column_name = "isolated_margin"
-                        value = False
-                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
-                                                      crypto_ticker, table_name, column_name, value)
+                        # column_name = "spot_without_margin"
+                        # value = False
+                        # conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                               crypto_ticker, table_name, column_name, value)
+                        #
+                        # column_name = "margin"
+                        # value = False
+                        # conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                               crypto_ticker, table_name, column_name, value)
+                        #
+                        # column_name = "cross_margin"
+                        # value = False
+                        # conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                               crypto_ticker, table_name, column_name, value)
+                        #
+                        # column_name = "isolated_margin"
+                        # value = False
+                        # conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                        #                               crypto_ticker, table_name, column_name, value)
 
 
                         st.write("on next bar print i will enter the position")
@@ -1056,7 +1070,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                             value=0.0, min_value=0.0,format="%.10f")
 
                     submitted_form_for_manual_input_of_values = st.form_submit_button(
-                        "Trace this trading pair and enter position when next bar opens ")
+                        "Trace this trading pair and if all conditions are met enter this position")
                     if submitted_form_for_manual_input_of_values:
 
                         final_take_profit_price = take_profit_manually_input
@@ -1239,7 +1253,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                 connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                 crypto_ticker, table_name, column_name, value)
 
-                        st.write("Trace this trading pair and enter position when next bar opens")
+                        st.write("On next bar print I will enter the required position")
 
             with st.empty():
                 # cancel tracing

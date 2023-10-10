@@ -40,8 +40,18 @@ def delete_ohlcv_tables_from_db_of_non_active_pairs(db_where_ohlcv_data_for_stoc
         data_df = pd.read_sql_query(f'''select * from "{table_with_strings_where_each_pair_is_traded}"''',
                                     engine_for_ohlcv_data_for_stocks)
 
+
+
+
         trading_pair=table_with_strings_where_each_pair_is_traded.split("_on_")[0]
         exchange=table_with_strings_where_each_pair_is_traded.split("_on_")[1]
+
+        if data_df.empty:
+
+            drop_table(f"{trading_pair}_on_{exchange}",
+                       engine_for_ohlcv_data_for_stocks)
+            print(f"{trading_pair}_on_{exchange} is empty")
+            continue
 
         # list_of_inactive_pairs=[]
         current_timestamp = time.time()
