@@ -266,7 +266,7 @@ async def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,e
                             continue
 
                         # slice last 30 days for volume calculation
-                        min_volume_over_these_many_last_days=30
+                        min_volume_over_these_many_last_days=7
                         data_df_n_days_slice=data_df.iloc[:-1].tail(min_volume_over_these_many_last_days).copy()
                         data_df_n_days_slice["volume_by_close"]=\
                             data_df_n_days_slice["volume"]*data_df_n_days_slice["close"]

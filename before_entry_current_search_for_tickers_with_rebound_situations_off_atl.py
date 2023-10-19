@@ -26,6 +26,7 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_las
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
@@ -756,7 +757,7 @@ def search_for_tickers_with_rebound_situations(list_of_tables_in_ohlcv_db,db_whe
             # print ( table_with_ohlcv_data_df.loc[0 , "close"] )
 
             last_close_price = get_last_close_price_of_asset(table_with_ohlcv_data_df)
-            number_of_zeroes_in_price = count_zeros(last_close_price)
+            number_of_zeroes_in_price = count_zeros_number_with_e_notaton_is_acceptable(last_close_price)
 
             # round high and low to two decimal number
             truncated_high_and_low_table_with_ohlcv_data_df["high"] = \
@@ -971,7 +972,7 @@ def search_for_tickers_with_rebound_situations(list_of_tables_in_ohlcv_db,db_whe
                 # print ( low_of_bpu2 )
 
                 # calcualte atr over 5 days before bpu2. bpu2 is not included
-                # atr_over_this_period = 5
+                # atr_over_this_period = 30
 
 
 
@@ -1021,45 +1022,45 @@ def search_for_tickers_with_rebound_situations(list_of_tables_in_ohlcv_db,db_whe
                         print("list_with_tickers_ready_for_rebound_off_atl")
                         print(list_with_tickers_ready_for_rebound_off_atl)
                         df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
 
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "model"] = "ОТБОЙ_от_ATL"
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "atl"] = all_time_low
-                        # df_with_level_atr_bpu_bsu_etc.loc[0 , "atr"] = atr
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
-                        # df_with_level_atr_bpu_bsu_etc.loc[0 , "atr_over_this_period"] = int(atr_over_this_period)
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr_over_this_period"] =\
+                        df_with_level_atr_bpu_bsu_etc.at[0, "model"] = "ОТБОЙ_от_ATL"
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "atl"] = all_time_low
+                        # df_with_level_atr_bpu_bsu_etc.at[0 , "atr"] = atr
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
+                        # df_with_level_atr_bpu_bsu_etc.at[0 , "atr_over_this_period"] = int(atr_over_this_period)
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr_over_this_period"] =\
                             int(advanced_atr_over_this_period)
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "backlash"] = backlash
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "backlash_%ATR"] = backlash / advanced_atr
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "acceptable_backlash"] = acceptable_backlash
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "low_of_bsu"] = low_of_bsu
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "low_of_bpu1"] = low_of_bpu1
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "low_of_bpu2"] = low_of_bpu2
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "backlash"] = backlash
+                        df_with_level_atr_bpu_bsu_etc.at[0, "backlash_%ATR"] = backlash / advanced_atr
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "acceptable_backlash"] = acceptable_backlash
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_bsu"] = low_of_bsu
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_bpu1"] = low_of_bpu1
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_bpu2"] = low_of_bpu2
 
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "true_low_of_bsu"] = true_low_of_bsu
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "true_low_of_bpu1"] = true_low_of_bpu1
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "true_low_of_bpu2"] = true_low_of_bpu2
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "close_of_bpu2"] = close_of_bpu2
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "open_of_tvx"] = open_of_tvx
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "volume_of_bsu"] = int(volume_of_bsu)
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "volume_of_bpu1"] = int(volume_of_bpu1)
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "volume_of_bpu2"] = int(volume_of_bpu2)
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "true_low_of_bsu"] = true_low_of_bsu
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "true_low_of_bpu1"] = true_low_of_bpu1
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "true_low_of_bpu2"] = true_low_of_bpu2
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_bpu2"] = close_of_bpu2
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_tvx"] = open_of_tvx
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bsu"] = int(volume_of_bsu)
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bpu1"] = int(volume_of_bpu1)
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bpu2"] = int(volume_of_bpu2)
 
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "timestamp_of_bsu"] = timestamp_of_bsu
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "timestamp_of_bpu1"] = timestamp_of_bpu1
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "timestamp_of_bpu2"] = timestamp_of_bpu2
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "human_time_of_bsu"] = timestamp_of_bsu_with_time
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "human_time_of_bpu1"] = timestamp_of_bpu1_with_time
-                        df_with_level_atr_bpu_bsu_etc.loc[0 , "human_time_of_bpu2"] = timestamp_of_bpu2_with_time
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bsu"] = timestamp_of_bsu
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bpu1"] = timestamp_of_bpu1
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bpu2"] = timestamp_of_bpu2
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "human_time_of_bsu"] = timestamp_of_bsu_with_time
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "human_time_of_bpu1"] = timestamp_of_bpu1_with_time
+                        df_with_level_atr_bpu_bsu_etc.at[0 , "human_time_of_bpu2"] = timestamp_of_bpu2_with_time
 
 
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "stop_loss"] = stop_loss
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "buy_order"] = buy_order
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "приемлемый_люфт"] = calculated_backlash_from_advanced_atr
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_3_to_1"] = take_profit_3_to_1
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "take_profit_4_to_1"] = take_profit_4_to_1
+                        df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss"] = stop_loss
+                        df_with_level_atr_bpu_bsu_etc.at[0, "buy_order"] = buy_order
+                        df_with_level_atr_bpu_bsu_etc.at[0, "приемлемый_люфт"] = calculated_backlash_from_advanced_atr
+                        df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_3_to_1"] = take_profit_3_to_1
+                        df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_4_to_1"] = take_profit_4_to_1
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "min_volume_over_last_n_days"] = int(table_with_ohlcv_data_df['volume'].tail(
                             count_min_volume_over_this_many_days).min())
@@ -1074,13 +1075,13 @@ def search_for_tickers_with_rebound_situations(list_of_tables_in_ohlcv_db,db_whe
                             asset_type, maker_fee, taker_fee, url_of_trading_pair = \
                                 get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
 
-                            df_with_level_atr_bpu_bsu_etc.loc[0, "asset_type"] = asset_type
-                            df_with_level_atr_bpu_bsu_etc.loc[0, "maker_fee"] = maker_fee
-                            df_with_level_atr_bpu_bsu_etc.loc[0, "taker_fee"] = taker_fee
-                            df_with_level_atr_bpu_bsu_etc.loc[0, "url_of_trading_pair"] = url_of_trading_pair
-                            df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
+                            df_with_level_atr_bpu_bsu_etc.at[0, "asset_type"] = asset_type
+                            df_with_level_atr_bpu_bsu_etc.at[0, "maker_fee"] = maker_fee
+                            df_with_level_atr_bpu_bsu_etc.at[0, "taker_fee"] = taker_fee
+                            df_with_level_atr_bpu_bsu_etc.at[0, "url_of_trading_pair"] = url_of_trading_pair
+                            df_with_level_atr_bpu_bsu_etc.at[0, "number_of_available_bars"] = number_of_available_days
                             try:
-                                df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
+                                df_with_level_atr_bpu_bsu_etc.at[0, "trading_pair_is_traded_with_margin"]=\
                                     get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
                             except:
                                 traceback.print_exc()
@@ -1154,12 +1155,12 @@ if __name__=="__main__":
     db_where_levels_formed_by_rebound_level_will_be="levels_formed_by_highs_and_lows_for_cryptos_0000"
     table_where_ticker_which_had_rebound_situations_from_ath_will_be = "current_rebound_situations_from_ath"
     table_where_ticker_which_had_rebound_situations_from_atl_will_be = "current_rebound_situations_from_atl"
-    count_min_volume_over_this_many_days=30
+    count_min_volume_over_this_many_days=7
     if count_only_round_rebound_level:
         db_where_levels_formed_by_rebound_level_will_be="round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     #0.05 means 5%
     acceptable_backlash=0.05
-    atr_over_this_period=5
+    atr_over_this_period = 30
     advanced_atr_over_this_period=30
     list_of_tables_in_ohlcv_db=[]
     search_for_tickers_with_rebound_situations(list_of_tables_in_ohlcv_db,

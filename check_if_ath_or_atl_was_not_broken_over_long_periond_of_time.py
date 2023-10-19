@@ -16,9 +16,396 @@ from get_info_from_load_markets import fetch_entire_ohlcv
 from get_info_from_load_markets import fetch_entire_ohlcv_without_exchange_name
 from async_update_historical_USDT_pairs_for_1D import connect_to_postgres_db_without_deleting_it_first
 from async_update_historical_USDT_pairs_for_1D import get_list_of_tables_in_db
+from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
+
+def add_trading_pairs_to_sql_table_if_they_were_processed(table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be,
+                                                          engine_for_db_where_ticker_which_may_have_breakout_situations_processed,
+                                                          list_of_already_processed_pairs,
+                                                          column_name,
+                                                          stock_name,
+                                                          df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run):
+    print("df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run7")
+    print(
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.to_string())
+    df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.at[
+        0, f"{column_name}"] = stock_name
+
+    try:
+        if "level_0" in df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.columns:
+            df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.drop(
+                columns="level_0", inplace=True)
+    except:
+        traceback.print_exc()
+    # df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.reset_index(
+    #     inplace=True)
+
+    print("list_of_already_processed_pairs")
+    print(list_of_already_processed_pairs)
+    print("df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run8")
+    print(df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run)
+
+    df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run = \
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run[
+            ~df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run[
+                f"{column_name}"].isin(list_of_already_processed_pairs)].copy()
+
+    df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.to_sql(
+        table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be,
+        engine_for_db_where_ticker_which_may_have_breakout_situations_processed,
+        if_exists='append', index=False)
+
+def create_empty_table_if_it_does_not_exist_or_return_list_of_already_processed_pairs_if_table_exists(
+        column_name,
+        db_where_ticker_which_may_have_breakout_situations,
+        table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be):
+    engine_for_db_where_ticker_which_may_have_breakout_situations_processed, \
+        connection_to_db_where_ticker_which_may_have_breakout_situations_processed = \
+        connect_to_postgres_db_without_deleting_it_first(
+            db_where_ticker_which_may_have_breakout_situations + "_processed")
+    list_of_tables_in_db_where_ticker_which_may_have_breakout_situations_processed = \
+        get_list_of_tables_in_db(engine_for_db_where_ticker_which_may_have_breakout_situations_processed)
+    list_of_already_processed_pairs = []
+    # df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run=pd.DataFrame()
 
 
-def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(
+    if table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be not in \
+            list_of_tables_in_db_where_ticker_which_may_have_breakout_situations_processed:
+        # create empty table in db if it does not yet exist
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run = \
+            pd.DataFrame(dtype='object', columns=[f"{column_name}"])
+        if "level_0" in df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.columns:
+            df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.drop(
+                columns="level_0", inplace=True)
+
+        if df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.empty:
+            df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.to_sql(
+                table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be,
+                engine_for_db_where_ticker_which_may_have_breakout_situations_processed,
+                if_exists='replace')
+    else:
+        # if table with already processed pair exists
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run = \
+            pd.read_sql_query(
+                f'''select * from "{table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be}"''',
+                engine_for_db_where_ticker_which_may_have_breakout_situations_processed)
+        try:
+
+            if "level_0" in df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.columns:
+                df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.drop(
+                    columns="level_0", inplace=True)
+
+        except:
+            traceback.print_exc()
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run.reset_index(
+            inplace=True)
+
+        last_table_name_in_df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run = \
+            df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run[
+                f"{column_name}"].iloc[-1]
+
+        engine_for_db_where_ticker_which_may_have_breakout_situations_processed.execute(
+            f'''DELETE FROM "{table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be}"
+                WHERE {column_name} = '{
+            last_table_name_in_df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run}';''')
+
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run = \
+            pd.read_sql_query(
+                f'''select * from "{table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be}"''',
+                engine_for_db_where_ticker_which_may_have_breakout_situations_processed)
+
+        list_of_already_processed_pairs = list(
+            df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run[
+                f"{column_name}"])
+        list_of_already_processed_pairs = list(set(list_of_already_processed_pairs))
+
+    return list_of_already_processed_pairs,df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run
+
+def extract_timestamps_as_string(df):
+    timestamp_values = df["Timestamp"].astype(int).astype(str)  # Convert Timestamp column values to string
+    print("timestamp_values")
+    print(timestamp_values)
+    if len(timestamp_values)>1:
+        timestamps_string = "_".join(timestamp_values)  # Join values with underscores
+        return timestamps_string
+    else:
+        one_timestamp_as_string=timestamp_values.iloc[0]
+        return one_timestamp_as_string
+
+def extract_open_times_as_string(df):
+    open_time_values = df["open_time"].astype(str)  # Convert open_time column values to string
+    formatted_values = [value.replace(" ", "_") for value in open_time_values]  # Replace space with underscore
+    if len(df)>1:
+        open_times_string = "__".join(formatted_values)  # Join values with double underscores
+        return open_times_string
+    else:
+        one_open_time_as_string_separated_by_underscore=formatted_values[0]
+        return one_open_time_as_string_separated_by_underscore
+def add_info_to_df_about_all_time_high_number_of_times_it_was_touched_its_timestamps_and_datetimes(all_time_high,
+                                                                                                   df_with_level_atr_bpu_bsu_etc,
+                                                                                                   last_two_years_of_data,
+                                                                                                   round_to_this_number_of_non_zero_digits):
+    number_of_zeroes_in_all_time_high = count_zeros_number_with_e_notaton_is_acceptable(all_time_high)
+    # print("number_of_zeroes_in_all_time_high")
+    # print(number_of_zeroes_in_all_time_high)
+    rounded_all_time_high = round(all_time_high,
+                                  number_of_zeroes_in_all_time_high + round_to_this_number_of_non_zero_digits)
+    # print("rounded_all_time_high")
+    # print(rounded_all_time_high)
+    rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df = last_two_years_of_data.copy()
+    # round high and low to two decimal number
+    rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["high"] = \
+        last_two_years_of_data["high"].apply(round, args=(
+            number_of_zeroes_in_all_time_high + round_to_this_number_of_non_zero_digits,))
+    rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["low"] = \
+        last_two_years_of_data["low"].apply(round, args=(
+            number_of_zeroes_in_all_time_high + round_to_this_number_of_non_zero_digits,))
+
+    # print("rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df")
+    # print(rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df.to_string())
+
+    ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines = \
+        rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df.loc[
+            rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["high"] == rounded_all_time_high]
+
+    number_of_times_this_all_time_high_occurred = len(ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines)
+    number_of_times_this_all_time_high_occurred=int(number_of_times_this_all_time_high_occurred)
+
+    # print("ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines123")
+    # print(ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines.to_string())
+
+    timestamps_of_all_time_highs_as_string = \
+        extract_timestamps_as_string(ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines)
+
+    # print("timestamps_of_all_time_highs_as_string")
+    # print(timestamps_of_all_time_highs_as_string)
+
+    open_times_of_all_time_highs_as_string = \
+        extract_open_times_as_string(ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines)
+
+    # df_with_level_atr_bpu_bsu_etc["number_of_times_this_all_time_high_occurred"] = \
+    #     df_with_level_atr_bpu_bsu_etc["number_of_times_this_all_time_high_occurred"].astype('object')
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "number_of_times_this_all_time_high_occurred"] = number_of_times_this_all_time_high_occurred
+
+    # df_with_level_atr_bpu_bsu_etc["timestamps_of_all_time_highs_as_string"] = \
+    #     df_with_level_atr_bpu_bsu_etc["timestamps_of_all_time_highs_as_string"].astype('object')
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "timestamps_of_all_time_highs_as_string"] = timestamps_of_all_time_highs_as_string
+
+    # df_with_level_atr_bpu_bsu_etc["open_times_of_all_time_highs_as_string"] = \
+    #     df_with_level_atr_bpu_bsu_etc["open_times_of_all_time_highs_as_string"].astype('object')
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "open_times_of_all_time_highs_as_string"] = open_times_of_all_time_highs_as_string
+
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "round_to_this_number_of_non_zero_digits"] = round_to_this_number_of_non_zero_digits
+
+    # print("df_with_level_atr_bpu_bsu_etc8")
+    # print(df_with_level_atr_bpu_bsu_etc.to_string())
+
+    return df_with_level_atr_bpu_bsu_etc
+
+
+def add_info_to_df_about_all_time_low_number_of_times_it_was_touched_its_timestamps_and_datetimes(all_time_low,
+                                                                                                  df_with_level_atr_bpu_bsu_etc,
+                                                                                                  last_two_years_of_data,
+                                                                                                  round_to_this_number_of_non_zero_digits):
+    number_of_zeroes_in_all_time_low = count_zeros_number_with_e_notaton_is_acceptable(all_time_low)
+    rounded_all_time_low = round(all_time_low,
+                                 number_of_zeroes_in_all_time_low + round_to_this_number_of_non_zero_digits)
+    print("rounded_all_time_low")
+    print(rounded_all_time_low)
+    rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df = last_two_years_of_data.copy()
+    # round high and low to two decimal number
+    rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["high"] = \
+        last_two_years_of_data["high"].apply(round, args=(
+            number_of_zeroes_in_all_time_low + round_to_this_number_of_non_zero_digits,))
+    rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["low"] = \
+        last_two_years_of_data["low"].apply(round, args=(
+            number_of_zeroes_in_all_time_low + round_to_this_number_of_non_zero_digits,))
+
+    print("rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df")
+    print(rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df)
+
+    ohlcv_df_with_low_equal_to_atl_slice_should_be_a_few_lines = \
+        rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df.loc[
+            rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["low"] == rounded_all_time_low]
+
+    number_of_times_this_all_time_low_occurred = len(ohlcv_df_with_low_equal_to_atl_slice_should_be_a_few_lines)
+
+    timestamps_of_all_time_lows_as_string = \
+        extract_timestamps_as_string(ohlcv_df_with_low_equal_to_atl_slice_should_be_a_few_lines)
+
+    open_times_of_all_time_lows_as_string = \
+        extract_open_times_as_string(ohlcv_df_with_low_equal_to_atl_slice_should_be_a_few_lines)
+
+    # df_with_level_atr_bpu_bsu_etc["number_of_times_this_all_time_low_occurred"] = \
+    #     df_with_level_atr_bpu_bsu_etc["number_of_times_this_all_time_low_occurred"].astype('object')
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "number_of_times_this_all_time_low_occurred"] = number_of_times_this_all_time_low_occurred
+
+    # df_with_level_atr_bpu_bsu_etc["timestamps_of_all_time_lows_as_string"] = \
+    #     df_with_level_atr_bpu_bsu_etc["timestamps_of_all_time_lows_as_string"].astype('object')
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "timestamps_of_all_time_lows_as_string"] = timestamps_of_all_time_lows_as_string
+
+    # df_with_level_atr_bpu_bsu_etc["open_times_of_all_time_lows_as_string"] = \
+    #     df_with_level_atr_bpu_bsu_etc["open_times_of_all_time_lows_as_string"].astype('object')
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "open_times_of_all_time_lows_as_string"] = open_times_of_all_time_lows_as_string
+
+    df_with_level_atr_bpu_bsu_etc.at[
+        0, "round_to_this_number_of_non_zero_digits"] = round_to_this_number_of_non_zero_digits
+
+    return df_with_level_atr_bpu_bsu_etc
+def generate_placeholder_df_with_default_values_with_max_profit_target_equal_to_zero_and_tp_4_to_100(type_of_stop_loss,
+                                                                          min_profit_target_multiple_in_range_func,
+                                                                          max_profit_target_multiple_in_range_func):
+    list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime = []
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+
+    if type_of_stop_loss == 'calculated':
+        list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+            f"max_profit_target_multiple_when_sl_calculated")
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_calculated")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_sl_calculated")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated")
+
+
+    elif type_of_stop_loss == 'technical':
+        list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+            f"max_profit_target_multiple_when_sl_technical")
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_technical")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_sl_technical")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical")
+    else:
+        print(f"unknown_stop_loss_type={type_of_stop_loss}")
+
+    if type_of_stop_loss == 'calculated':
+        df_with_tp_x_to_one_its_timestamp_and_datetime = pd.DataFrame(
+            columns=list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime)
+        df_with_tp_x_to_one_its_timestamp_and_datetime.at[0, "max_profit_target_multiple_when_sl_calculated"] = 0
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_calculated"] = False
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_sl_calculated"] = 0.0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated"] = 0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated"] = datetime.datetime.fromtimestamp(
+                0)
+    elif type_of_stop_loss == 'technical':
+        df_with_tp_x_to_one_its_timestamp_and_datetime = pd.DataFrame(
+            columns=list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime)
+        df_with_tp_x_to_one_its_timestamp_and_datetime.at[0, "max_profit_target_multiple_when_sl_technical"] = 0
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_technical"] = False
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_sl_technical"] = 0.0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical"] = 0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical"] = datetime.datetime.fromtimestamp(
+                0)
+    else:
+        print(f"unknown_stop_loss_type={type_of_stop_loss} in df filling with default values")
+    return df_with_tp_x_to_one_its_timestamp_and_datetime
+
+def generate_df_with_default_values_with_max_profit_target_and_tp_4_to_100(type_of_stop_loss,
+                                                                          min_profit_target_multiple_in_range_func,
+                                                                          max_profit_target_multiple_in_range_func):
+    list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime = []
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+
+    if type_of_stop_loss == 'calculated':
+        list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+            f"max_profit_target_multiple_when_sl_calculated")
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_calculated")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_sl_calculated")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated")
+
+
+    elif type_of_stop_loss == 'technical':
+        list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+            f"max_profit_target_multiple_when_sl_technical")
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_technical")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"take_profit_{profit_target_multiple}_to_one_sl_technical")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical")
+            list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime.append(
+                f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical")
+    else:
+        print(f"unknown_stop_loss_type={type_of_stop_loss}")
+
+    if type_of_stop_loss == 'calculated':
+        df_with_tp_x_to_one_its_timestamp_and_datetime = pd.DataFrame(
+            columns=list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime)
+        df_with_tp_x_to_one_its_timestamp_and_datetime.at[0, "max_profit_target_multiple_when_sl_calculated"] = 3
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_calculated"] = False
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_sl_calculated"] = 0.0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated"] = 0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_calculated"] = datetime.datetime.fromtimestamp(
+                0)
+    elif type_of_stop_loss == 'technical':
+        df_with_tp_x_to_one_its_timestamp_and_datetime = pd.DataFrame(
+            columns=list_of_columns_in_df_with_tp_x_to_one_its_timestamp_and_datetime)
+        df_with_tp_x_to_one_its_timestamp_and_datetime.at[0, "max_profit_target_multiple_when_sl_technical"] = 3
+        for profit_target_multiple in range(min_profit_target_multiple_in_range_func,
+                                            max_profit_target_multiple_in_range_func + 1, 1):
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_technical"] = False
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"take_profit_{profit_target_multiple}_to_one_sl_technical"] = 0.0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical"] = 0
+            df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                0, f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_technical"] = datetime.datetime.fromtimestamp(
+                0)
+    else:
+        print(f"unknown_stop_loss_type={type_of_stop_loss} in df filling with default values")
+    return df_with_tp_x_to_one_its_timestamp_and_datetime
+def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(level_price,
+                        advanced_atr,
         df_with_level_atr_bpu_bsu_etc,
         index_in_iteration,
         entire_original_table_with_ohlcv_data_df,
@@ -26,16 +413,21 @@ def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_sell_order_have_
         sell_order,
         take_profit_when_sl_is_technical_3_to_1,
         technical_stop_loss):
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+
     try:
         # add statistical info to df if technical sl and tp have been reached
-        take_profit_when_sl_is_technical_3_to_1_is_reached, \
+        max_distance_from_level_price_in_this_bar_in_atr, \
+            take_profit_when_sl_is_technical_3_to_1_is_reached, \
             technical_stop_loss_is_reached, \
             daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
             timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
             timestamp_when_technical_stop_loss_was_reached, \
             sell_order_was_touched, \
             timestamp_when_sell_order_was_touched, \
-            first_bar_after_bfr_opened_lower_than_sell_order = return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(
+            first_bar_after_bfr_opened_lower_than_sell_order,\
+            df_with_tp_x_to_one_its_timestamp_and_datetime = return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(level_price,
+                        advanced_atr,
             index_in_iteration,
             entire_original_table_with_ohlcv_data_df,
             side,
@@ -43,56 +435,62 @@ def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_sell_order_have_
             take_profit_when_sl_is_technical_3_to_1,
             technical_stop_loss)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "first_bar_after_bfr_opened_lower_than_sell_order"] = first_bar_after_bfr_opened_lower_than_sell_order
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "take_profit_when_sl_is_technical_3_to_1_is_reached"] = take_profit_when_sl_is_technical_3_to_1_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_take_profit_when_sl_is_technical_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached
+        if df_with_tp_x_to_one_its_timestamp_and_datetime.empty:
+            type_of_stop_loss = "technical"
+            min_profit_target_multiple_in_range_func = 4
+            max_profit_target_multiple_in_range_func = 100
+            df_with_tp_x_to_one_its_timestamp_and_datetime = generate_placeholder_df_with_default_values_with_max_profit_target_equal_to_zero_and_tp_4_to_100(
+                type_of_stop_loss,
+                min_profit_target_multiple_in_range_func,
+                max_profit_target_multiple_in_range_func)
+
+        print("technical_sl_df_with_tp_x_to_one_its_timestamp_and_datetime123_sell_order")
+        print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+
+        df_with_level_atr_bpu_bsu_etc.at[0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.at[0, "first_bar_after_bfr_opened_lower_than_sell_order"] = first_bar_after_bfr_opened_lower_than_sell_order
+        df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_technical_3_to_1_is_reached"] = take_profit_when_sl_is_technical_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_take_profit_when_sl_is_technical_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached
         if pd.isna(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = \
                 datetime.datetime.fromtimestamp(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "technical_stop_loss_is_reached"] = technical_stop_loss_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_technical_stop_loss_was_reached"] = timestamp_when_technical_stop_loss_was_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "technical_stop_loss_is_reached"] = technical_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_technical_stop_loss_was_reached"] = timestamp_when_technical_stop_loss_was_reached
         if pd.isna(timestamp_when_technical_stop_loss_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_technical_stop_loss_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_technical_stop_loss_was_reached"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_technical_stop_loss_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_technical_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_technical_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "sell_order_was_touched"] = sell_order_was_touched
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_sell_order_was_touched"] = timestamp_when_sell_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[0, "sell_order_was_touched"] = sell_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[0, "max_distance_from_level_price_in_this_bar_in_atr"] = max_distance_from_level_price_in_this_bar_in_atr
+
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_sell_order_was_touched"] = timestamp_when_sell_order_was_touched
         if pd.isna(timestamp_when_sell_order_was_touched) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_sell_order_was_touched"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_sell_order_was_touched"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_sell_order_was_touched)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_sell_order_was_touched"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_sell_order_was_touched"] = datetime.datetime.fromtimestamp(
                 0)
     except:
         traceback.print_exc()
-    return df_with_level_atr_bpu_bsu_etc
+
+    df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached = pd.concat(
+        [df_with_level_atr_bpu_bsu_etc, df_with_tp_x_to_one_its_timestamp_and_datetime], axis=1)
+    print("df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached1")
+    print(df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached.to_string())
+    return df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached
 
 
-def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(
+def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(level_price,
+                        advanced_atr,
         df_with_level_atr_bpu_bsu_etc,
         index_in_iteration,
         entire_original_table_with_ohlcv_data_df,
@@ -100,91 +498,105 @@ def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_sell_order_have
         sell_order,
         take_profit_when_sl_is_calculated_3_to_1,
         calculated_stop_loss):
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+
     try:
         # add statistical info to df if calculated sl and tp have been reached
-        take_profit_when_sl_is_calculated_3_to_1_is_reached, \
+        max_distance_from_level_price_in_this_bar_in_atr,\
+            take_profit_when_sl_is_calculated_3_to_1_is_reached, \
             calculated_stop_loss_is_reached, \
             daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
             timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached, \
             timestamp_when_calculated_stop_loss_was_reached, \
             sell_order_was_touched, \
             timestamp_when_sell_order_was_touched, \
-            first_bar_after_bfr_opened_lower_than_sell_order = return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(
+            first_bar_after_bfr_opened_lower_than_sell_order,\
+            df_with_tp_x_to_one_its_timestamp_and_datetime = return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(level_price,
+                        advanced_atr,
             index_in_iteration,
             entire_original_table_with_ohlcv_data_df, side,
             sell_order,
             take_profit_when_sl_is_calculated_3_to_1,
             calculated_stop_loss)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "first_bar_after_bfr_opened_lower_than_sell_order"] = first_bar_after_bfr_opened_lower_than_sell_order
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "take_profit_when_sl_is_calculated_3_to_1_is_reached"] = take_profit_when_sl_is_calculated_3_to_1_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached
+        if df_with_tp_x_to_one_its_timestamp_and_datetime.empty:
+            type_of_stop_loss = "calculated"
+            min_profit_target_multiple_in_range_func = 4
+            max_profit_target_multiple_in_range_func = 100
+            df_with_tp_x_to_one_its_timestamp_and_datetime = generate_placeholder_df_with_default_values_with_max_profit_target_equal_to_zero_and_tp_4_to_100(
+                type_of_stop_loss,
+                min_profit_target_multiple_in_range_func,
+                max_profit_target_multiple_in_range_func)
+
+        print("calculated_sl_df_with_tp_x_to_one_its_timestamp_and_datetime123_sell_order")
+        print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+
+        df_with_level_atr_bpu_bsu_etc.at[0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.at[0, "first_bar_after_bfr_opened_lower_than_sell_order"] = first_bar_after_bfr_opened_lower_than_sell_order
+        df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_calculated_3_to_1_is_reached"] = take_profit_when_sl_is_calculated_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached
         if pd.isna(timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "calculated_stop_loss_is_reached"] = calculated_stop_loss_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_calculated_stop_loss_was_reached"] = timestamp_when_calculated_stop_loss_was_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "calculated_stop_loss_is_reached"] = calculated_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_calculated_stop_loss_was_reached"] = timestamp_when_calculated_stop_loss_was_reached
         if pd.isna(timestamp_when_calculated_stop_loss_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_calculated_stop_loss_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_calculated_stop_loss_was_reached"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_calculated_stop_loss_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_calculated_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_calculated_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "sell_order_was_touched"] = sell_order_was_touched
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_sell_order_was_touched"] = timestamp_when_sell_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[0, "sell_order_was_touched"] = sell_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[
+            0, "max_distance_from_level_price_in_this_bar_in_atr"] = max_distance_from_level_price_in_this_bar_in_atr
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_sell_order_was_touched"] = timestamp_when_sell_order_was_touched
         if pd.isna(timestamp_when_sell_order_was_touched) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_sell_order_was_touched"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_sell_order_was_touched"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_sell_order_was_touched)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_sell_order_was_touched"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_sell_order_was_touched"] = datetime.datetime.fromtimestamp(
                 0)
     except:
         traceback.print_exc()
 
-    return df_with_level_atr_bpu_bsu_etc
+    df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached = pd.concat(
+        [df_with_level_atr_bpu_bsu_etc, df_with_tp_x_to_one_its_timestamp_and_datetime], axis=1)
+    print("df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached2")
+    print(df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached.to_string())
+    return df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached
 
-def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(df_with_level_atr_bpu_bsu_etc,
+def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(level_price,
+                                                                                            advanced_atr,df_with_level_atr_bpu_bsu_etc,
                                                                                             index_in_iteration,
                                                                                             entire_original_table_with_ohlcv_data_df,
                                                                                             side,
                                                                                             buy_order,
                                                                                             take_profit_when_sl_is_technical_3_to_1,
                                                                                             technical_stop_loss):
+    df_with_tp_x_to_one_its_timestamp_and_datetime = pd.DataFrame()
 
 
     try:
         # add statistical info to df if technical sl and tp have been reached
-        take_profit_when_sl_is_technical_3_to_1_is_reached, \
+        max_distance_from_level_price_in_this_bar_in_atr,\
+            take_profit_when_sl_is_technical_3_to_1_is_reached, \
             technical_stop_loss_is_reached, \
             daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
             timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
             timestamp_when_technical_stop_loss_was_reached, \
             buy_order_was_touched, \
             timestamp_when_buy_order_was_touched, \
-            first_bar_after_bfr_opened_lower_than_buy_order = return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(
+            first_bar_after_bfr_opened_lower_than_buy_order,\
+            df_with_tp_x_to_one_its_timestamp_and_datetime = return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(level_price,
+                        advanced_atr,
             index_in_iteration,
             entire_original_table_with_ohlcv_data_df,
             side,
@@ -192,55 +604,61 @@ def add_to_df_result_of_return_bool_whether_technical_sl_tp_and_buy_order_have_b
             take_profit_when_sl_is_technical_3_to_1,
             technical_stop_loss)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "first_bar_after_bfr_opened_lower_than_buy_order"] = first_bar_after_bfr_opened_lower_than_buy_order
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "take_profit_when_sl_is_technical_3_to_1_is_reached"] = take_profit_when_sl_is_technical_3_to_1_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_take_profit_when_sl_is_technical_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached
+        if df_with_tp_x_to_one_its_timestamp_and_datetime.empty:
+            type_of_stop_loss = "technical"
+            min_profit_target_multiple_in_range_func = 4
+            max_profit_target_multiple_in_range_func = 100
+            df_with_tp_x_to_one_its_timestamp_and_datetime = generate_placeholder_df_with_default_values_with_max_profit_target_equal_to_zero_and_tp_4_to_100(
+                type_of_stop_loss,
+                min_profit_target_multiple_in_range_func,
+                max_profit_target_multiple_in_range_func)
+        print("technical_sl_df_with_tp_x_to_one_its_timestamp_and_datetime123_buy_order")
+        print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+
+
+
+        df_with_level_atr_bpu_bsu_etc.at[0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.at[0, "first_bar_after_bfr_opened_lower_than_buy_order"] = first_bar_after_bfr_opened_lower_than_buy_order
+        df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_technical_3_to_1_is_reached"] = take_profit_when_sl_is_technical_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_take_profit_when_sl_is_technical_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached
         if pd.isna(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = \
                 datetime.datetime.fromtimestamp(timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_technical_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "technical_stop_loss_is_reached"] = technical_stop_loss_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_technical_stop_loss_was_reached"] = timestamp_when_technical_stop_loss_was_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "technical_stop_loss_is_reached"] = technical_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_technical_stop_loss_was_reached"] = timestamp_when_technical_stop_loss_was_reached
         if pd.isna(timestamp_when_technical_stop_loss_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_technical_stop_loss_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_technical_stop_loss_was_reached"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_technical_stop_loss_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_technical_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_technical_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "buy_order_was_touched"] = buy_order_was_touched
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_buy_order_was_touched"] = timestamp_when_buy_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[0, "buy_order_was_touched"] = buy_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[
+            0, "max_distance_from_level_price_in_this_bar_in_atr"] = max_distance_from_level_price_in_this_bar_in_atr
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_buy_order_was_touched"] = timestamp_when_buy_order_was_touched
         if pd.isna(timestamp_when_buy_order_was_touched) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_buy_order_was_touched"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_buy_order_was_touched"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_buy_order_was_touched)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_buy_order_was_touched"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_buy_order_was_touched"] = datetime.datetime.fromtimestamp(
                 0)
     except:
         traceback.print_exc()
-    return df_with_level_atr_bpu_bsu_etc
+    df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached = pd.concat(
+        [df_with_level_atr_bpu_bsu_etc, df_with_tp_x_to_one_its_timestamp_and_datetime], axis=1)
+    print("df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached3")
+    print(df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached.to_string())
+    return df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached
 
-def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(
+def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(level_price,
+                        advanced_atr,
         df_with_level_atr_bpu_bsu_etc,
         index_in_iteration,
         entire_original_table_with_ohlcv_data_df,
@@ -248,71 +666,85 @@ def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_
         buy_order,
         take_profit_when_sl_is_calculated_3_to_1,
         calculated_stop_loss):
+
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+
     try:
         # add statistical info to df if calculated sl and tp have been reached
-        take_profit_when_sl_is_calculated_3_to_1_is_reached, \
+        max_distance_from_level_price_in_this_bar_in_atr,\
+            take_profit_when_sl_is_calculated_3_to_1_is_reached, \
             calculated_stop_loss_is_reached, \
             daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
             timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached, \
             timestamp_when_calculated_stop_loss_was_reached, \
             buy_order_was_touched, \
             timestamp_when_buy_order_was_touched, \
-            first_bar_after_bfr_opened_lower_than_buy_order = return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(
+            first_bar_after_bfr_opened_lower_than_buy_order,\
+            df_with_tp_x_to_one_its_timestamp_and_datetime = return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(level_price,
+                        advanced_atr,
             index_in_iteration,
             entire_original_table_with_ohlcv_data_df, side,
             buy_order,
             take_profit_when_sl_is_calculated_3_to_1,
             calculated_stop_loss)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "first_bar_after_bfr_opened_lower_than_buy_order"] = first_bar_after_bfr_opened_lower_than_buy_order
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "take_profit_when_sl_is_calculated_3_to_1_is_reached"] = take_profit_when_sl_is_calculated_3_to_1_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached
+        if df_with_tp_x_to_one_its_timestamp_and_datetime.empty:
+            type_of_stop_loss = "calculated"
+            min_profit_target_multiple_in_range_func = 4
+            max_profit_target_multiple_in_range_func = 100
+            df_with_tp_x_to_one_its_timestamp_and_datetime = generate_placeholder_df_with_default_values_with_max_profit_target_equal_to_zero_and_tp_4_to_100(
+                type_of_stop_loss,
+                min_profit_target_multiple_in_range_func,
+                max_profit_target_multiple_in_range_func)
+
+
+        print("calculated_sl_df_with_tp_x_to_one_its_timestamp_and_datetime123_buy_order")
+        print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+
+        df_with_level_atr_bpu_bsu_etc.at[0, "daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first"] = daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first
+        df_with_level_atr_bpu_bsu_etc.at[0, "first_bar_after_bfr_opened_lower_than_buy_order"] = first_bar_after_bfr_opened_lower_than_buy_order
+
+
+        df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_calculated_3_to_1_is_reached"] = take_profit_when_sl_is_calculated_3_to_1_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached
         if pd.isna(timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "calculated_stop_loss_is_reached"] = calculated_stop_loss_is_reached
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_calculated_stop_loss_was_reached"] = timestamp_when_calculated_stop_loss_was_reached
+
+        df_with_level_atr_bpu_bsu_etc.at[0, "calculated_stop_loss_is_reached"] = calculated_stop_loss_is_reached
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_calculated_stop_loss_was_reached"] = timestamp_when_calculated_stop_loss_was_reached
         if pd.isna(timestamp_when_calculated_stop_loss_was_reached) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_calculated_stop_loss_was_reached"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_calculated_stop_loss_was_reached"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_calculated_stop_loss_was_reached)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_calculated_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_calculated_stop_loss_was_reached"] = datetime.datetime.fromtimestamp(
                 0)
 
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "buy_order_was_touched"] = buy_order_was_touched
-        df_with_level_atr_bpu_bsu_etc.loc[
-            0, "timestamp_when_buy_order_was_touched"] = timestamp_when_buy_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[0, "buy_order_was_touched"] = buy_order_was_touched
+        df_with_level_atr_bpu_bsu_etc.at[
+            0, "max_distance_from_level_price_in_this_bar_in_atr"] = max_distance_from_level_price_in_this_bar_in_atr
+        df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_buy_order_was_touched"] = timestamp_when_buy_order_was_touched
         if pd.isna(timestamp_when_buy_order_was_touched) == False:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_buy_order_was_touched"] = \
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_buy_order_was_touched"] = \
                 datetime.datetime.fromtimestamp(
                     timestamp_when_buy_order_was_touched)
         else:
-            df_with_level_atr_bpu_bsu_etc.loc[
-                0, "datetime_when_buy_order_was_touched"] = datetime.datetime.fromtimestamp(
+            df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_buy_order_was_touched"] = datetime.datetime.fromtimestamp(
                 0)
     except:
         traceback.print_exc()
 
-    return df_with_level_atr_bpu_bsu_etc
+    df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached = pd.concat(
+        [df_with_level_atr_bpu_bsu_etc, df_with_tp_x_to_one_its_timestamp_and_datetime], axis=1)
+    print("df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached4")
+    print(df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached.to_string())
+    return df_with_level_atr_bpu_bsu_etc_plus_info_about_whether_tp_mre_than_three_was_reached
 # def split_and_remove_letters(string_with_letters):
 #     # Split the list on "_"
 #     split_lst = string_with_letters.split("_")
@@ -330,9 +762,9 @@ def add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_
 #     split_lst_without_letters = [elem for elem in split_lst if not (any(char.isalpha() for char in elem) and not (len(elem)==1 and elem=="e"))]
 #
 #     return split_lst_without_letters
-def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(i,
+def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(level_price,
+                        advanced_atr,i,
                                                                          entire_original_table_with_ohlcv_data_df,
-
                                                                          side,
                                                                          sell_order,
                                                                          take_profit_when_sl_is_calculated_3_to_1,
@@ -342,30 +774,30 @@ def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(i,
     ####################################################
     # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
 
-    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
-    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+    first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = \
         entire_original_table_with_ohlcv_data_df.iloc[
-        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+        first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
             entire_original_table_with_ohlcv_data_df) + 1]
 
     open_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
     high_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
     low_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
     close_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
     volume_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
     timestamp_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
 
     take_profit_when_sl_is_calculated_3_to_1_is_reached = False
     calculated_stop_loss_is_reached = False
@@ -379,34 +811,43 @@ def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(i,
     sell_order_was_touched=False
     timestamp_when_sell_order_was_touched=np.nan
     first_bar_after_bfr_opened_lower_than_sell_order = False
+    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached = np.nan
+    max_distance_from_level_price_in_this_bar_in_atr = 0.0
 
-
-
-    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
-            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
-                  len(entire_original_table_with_ohlcv_data_df) + 1):
+    for index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df)):
         open_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
         high_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
         low_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
         close_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
         volume_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
         timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
 
         # check if sell order was touched before sl or tp
         if sell_order_was_touched == False:
-            if high_of_bar_in_each_iteration_beginning_with_first_bar <= sell_order <= low_of_bar_in_each_iteration_beginning_with_first_bar:
+
+            #check if price has ever moved away from level price for more than 2 atr
+            max_distance_from_level_price_in_this_bar=\
+                max(abs(level_price-high_of_bar_in_each_iteration_beginning_with_first_bar),
+                    abs(level_price-low_of_bar_in_each_iteration_beginning_with_first_bar))
+            max_distance_from_level_price_in_this_bar_in_atr=float(max_distance_from_level_price_in_this_bar)/float(advanced_atr)
+            # if max_distance_from_level_price_in_this_bar_in_atr>2:
+            #     max_distance_from_level_price_in_this_bar_in_atr=True
+
+            if high_of_bar_in_each_iteration_beginning_with_first_bar >= sell_order >= low_of_bar_in_each_iteration_beginning_with_first_bar:
                 sell_order_was_touched = True
                 timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
 
@@ -447,6 +888,8 @@ def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(i,
                     #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = True
                     take_profit_when_sl_is_calculated_3_to_1_is_reached = True
                     timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached = \
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_calculated_3_to_1 \
@@ -502,6 +945,8 @@ def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(i,
                     #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_sell_order_was_reached_first = True
                     timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
                     take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached = \
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_calculated_3_to_1 \
@@ -523,18 +968,35 @@ def return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached(i,
                     continue
         else:
             print(f"side={side} is incorrect. Use another function")
-    return take_profit_when_sl_is_calculated_3_to_1_is_reached, \
+
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+    try:
+        if pd.isna(index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached) == False:
+            type_of_stop_loss="calculated"
+            df_with_tp_x_to_one_its_timestamp_and_datetime=check_which_tp_were_also_achieved_when_order_is_sell(calculated_stop_loss,
+                                                                sell_order, type_of_stop_loss,
+                                                                entire_original_table_with_ohlcv_data_df,
+                                                                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached)
+            print("df_with_tp_x_to_one_its_timestamp_and_datetime012345")
+            print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+    except:
+        traceback.print_exc()
+    return max_distance_from_level_price_in_this_bar_in_atr,\
+        take_profit_when_sl_is_calculated_3_to_1_is_reached, \
         calculated_stop_loss_is_reached, \
         daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
         timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached, \
         timestamp_when_calculated_stop_loss_was_reached, \
         sell_order_was_touched, \
-        timestamp_when_sell_order_was_touched,first_bar_after_bfr_opened_lower_than_sell_order
+        timestamp_when_sell_order_was_touched,\
+        first_bar_after_bfr_opened_lower_than_sell_order,\
+        df_with_tp_x_to_one_its_timestamp_and_datetime
 
     ##############################################
     ##############################################
     ##############################################
-def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(i,
+def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(level_price,
+                        advanced_atr,i,
                                                                          entire_original_table_with_ohlcv_data_df,
 
                                                                          side,
@@ -547,37 +1009,37 @@ def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(i,
     # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
 
 
-    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
-    print("first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached")
-    print(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached)
-    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+    first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    print("first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached")
+    print(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached)
+    df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = \
         entire_original_table_with_ohlcv_data_df.iloc[
-        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+        first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
             entire_original_table_with_ohlcv_data_df) + 1]
 
-    print('df_slice_where_we_need_to_check_if_sl_tp_were_reached.index')
-    print(df_slice_where_we_need_to_check_if_sl_tp_were_reached.index)
+    print('df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.index')
+    print(df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.index)
 
-    # df_slice_where_we_need_to_check_if_sl_tp_were_reached = entire_original_table_with_ohlcv_data_df.copy()
+    # df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = entire_original_table_with_ohlcv_data_df.copy()
 
     open_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
     high_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
     low_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
     close_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
     volume_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
     timestamp_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
 
     take_profit_when_sl_is_calculated_3_to_1_is_reached = False
     calculated_stop_loss_is_reached = False
@@ -591,33 +1053,46 @@ def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(i,
     buy_order_was_touched=False
     timestamp_when_buy_order_was_touched=np.nan
     first_bar_after_bfr_opened_lower_than_buy_order=False
-
-    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
-            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
-                  len(entire_original_table_with_ohlcv_data_df) + 1):
+    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached = np.nan
+    max_distance_from_level_price_in_this_bar_in_atr = 0.0
+    for index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df)):
         open_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
         high_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
         low_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
         close_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
         volume_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
         timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
 
         # caluculation when the side is BUY
 
         # check if buy order was touched before sl or tp
         if buy_order_was_touched == False:
+
+
+            # check if price has ever moved away from level price for more than 2 atr
+            max_distance_from_level_price_in_this_bar = \
+                max(abs(level_price - high_of_bar_in_each_iteration_beginning_with_first_bar),
+                    abs(level_price - low_of_bar_in_each_iteration_beginning_with_first_bar))
+            max_distance_from_level_price_in_this_bar_in_atr = float(max_distance_from_level_price_in_this_bar) / float(
+                advanced_atr)
+            # if max_distance_from_level_price_in_this_bar_in_atr > 2:
+            #     max_distance_from_level_price_in_this_bar_in_atr = True
+
+
             if high_of_bar_in_each_iteration_beginning_with_first_bar >= buy_order >= low_of_bar_in_each_iteration_beginning_with_first_bar:
                 buy_order_was_touched = True
                 timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
@@ -662,6 +1137,8 @@ def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(i,
                     #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_calculated_3_to_1_or_buy_order_was_reached_first = True
                     take_profit_when_sl_is_calculated_3_to_1_is_reached = True
                     timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached=\
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_calculated_3_to_1 \
@@ -717,6 +1194,8 @@ def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(i,
                     #     buy_order_was_touched = True
                     timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
                     take_profit_when_sl_is_calculated_3_to_1_is_reached = True
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached = \
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_calculated_3_to_1 \
@@ -741,23 +1220,38 @@ def return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(i,
 
         else:
             print(f"side={side} is incorrect. Use another function")
-    return take_profit_when_sl_is_calculated_3_to_1_is_reached,\
+
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+    try:
+        if pd.isna(index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached) == False:
+            type_of_stop_loss="calculated"
+            df_with_tp_x_to_one_its_timestamp_and_datetime=check_which_tp_were_also_achieved_when_order_is_buy(calculated_stop_loss,
+                                                                buy_order, type_of_stop_loss,
+                                                                entire_original_table_with_ohlcv_data_df,
+                                                                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_calculated_tp_3_to_1_was_reached)
+            print("df_with_tp_x_to_one_its_timestamp_and_datetime2")
+            print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+    except:
+        traceback.print_exc()
+    return max_distance_from_level_price_in_this_bar_in_atr,\
+        take_profit_when_sl_is_calculated_3_to_1_is_reached,\
         calculated_stop_loss_is_reached,\
         daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first,\
         timestamp_when_take_profit_when_sl_is_calculated_3_to_1_was_reached,\
         timestamp_when_calculated_stop_loss_was_reached,\
         buy_order_was_touched,\
         timestamp_when_buy_order_was_touched,\
-        first_bar_after_bfr_opened_lower_than_buy_order
+        first_bar_after_bfr_opened_lower_than_buy_order,\
+        df_with_tp_x_to_one_its_timestamp_and_datetime
 
     ##############################################
     ##############################################
     ##############################################
 
 
-def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(i,
+def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(level_price,
+                        advanced_atr,i,
                                                                           entire_original_table_with_ohlcv_data_df,
-
                                                                           side,
                                                                           sell_order,
                                                                           take_profit_when_sl_is_technical_3_to_1,
@@ -768,32 +1262,41 @@ def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(i,
     # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
 
 
-    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
-    print("first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached23")
-    print(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached)
-    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+    first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    print("first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached23")
+    print(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached)
+    df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = \
         entire_original_table_with_ohlcv_data_df.iloc[
-        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+        first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
             entire_original_table_with_ohlcv_data_df) + 1]
 
+
+    print("entire_original_table_with_ohlcv_data_df.tail(5).to_string()")
+    print(entire_original_table_with_ohlcv_data_df.tail(5).to_string())
+    print("df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.tail(5).to_string()")
+    print(df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.tail(5).to_string())
+
     open_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
     high_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
     low_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
     close_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
     volume_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
     timestamp_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+
+
 
     print("open_of_first_bar_after_bfr_has_formed")
     print(open_of_first_bar_after_bfr_has_formed)
@@ -812,33 +1315,72 @@ def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(i,
     sell_order_was_touched = False
     timestamp_when_sell_order_was_touched = np.nan
     first_bar_after_bfr_opened_lower_than_sell_order = False
-    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
-            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
-                  len(entire_original_table_with_ohlcv_data_df) + 1):
+    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached = np.nan
+    max_distance_from_level_price_in_this_bar_in_atr = 0.0
+
+    for index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df)):
         open_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
         high_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
         low_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
         close_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
         volume_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
         timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
 
         # check if sell order was touched before sl or tp
         if sell_order_was_touched == False:
-            if high_of_bar_in_each_iteration_beginning_with_first_bar <= sell_order <= low_of_bar_in_each_iteration_beginning_with_first_bar:
+
+            # check if price has ever moved away from level price for more than 2 atr
+            max_distance_from_level_price_in_this_bar = \
+                max(abs(level_price - high_of_bar_in_each_iteration_beginning_with_first_bar),
+                    abs(level_price - low_of_bar_in_each_iteration_beginning_with_first_bar))
+            max_distance_from_level_price_in_this_bar_in_atr = float(max_distance_from_level_price_in_this_bar) / float(
+                advanced_atr)
+            # if max_distance_from_level_price_in_this_bar_in_atr > 2:
+            #     max_distance_from_level_price_in_this_bar_in_atr = True
+
+            if high_of_bar_in_each_iteration_beginning_with_first_bar >= sell_order >= low_of_bar_in_each_iteration_beginning_with_first_bar:
                 sell_order_was_touched = True
                 timestamp_when_sell_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+        # print("********************************************")
+        # print("low_of_bar_in_each_iteration_beginning_with_first_bar")
+        # print(low_of_bar_in_each_iteration_beginning_with_first_bar)
+        # print("timestamp_of_bar_in_each_iteration_beginning_with_first_bar")
+        # print(timestamp_of_bar_in_each_iteration_beginning_with_first_bar)
+        # print("datetime_of_bar_in_each_iteration_beginning_with_first_bar")
+        # print(datetime.datetime.fromtimestamp(timestamp_of_bar_in_each_iteration_beginning_with_first_bar))
+        # print("take_profit_when_sl_is_technical_3_to_1")
+        # print(take_profit_when_sl_is_technical_3_to_1)
+        # print("high_of_bar_in_each_iteration_beginning_with_first_bar")
+        # print(high_of_bar_in_each_iteration_beginning_with_first_bar)
+        # print("technical_stop_loss")
+        # print(technical_stop_loss)
+        # print("sell_order")
+        # print(sell_order)
+        # print("sell_order_was_touched")
+        # print(sell_order_was_touched)
+        # print("df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.index")
+        # print(df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.index)
+        # print("first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached")
+        # print(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached)
+        # print("index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached")
+        # print(index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached)
+        # print("len(entire_original_table_with_ohlcv_data_df) + 1)")
+        # print(len(entire_original_table_with_ohlcv_data_df) + 1)
 
 
         if side == "sell":
@@ -878,6 +1420,8 @@ def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(i,
                     #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = True
                     take_profit_when_sl_is_technical_3_to_1_is_reached = True
                     timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached = \
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_technical_3_to_1 \
@@ -933,6 +1477,8 @@ def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(i,
                     #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_sell_order_was_reached_first = True
                     timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
                     take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached = \
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_when_sl_is_technical_3_to_1 \
@@ -968,22 +1514,38 @@ def return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached(i,
                     continue
         else:
             print(f"side={side} is incorrect. Use another function")
-    return take_profit_when_sl_is_technical_3_to_1_is_reached, \
+
+    df_with_tp_x_to_one_its_timestamp_and_datetime=pd.DataFrame()
+    try:
+        if pd.isna(index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached) == False:
+            type_of_stop_loss="technical"
+            df_with_tp_x_to_one_its_timestamp_and_datetime=check_which_tp_were_also_achieved_when_order_is_sell(technical_stop_loss,
+                                                                sell_order, type_of_stop_loss,
+                                                                entire_original_table_with_ohlcv_data_df,
+                                                                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached)
+            print("df_with_tp_x_to_one_its_timestamp_and_datetime3")
+            print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+    except:
+        traceback.print_exc()
+    return max_distance_from_level_price_in_this_bar_in_atr,\
+        take_profit_when_sl_is_technical_3_to_1_is_reached, \
         technical_stop_loss_is_reached, \
         daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
         timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
         timestamp_when_technical_stop_loss_was_reached, \
         sell_order_was_touched, \
-        timestamp_when_sell_order_was_touched,first_bar_after_bfr_opened_lower_than_sell_order
+        timestamp_when_sell_order_was_touched,\
+        first_bar_after_bfr_opened_lower_than_sell_order,\
+        df_with_tp_x_to_one_its_timestamp_and_datetime
 
     ##############################################
     ##############################################
     ##############################################
 
 
-def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
+def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(level_price,
+                        advanced_atr,i,
                                                                          entire_original_table_with_ohlcv_data_df,
-
                                                                          side,
                                                                          buy_order,
                                                                          take_profit_when_sl_is_technical_3_to_1,
@@ -993,33 +1555,33 @@ def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
     ####################################################
     # iterate over each row in a slice from the original table to understand if sl or tp were achieved first
 
-    first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached = i
-    df_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+    first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = i
+    df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = \
         entire_original_table_with_ohlcv_data_df.iloc[
-        first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+        first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
             entire_original_table_with_ohlcv_data_df) + 1]
 
-    print("first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached1")
-    print(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached)
+    print("first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached1")
+    print(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached)
 
     open_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
     high_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
     low_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
     close_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
     volume_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
     timestamp_of_first_bar_after_bfr_has_formed = \
-        df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-            first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+        df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+            first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
 
     print("open_of_first_bar_after_bfr_has_formed")
     print(open_of_first_bar_after_bfr_has_formed)
@@ -1039,27 +1601,30 @@ def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
     buy_order_was_touched = False
     timestamp_when_buy_order_was_touched = np.nan
     first_bar_after_bfr_opened_lower_than_buy_order = False
-    for index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached in \
-            range(first_index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached,
-                  len(entire_original_table_with_ohlcv_data_df) + 1):
+    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached=np.nan
+    max_distance_from_level_price_in_this_bar_in_atr = 0.0
+
+    for index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+            range(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                  len(entire_original_table_with_ohlcv_data_df)):
         open_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
         high_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
         low_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
         close_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
         volume_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
         timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
-            df_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
-                index_in_df_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+            df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
 
         print("open_of_bar_in_each_iteration_beginning_with_first_bar")
         print(open_of_bar_in_each_iteration_beginning_with_first_bar)
@@ -1068,6 +1633,16 @@ def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
 
         # check if buy order was touched before sl or tp
         if buy_order_was_touched == False:
+
+            # check if price has ever moved away from level price for more than 2 atr
+            max_distance_from_level_price_in_this_bar = \
+                max(abs(level_price - high_of_bar_in_each_iteration_beginning_with_first_bar),
+                    abs(level_price - low_of_bar_in_each_iteration_beginning_with_first_bar))
+            max_distance_from_level_price_in_this_bar_in_atr = float(max_distance_from_level_price_in_this_bar) / float(
+                advanced_atr)
+            # if max_distance_from_level_price_in_this_bar_in_atr > 2:
+            #     max_distance_from_level_price_in_this_bar_in_atr = True
+
             if high_of_bar_in_each_iteration_beginning_with_first_bar >= buy_order >= low_of_bar_in_each_iteration_beginning_with_first_bar:
                 buy_order_was_touched = True
                 timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
@@ -1114,6 +1689,8 @@ def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
                     #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first = True
                     take_profit_when_sl_is_technical_3_to_1_is_reached = True
                     timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached = \
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_technical_3_to_1 \
@@ -1176,6 +1753,8 @@ def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
                     #     daily_data_is_not_enough_to_determine_whether_take_profit_when_sl_is_technical_3_to_1_or_buy_order_was_reached_first = True
                     timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
                     take_profit_when_sl_is_technical_3_to_1_is_reached = True
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached = \
+                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached
                     break
 
                 elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_when_sl_is_technical_3_to_1 \
@@ -1199,17 +1778,257 @@ def return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(i,
 
         else:
             print(f"side={side} is incorrect. Use another function")
-    return take_profit_when_sl_is_technical_3_to_1_is_reached, \
+
+    df_with_tp_x_to_one_its_timestamp_and_datetime = pd.DataFrame()
+    try:
+        if pd.isna(index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached) == False:
+            type_of_stop_loss="technical"
+            df_with_tp_x_to_one_its_timestamp_and_datetime=check_which_tp_were_also_achieved_when_order_is_buy(technical_stop_loss,
+                                                                buy_order, type_of_stop_loss,
+                                                                entire_original_table_with_ohlcv_data_df,
+                                                                index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_technical_tp_3_to_1_was_reached)
+            print("df_with_tp_x_to_one_its_timestamp_and_datetime4 order buy type of sl technical")
+            print(df_with_tp_x_to_one_its_timestamp_and_datetime.to_string())
+
+    except:
+        traceback.print_exc()
+
+    return max_distance_from_level_price_in_this_bar_in_atr,\
+        take_profit_when_sl_is_technical_3_to_1_is_reached, \
         technical_stop_loss_is_reached, \
         daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first, \
         timestamp_when_take_profit_when_sl_is_technical_3_to_1_was_reached, \
         timestamp_when_technical_stop_loss_was_reached, \
         buy_order_was_touched, \
-        timestamp_when_buy_order_was_touched, first_bar_after_bfr_opened_lower_than_buy_order
+        timestamp_when_buy_order_was_touched,\
+        first_bar_after_bfr_opened_lower_than_buy_order,\
+        df_with_tp_x_to_one_its_timestamp_and_datetime
 
     ##############################################
     ##############################################
     ##############################################
+def check_which_tp_were_also_achieved_when_order_is_sell(stop_loss,
+                                                        sell_order,
+                                                        type_of_stop_loss,
+                                                        entire_original_table_with_ohlcv_data_df,
+                                                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_tp_3_to_1_was_reached):
+    distance_between_stop_loss_and_sell_order = stop_loss - sell_order
+    first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached=\
+        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_tp_3_to_1_was_reached
+    # take_profit_when_sl_is_technical_3_to_1 = (buy_order - stop_loss) * 3 + buy_order
+    df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+        entire_original_table_with_ohlcv_data_df.iloc[
+        first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+            entire_original_table_with_ohlcv_data_df) + 1]
+    stop_loss_is_reached=False
+    max_profit_target_multiple=3
+    timestamp_when_max_take_profit_was_reached=0
+    datetime_when_max_take_profit_was_reached=datetime.datetime.fromtimestamp(0)
+    min_profit_target_multiple_in_range_func = 4
+    max_profit_target_multiple_in_range_func = 100
+    df_with_tp_x_to_one_its_timestamp_and_datetime = \
+        generate_df_with_default_values_with_max_profit_target_and_tp_4_to_100(type_of_stop_loss,
+                                                                              min_profit_target_multiple_in_range_func,
+                                                                              max_profit_target_multiple_in_range_func)
+    for profit_target_multiple in range(4,max_profit_target_multiple_in_range_func +1,1):
+        if stop_loss_is_reached==True:
+            break
+        take_profit_is_x_to_one_is_reached= False
+        take_profit_x_to_one = sell_order - (stop_loss - sell_order) * profit_target_multiple
+        for index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+                range(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                      len(entire_original_table_with_ohlcv_data_df)):
+            open_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+            high_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+            low_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+            close_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+            volume_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+            timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+            if low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_x_to_one \
+                    and high_of_bar_in_each_iteration_beginning_with_first_bar <stop_loss:
+                # current price in iteration is between take_profit_is_x_to_one and sl
+
+
+                continue
+            elif low_of_bar_in_each_iteration_beginning_with_first_bar > take_profit_x_to_one \
+                    and high_of_bar_in_each_iteration_beginning_with_first_bar >=  stop_loss:
+                # stop loss has been reached and tp 3 to 1 has not
+
+                timestamp_when_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                stop_loss_is_reached = True
+
+                break
+            elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_x_to_one \
+                    and high_of_bar_in_each_iteration_beginning_with_first_bar < stop_loss:
+                # take_profit_is_x_to_one is reached
+
+                timestamp_when_take_profit_is_x_to_one_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                take_profit_is_x_to_one_is_reached = True
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                    0, f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_{type_of_stop_loss}"] = take_profit_is_x_to_one_is_reached
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                    0, f"take_profit_{profit_target_multiple}_to_one_sl_{type_of_stop_loss}"] = take_profit_x_to_one
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                    0, f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_{type_of_stop_loss}"] = timestamp_when_take_profit_is_x_to_one_was_reached
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+                    0, f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_{type_of_stop_loss}"] = \
+                    datetime.datetime.fromtimestamp(timestamp_when_take_profit_is_x_to_one_was_reached)
+                max_profit_target_multiple = profit_target_multiple
+                break
+
+            elif low_of_bar_in_each_iteration_beginning_with_first_bar <= take_profit_x_to_one \
+                    and high_of_bar_in_each_iteration_beginning_with_first_bar >= stop_loss:
+                # stop loss has been reached and tp 3 to 1 has been reached
+
+                take_profit_is_x_to_one_is_reached = True
+                stop_loss_is_reached = True
+                daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                timestamp_when_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                timestamp_when_take_profit_is_x_to_one_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                break
+            else:
+                print("unknown case8")
+                continue
+    df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+        0, f"max_profit_target_multiple_when_sl_{type_of_stop_loss}"] = max_profit_target_multiple
+
+    return df_with_tp_x_to_one_its_timestamp_and_datetime
+def check_which_tp_were_also_achieved_when_order_is_buy(stop_loss,
+                                                        buy_order,
+                                                        type_of_stop_loss,
+                                                        entire_original_table_with_ohlcv_data_df,
+                                                        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_tp_3_to_1_was_reached):
+    distance_between_stop_loss_and_buy_order = buy_order - stop_loss
+    first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached=\
+        index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached_when_tp_3_to_1_was_reached
+    # take_profit_when_sl_is_technical_3_to_1 = (buy_order - stop_loss) * 3 + buy_order
+    df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached = \
+        entire_original_table_with_ohlcv_data_df.iloc[
+        first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached:len(
+            entire_original_table_with_ohlcv_data_df) + 1]
+    stop_loss_is_reached=False
+    max_profit_target_multiple=3
+    timestamp_when_max_take_profit_was_reached=0
+    datetime_when_max_take_profit_was_reached=datetime.datetime.fromtimestamp(0)
+    timestamp_when_take_profit_is_x_to_one_was_reached=0
+    min_profit_target_multiple_in_range_func=4
+    max_profit_target_multiple_in_range_func=100
+    df_with_tp_x_to_one_its_timestamp_and_datetime=\
+        generate_df_with_default_values_with_max_profit_target_and_tp_4_to_100(type_of_stop_loss,
+                                                                          min_profit_target_multiple_in_range_func,
+                                                                          max_profit_target_multiple_in_range_func)
+
+
+    for profit_target_multiple in range(min_profit_target_multiple_in_range_func,max_profit_target_multiple_in_range_func+1,1):
+        if stop_loss_is_reached==True:
+            break
+        take_profit_is_x_to_one_is_reached= False
+        take_profit_x_to_one=(buy_order - stop_loss) * profit_target_multiple + buy_order
+        for index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached in \
+                range(first_index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached,
+                      len(entire_original_table_with_ohlcv_data_df)):
+            open_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "open"]
+            high_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "high"]
+            low_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "low"]
+            close_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "close"]
+            volume_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "volume"]
+            timestamp_of_bar_in_each_iteration_beginning_with_first_bar = \
+                df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached.at[
+                    index_in_df_ohlcv_slice_where_we_need_to_check_if_sl_tp_were_reached, "Timestamp"]
+
+            if high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_x_to_one \
+                    and low_of_bar_in_each_iteration_beginning_with_first_bar > stop_loss:
+                # current price in iteration is between take_profit_is_x_to_onesl and tp 3 to 1
+                # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                #     buy_order_was_touched = False
+                # else:
+                #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                #     buy_order_was_touched = True
+
+                continue
+            elif high_of_bar_in_each_iteration_beginning_with_first_bar < take_profit_x_to_one \
+                    and low_of_bar_in_each_iteration_beginning_with_first_bar <= stop_loss:
+                # stop loss has been reached and tp 3 to 1 has not
+                # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                #     buy_order_was_touched = False
+                # else:
+                #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                #     buy_order_was_touched = True
+                #     daily_data_is_not_enough_to_determine_whether_technical_sl_or_buy_order_was_reached_first = True
+                timestamp_when_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                stop_loss_is_reached = True
+
+                break
+            elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_x_to_one \
+                    and low_of_bar_in_each_iteration_beginning_with_first_bar > stop_loss:
+                # take_profit_is_x_to_one is reached
+                # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                #     buy_order_was_touched = False
+                # else:
+                #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                #     buy_order_was_touched = True
+                #     daily_data_is_not_enough_to_determine_whether_take_profit_is_x_to_one_or_buy_order_was_reached_first = True
+                timestamp_when_take_profit_is_x_to_one_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+                take_profit_is_x_to_one_is_reached = True
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[0,f"take_profit_{profit_target_multiple}_to_one_is_reached_sl_{type_of_stop_loss}"]=take_profit_is_x_to_one_is_reached
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[0,f"take_profit_{profit_target_multiple}_to_one_sl_{type_of_stop_loss}"]=take_profit_x_to_one
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[0,f"timestamp_of_tp_{profit_target_multiple}_to_one_is_reached_sl_{type_of_stop_loss}"]=timestamp_when_take_profit_is_x_to_one_was_reached
+                df_with_tp_x_to_one_its_timestamp_and_datetime.at[0,f"datetime_of_tp_{profit_target_multiple}_to_one_is_reached_sl_{type_of_stop_loss}"]=\
+                    datetime.datetime.fromtimestamp(timestamp_when_take_profit_is_x_to_one_was_reached)
+                max_profit_target_multiple = profit_target_multiple
+                break
+
+            elif high_of_bar_in_each_iteration_beginning_with_first_bar >= take_profit_x_to_one \
+                    and low_of_bar_in_each_iteration_beginning_with_first_bar <= stop_loss:
+                # stop loss has been reached and tp 3 to 1 has been reached
+                # if low_of_bar_in_each_iteration_beginning_with_first_bar > buy_order:
+                #     buy_order_was_touched = False
+                # else:
+                #     timestamp_when_buy_order_was_touched = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                #     buy_order_was_touched = True
+                take_profit_is_x_to_one_is_reached = True
+                stop_loss_is_reached = True
+                daily_data_is_not_enough_to_determine_whether_tp_or_sl_was_reached_first = True
+                timestamp_when_stop_loss_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+                timestamp_when_take_profit_is_x_to_one_was_reached = timestamp_of_bar_in_each_iteration_beginning_with_first_bar
+
+                break
+            else:
+                print("unknown case8")
+                continue
+    # timestamp_when_max_take_profit_was_reached=timestamp_when_take_profit_is_x_to_one_was_reached
+    # datetime_when_max_take_profit_was_reached=datetime.datetime.fromtimestamp(timestamp_when_max_take_profit_was_reached)
+    df_with_tp_x_to_one_its_timestamp_and_datetime.at[
+        0, f"max_profit_target_multiple_when_sl_{type_of_stop_loss}"] = max_profit_target_multiple
+
+    return df_with_tp_x_to_one_its_timestamp_and_datetime
+
+
+
 def return_exchange_ids_names_and_number_of_exchanges_where_crypto_is_traded(df_with_strings_of_exchanges_where_pair_is_traded,stock_name):
     # get base of trading pair
     base = get_base_of_trading_pair(trading_pair=stock_name)

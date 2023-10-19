@@ -23,6 +23,9 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import return_df_with_strings_where_pair_is_traded
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_info_to_df_about_all_time_high_number_of_times_it_was_touched_its_timestamps_and_datetimes
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_info_to_df_about_all_time_low_number_of_times_it_was_touched_its_timestamps_and_datetimes
+
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -529,36 +532,36 @@ def get_df_ready_for_export_to_db_for_rebound_situations_off_ath(stock_name, exc
                                                                  min_volume_over_last_n_days,
                                                                  min_volume_over_this_many_last_days):
     df_with_level_atr_bpu_bsu_etc = pd.DataFrame()
-    df_with_level_atr_bpu_bsu_etc.loc[0, "ticker"] = stock_name
-    df_with_level_atr_bpu_bsu_etc.loc[0, "exchange"] = exchange
-    df_with_level_atr_bpu_bsu_etc.loc[0, "model"] = "ATH был подтвержден последним баром"
-    df_with_level_atr_bpu_bsu_etc.loc[0, "ath"] = all_time_high
-    # df_with_level_atr_bpu_bsu_etc.loc[0, "atr"] = atr
-    df_with_level_atr_bpu_bsu_etc.loc[0, "advanced_atr"] = advanced_atr
-    df_with_level_atr_bpu_bsu_etc.loc[0, "atr_over_this_period"] = atr_over_this_period
-    df_with_level_atr_bpu_bsu_etc.loc[0, "advanced_atr_over_this_period"] = \
+    df_with_level_atr_bpu_bsu_etc.at[0, "ticker"] = stock_name
+    df_with_level_atr_bpu_bsu_etc.at[0, "exchange"] = exchange
+    df_with_level_atr_bpu_bsu_etc.at[0, "model"] = "ATH был подтвержден последним баром"
+    df_with_level_atr_bpu_bsu_etc.at[0, "ath"] = all_time_high
+    # df_with_level_atr_bpu_bsu_etc.at[0, "atr"] = atr
+    df_with_level_atr_bpu_bsu_etc.at[0, "advanced_atr"] = advanced_atr
+    df_with_level_atr_bpu_bsu_etc.at[0, "atr_over_this_period"] = atr_over_this_period
+    df_with_level_atr_bpu_bsu_etc.at[0, "advanced_atr_over_this_period"] = \
         advanced_atr_over_this_period
-    df_with_level_atr_bpu_bsu_etc.loc[0, "backlash"] = backlash
-    df_with_level_atr_bpu_bsu_etc.loc[0, "acceptable_backlash"] = acceptable_backlash
+    df_with_level_atr_bpu_bsu_etc.at[0, "backlash"] = backlash
+    df_with_level_atr_bpu_bsu_etc.at[0, "acceptable_backlash"] = acceptable_backlash
 
-    df_with_level_atr_bpu_bsu_etc.loc[0, "open_of_bsu"] = open_of_bsu
-    df_with_level_atr_bpu_bsu_etc.loc[0, "high_of_bsu"] = high_of_bsu
-    df_with_level_atr_bpu_bsu_etc.loc[0, "low_of_bsu"] = low_of_bsu
-    df_with_level_atr_bpu_bsu_etc.loc[0, "close_of_bsu"] = close_of_bsu
-    df_with_level_atr_bpu_bsu_etc.loc[0, "volume_of_bsu"] = volume_of_bsu
-    df_with_level_atr_bpu_bsu_etc.loc[0, "timestamp_of_bsu"] = timestamp_of_bsu
-    df_with_level_atr_bpu_bsu_etc.loc[0, "human_time_of_bsu"] = timestamp_of_bsu_with_time
+    df_with_level_atr_bpu_bsu_etc.at[0, "open_of_bsu"] = open_of_bsu
+    df_with_level_atr_bpu_bsu_etc.at[0, "high_of_bsu"] = high_of_bsu
+    df_with_level_atr_bpu_bsu_etc.at[0, "low_of_bsu"] = low_of_bsu
+    df_with_level_atr_bpu_bsu_etc.at[0, "close_of_bsu"] = close_of_bsu
+    df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_bsu"] = volume_of_bsu
+    df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_bsu"] = timestamp_of_bsu
+    df_with_level_atr_bpu_bsu_etc.at[0, "human_time_of_bsu"] = timestamp_of_bsu_with_time
 
-    df_with_level_atr_bpu_bsu_etc.loc[0, "open_of_bpu1"] = open_of_bpu1
-    df_with_level_atr_bpu_bsu_etc.loc[0, "high_of_bpu1"] = high_of_bpu1
-    df_with_level_atr_bpu_bsu_etc.loc[0, "low_of_bpu1"] = low_of_bpu1
-    df_with_level_atr_bpu_bsu_etc.loc[0, "close_of_bpu1"] = close_of_bpu1
-    df_with_level_atr_bpu_bsu_etc.loc[0, "volume_of_bpu1"] = volume_of_bpu1
-    df_with_level_atr_bpu_bsu_etc.loc[0, "timestamp_of_bpu1"] = timestamp_of_bpu1
-    df_with_level_atr_bpu_bsu_etc.loc[0, "human_time_of_bpu1"] = timestamp_of_bpu1_with_time
+    df_with_level_atr_bpu_bsu_etc.at[0, "open_of_bpu1"] = open_of_bpu1
+    df_with_level_atr_bpu_bsu_etc.at[0, "high_of_bpu1"] = high_of_bpu1
+    df_with_level_atr_bpu_bsu_etc.at[0, "low_of_bpu1"] = low_of_bpu1
+    df_with_level_atr_bpu_bsu_etc.at[0, "close_of_bpu1"] = close_of_bpu1
+    df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_bpu1"] = volume_of_bpu1
+    df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_bpu1"] = timestamp_of_bpu1
+    df_with_level_atr_bpu_bsu_etc.at[0, "human_time_of_bpu1"] = timestamp_of_bpu1_with_time
 
-    df_with_level_atr_bpu_bsu_etc.loc[0, "min_volume_over_last_n_days"] = min_volume_over_last_n_days
-    df_with_level_atr_bpu_bsu_etc.loc[0, "min_volume_over_this_many_last_days"] = min_volume_over_this_many_last_days
+    df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_over_last_n_days"] = min_volume_over_last_n_days
+    df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_over_this_many_last_days"] = min_volume_over_this_many_last_days
 
 
 
@@ -927,8 +930,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                     except:
                         traceback.print_exc()
 
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "ticker_last_column"] = stock_name
+                    df_with_level_atr_bpu_bsu_etc.at[0, "ticker_last_column"] = stock_name
                     try:
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
@@ -1058,7 +1060,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
             #     # print ( high_of_bpu2 )
             #
             #     #calcualte atr over 5 days before bpu2. bpu2 is not included
-            #     # atr_over_this_period=5
+            #     # atr_over_this_period = 30
             #
             #
             #
@@ -1084,36 +1086,36 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
             #
             #             list_of_tickers_where_atl_is_also_limit_level.append ( stock_name )
             #             df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
             #             
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "ath"] = all_time_high
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "atr"] = atr
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "atr_over_this_period"] = atr_over_this_period
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr_over_this_period"] =\
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "ath"] = all_time_high
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "atr"] = atr
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "atr_over_this_period"] = atr_over_this_period
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr_over_this_period"] =\
             #                 advanced_atr_over_this_period
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "backlash"] = backlash
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "acceptable_backlash"] = acceptable_backlash
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "high_of_bsu"] = high_of_bsu
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "high_of_bpu1"] = high_of_bpu1
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "high_of_bpu2"] = high_of_bpu2
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "backlash"] = backlash
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "acceptable_backlash"] = acceptable_backlash
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_bsu"] = high_of_bsu
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_bpu1"] = high_of_bpu1
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_bpu2"] = high_of_bpu2
             #
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "true_high_of_bsu"] = true_high_of_bsu
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "true_high_of_bpu1"] = true_high_of_bpu1
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "true_high_of_bpu2"] = true_high_of_bpu2
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "close_of_bpu2"] = close_of_bpu2
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "open_of_tvx"] = open_of_tvx
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "volume_of_bsu"] = volume_of_bsu
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "volume_of_bpu1"] = volume_of_bpu1
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "volume_of_bpu2"] = volume_of_bpu2
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "true_high_of_bsu"] = true_high_of_bsu
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "true_high_of_bpu1"] = true_high_of_bpu1
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "true_high_of_bpu2"] = true_high_of_bpu2
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_bpu2"] = close_of_bpu2
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_tvx"] = open_of_tvx
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bsu"] = volume_of_bsu
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bpu1"] = volume_of_bpu1
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bpu2"] = volume_of_bpu2
             #
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "timestamp_of_bsu"] = timestamp_of_bsu
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "timestamp_of_bpu1"] = timestamp_of_bpu1
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "timestamp_of_bpu2"] = timestamp_of_bpu2
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "human_time_of_bsu"] = timestamp_of_bsu_with_time
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "human_time_of_bpu1"] = timestamp_of_bpu1_with_time
-            #             df_with_level_atr_bpu_bsu_etc.loc[0 , "human_time_of_bpu2"] = timestamp_of_bpu2_with_time
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bsu"] = timestamp_of_bsu
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bpu1"] = timestamp_of_bpu1
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bpu2"] = timestamp_of_bpu2
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "human_time_of_bsu"] = timestamp_of_bsu_with_time
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "human_time_of_bpu1"] = timestamp_of_bpu1_with_time
+            #             df_with_level_atr_bpu_bsu_etc.at[0 , "human_time_of_bpu2"] = timestamp_of_bpu2_with_time
             #
             #             df_with_level_atr_bpu_bsu_etc.to_sql (
             #                 table_where_ticker_which_had_ath_equal_to_limit_level ,
@@ -1147,9 +1149,9 @@ if __name__=="__main__":
         db_where_levels_formed_by_rebound_level_will_be="round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     #0.05 means 5%
     acceptable_backlash=0.05
-    atr_over_this_period=5
+    atr_over_this_period = 30
     advanced_atr_over_this_period=30
-    min_volume_over_this_many_last_days=30
+    min_volume_over_this_many_last_days=7
     search_for_tickers_with_rebound_situations(
                                               db_where_ohlcv_data_for_stocks_is_stored,
                                               db_where_levels_formed_by_rebound_level_will_be,

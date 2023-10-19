@@ -26,6 +26,7 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_las
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
@@ -952,12 +953,12 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             #
             #                                             list_of_stocks_approaching_ath.append ( stock_name )
             #                                             df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-            #                                             df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-            #                                             df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
+            #                                             df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+            #                                             df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
             #                                             
             #                                             df_with_level_atr_bpu_bsu_etc.loc[
             #                                                 0 , "ath"] = current_ath_in_iteration_over_numpy_array
-            #                                             df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
+            #                                             df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
             #
             #                                             df_with_level_atr_bpu_bsu_etc.loc[
             #                                                 0 , "advanced_atr_over_this_period"] = \
@@ -1002,12 +1003,12 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             #
             #                                 list_of_stocks_approaching_ath.append ( stock_name )
             #                                 df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-            #                                 df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-            #                                 df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
+            #                                 df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+            #                                 df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
             #                                 
             #                                 df_with_level_atr_bpu_bsu_etc.loc[
             #                                     0 , "ath"] = current_ath_in_iteration_over_numpy_array
-            #                                 df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
+            #                                 df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
             #
             #                                 df_with_level_atr_bpu_bsu_etc.loc[
             #                                     0 , "advanced_atr_over_this_period"] = \
@@ -1196,32 +1197,23 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                         date_and_time_of_atl , date_of_atl=get_date_with_and_without_time_from_timestamp(timestamp_of_current_atl)
                                                         list_of_stocks_approaching_atl.append ( stock_name )
                                                         df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-                                                        df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-                                                        df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
                                                         
-                                                        df_with_level_atr_bpu_bsu_etc.loc[0 , "atl"] = current_atl_in_iteration_over_numpy_array
-                                                        df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "atl"] = current_atl_in_iteration_over_numpy_array
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
 
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "advanced_atr_over_this_period"] = \
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr_over_this_period"] = \
                                                             advanced_atr_over_this_period
-                                                        df_with_level_atr_bpu_bsu_etc.loc[0 , "low_of_bsu"] = current_atl_in_iteration_over_numpy_array
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "volume_of_bsu"] = volume_in_current_atl
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "timestamp_of_bsu"] = timestamp_of_current_atl
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "human_date_of_bsu"] = date_of_atl
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "timestamp_of_pre_breakout_bar"] = current_timestamp
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "human_date_of_pre_breakout_bar"] = date_of_current_timestamp
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "open_of_possible_breakout_bar"] = open_of_possible_breakout_bar
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
-                                                        df_with_level_atr_bpu_bsu_etc.loc[
-                                                            0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_bsu"] = current_atl_in_iteration_over_numpy_array
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bsu"] = volume_in_current_atl
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bsu"] = timestamp_of_current_atl
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_bsu"] = date_of_atl
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_pre_breakout_bar"] = current_timestamp
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_pre_breakout_bar"] = date_of_current_timestamp
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_possible_breakout_bar"] = open_of_possible_breakout_bar
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
+                                                        df_with_level_atr_bpu_bsu_etc.at[0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
 
                                                         try:
                                                             asset_type, maker_fee, taker_fee, url_of_trading_pair = \
@@ -1298,36 +1290,24 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                                                 timestamp_of_current_atl )
                                             list_of_stocks_approaching_atl.append ( stock_name )
                                             df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-                                            df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-                                            df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0, "model"] = "БЫСТРЫЙ_ПРОБОЙ_ATL"
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
+                                            df_with_level_atr_bpu_bsu_etc.at[0, "model"] = "БЫСТРЫЙ_ПРОБОЙ_ATL"
                                             
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "atl"] = current_atl_in_iteration_over_numpy_array
-                                            df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "atl"] = current_atl_in_iteration_over_numpy_array
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
 
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "advanced_atr_over_this_period"] = \
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr_over_this_period"] = \
                                                 advanced_atr_over_this_period
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "low_of_bsu"] = current_atl_in_iteration_over_numpy_array
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "volume_of_bsu"] = volume_in_current_atl
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "timestamp_of_bsu"] = timestamp_of_current_atl
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "human_date_of_bsu"] = date_of_atl
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "timestamp_of_pre_breakout_bar"] = current_timestamp
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "human_date_of_pre_breakout_bar"] = date_of_current_timestamp
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "open_of_possible_breakout_bar"] = open_of_possible_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_bsu"] = current_atl_in_iteration_over_numpy_array
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bsu"] = volume_in_current_atl
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bsu"] = timestamp_of_current_atl
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_bsu"] = date_of_atl
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_pre_breakout_bar"] = current_timestamp
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_pre_breakout_bar"] = date_of_current_timestamp
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_possible_breakout_bar"] = open_of_possible_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
 
                                             df_with_level_atr_bpu_bsu_etc.to_sql (
                                                 table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be ,
@@ -1374,7 +1354,7 @@ if __name__=="__main__":
             "round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     #0.05 means 5%
     acceptable_backlash=0.05
-    atr_over_this_period=5
+    atr_over_this_period = 30
     advanced_atr_over_this_period=30
     number_of_bars_in_suppression_to_check_for_volume_acceptance=30
     search_for_tickers_with_breakout_situations(

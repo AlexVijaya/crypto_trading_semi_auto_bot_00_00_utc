@@ -18,6 +18,7 @@ import os
 from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
 from current_search_for_tickers_with_rebound_situations_off_atl import get_ohlc_of_bpu2
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
 from current_search_for_tickers_with_fast_breakout_of_atl import get_date_with_and_without_time_from_timestamp
 import time
 import traceback
@@ -470,7 +471,7 @@ def verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_of
             print(table_with_ohlcv_data_df.loc[0, "close"])
 
             last_close_price = get_last_close_price_of_asset(table_with_ohlcv_data_df)
-            number_of_zeroes_in_price = count_zeros(last_close_price)
+            number_of_zeroes_in_price = count_zeros_number_with_e_notaton_is_acceptable(last_close_price)
 
             # round high and low to two decimal number
             truncated_high_and_low_table_with_ohlcv_data_df["high"] = \
@@ -705,7 +706,7 @@ def verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_of
                 # print ( high_of_bpu2 )
 
                 # calcualte atr over 5 days before bpu2. bpu2 is not included
-                # atr_over_this_period=5
+                # atr_over_this_period = 30
 
                 asset_not_open_into_level_bool = \
                     check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level(acceptable_backlash, advanced_atr, open_of_bsu,
@@ -822,7 +823,7 @@ def verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_of
             # print ( table_with_ohlcv_data_df.loc[0 , "close"] )
 
             last_close_price = get_last_close_price_of_asset(table_with_ohlcv_data_df)
-            number_of_zeroes_in_price = count_zeros(last_close_price)
+            number_of_zeroes_in_price = count_zeros_number_with_e_notaton_is_acceptable(last_close_price)
 
             # round high and low to two decimal number
             truncated_high_and_low_table_with_ohlcv_data_df["high"] = \
@@ -1040,7 +1041,7 @@ def verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_of
                 # print ( low_of_bpu2 )
 
                 # calcualte atr over 5 days before bpu2. bpu2 is not included
-                # atr_over_this_period = 5
+                # atr_over_this_period = 30
 
                 asset_not_open_into_level_bool = \
                     check_if_bsu_bpu1_bpu2_do_not_open_into_atl_level(acceptable_backlash, advanced_atr, open_of_bsu,
@@ -1744,11 +1745,11 @@ def verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situat
             # print(f"Close of pre-false_breakout bar: {close_of_pre_false_breakout_bar}")
             # print(f"Volume of pre-false_breakout bar: {volume_of_pre_false_breakout_bar}")
 
-            if last_two_years_of_data.tail(30)['volume'].min() < 750:
-                continue
-
-            if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
-                continue
+            # if last_two_years_of_data.tail(30)['volume'].min() < 750:
+            #     continue
+            #
+            # if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
+            #     continue
 
             # find all time low in last_two_years_of_data_but_one_last_day
             all_time_low = last_two_years_of_data_but_two_last_days['low'].min()
@@ -2051,11 +2052,11 @@ def verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situat
             # print(f"Close of pre-false_breakout bar: {close_of_pre_false_breakout_bar}")
             # print(f"Volume of pre-false_breakout bar: {volume_of_pre_false_breakout_bar}")
 
-            if last_two_years_of_data.tail(30)['volume'].min() < 750:
-                continue
-
-            if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
-                continue
+            # if last_two_years_of_data.tail(30)['volume'].min() < 750:
+            #     continue
+            #
+            # if close_of_false_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
+            #     continue
 
             # find all time high in last_two_years_of_data_but_one_last_day
             all_time_high = last_two_years_of_data_but_two_last_days['high'].max()
@@ -2306,6 +2307,8 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
             # Find Timestamp, open, high, low, close, volume of breakout_bar
             timestamp_of_breakout_bar = last_two_years_of_data.loc[
                 breakout_bar_row_number, 'Timestamp']
+            date_and_time_of_breakout_bar, date_of_breakout_bar = get_date_with_and_without_time_from_timestamp(
+                timestamp_of_breakout_bar)
             open_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'open']
             high_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'high']
             low_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'low']
@@ -2373,11 +2376,11 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
             # print(f"Close of pre-breakout bar: {close_of_pre_breakout_bar}")
             # print(f"Volume of pre-breakout bar: {volume_of_pre_breakout_bar}")
 
-            if last_two_years_of_data.tail(30)['volume'].min() < 750:
-                continue
-
-            if close_of_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
-                continue
+            # if last_two_years_of_data.tail(30)['volume'].min() < 750:
+            #     continue
+            #
+            # if close_of_breakout_bar < 1 and last_two_years_of_data.tail(30)['volume'].min() < 1000:
+            #     continue
 
             # find all time high in last_two_years_of_data_but_one_last_day
             all_time_high = last_two_years_of_data_but_two_last_days['high'].max()
@@ -2626,6 +2629,8 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
             # Find Timestamp, open, high, low, close, volume of breakout_bar
             timestamp_of_breakout_bar = last_two_years_of_data.loc[
                 breakout_bar_row_number, 'Timestamp']
+            date_and_time_of_breakout_bar, date_of_breakout_bar = get_date_with_and_without_time_from_timestamp(
+                timestamp_of_breakout_bar)
             open_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'open']
             high_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'high']
             low_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'low']
@@ -2928,6 +2933,8 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
             # Find Timestamp, open, high, low, close, volume of breakout_bar
             timestamp_of_breakout_bar = last_two_years_of_data.loc[
                 breakout_bar_row_number, 'Timestamp']
+            date_and_time_of_breakout_bar, date_of_breakout_bar = get_date_with_and_without_time_from_timestamp(
+                timestamp_of_breakout_bar)
             open_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'open']
             high_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'high']
             low_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'low']
@@ -3234,6 +3241,8 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
             # Find Timestamp, open, high, low, close, volume of breakout_bar
             timestamp_of_breakout_bar = last_two_years_of_data.loc[
                 breakout_bar_row_number, 'Timestamp']
+            date_and_time_of_breakout_bar, date_of_breakout_bar = get_date_with_and_without_time_from_timestamp(
+                timestamp_of_breakout_bar)
             open_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'open']
             high_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'high']
             low_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'low']
@@ -3504,6 +3513,8 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
             #     0, "close_of_breakout_bar"] = close_of_breakout_bar
             # df_with_level_atr_bpu_bsu_etc.loc[
             #     0, "volume_of_breakout_bar"] = volume_of_breakout_bar
+            # df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_breakout_bar"] = timestamp_of_breakout_bar
+            # df_with_level_atr_bpu_bsu_etc.at[0, "human_date_of_breakout_bar"] = date_of_breakout_bar
             #
             # df_with_level_atr_bpu_bsu_etc.loc[
             #     0, "min_volume_over_last_n_days"] = last_two_years_of_data['volume'].tail(
@@ -3549,13 +3560,13 @@ def verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_o
             #     asset_type, maker_fee, taker_fee, url_of_trading_pair = \
             #         get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
             #
-            #     df_with_level_atr_bpu_bsu_etc.loc[0, "asset_type"] = asset_type
-            #     df_with_level_atr_bpu_bsu_etc.loc[0, "maker_fee"] = maker_fee
-            #     df_with_level_atr_bpu_bsu_etc.loc[0, "taker_fee"] = taker_fee
-            #     df_with_level_atr_bpu_bsu_etc.loc[0, "url_of_trading_pair"] = url_of_trading_pair
-            #     df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
+            #     df_with_level_atr_bpu_bsu_etc.at[0, "asset_type"] = asset_type
+            #     df_with_level_atr_bpu_bsu_etc.at[0, "maker_fee"] = maker_fee
+            #     df_with_level_atr_bpu_bsu_etc.at[0, "taker_fee"] = taker_fee
+            #     df_with_level_atr_bpu_bsu_etc.at[0, "url_of_trading_pair"] = url_of_trading_pair
+            #     df_with_level_atr_bpu_bsu_etc.at[0, "number_of_available_bars"] = number_of_available_days
             #     try:
-            #         df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"] = \
+            #         df_with_level_atr_bpu_bsu_etc.at[0, "trading_pair_is_traded_with_margin"] = \
             #             get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
             #     except:
             #         traceback.print_exc()

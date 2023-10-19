@@ -26,6 +26,7 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_las
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
@@ -35,6 +36,11 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_df_result_of_return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_info_to_df_about_all_time_high_number_of_times_it_was_touched_its_timestamps_and_datetimes
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_info_to_df_about_all_time_low_number_of_times_it_was_touched_its_timestamps_and_datetimes
+from drop_historical_ohlcv_the_length_of_which_is_a_multiple_of_100_without_deleting_primary_db_and_without_deleting_db_with_low_volume import is_length_multiple_of_100
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_trading_pairs_to_sql_table_if_they_were_processed
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import create_empty_table_if_it_does_not_exist_or_return_list_of_already_processed_pairs_if_table_exists
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -671,9 +677,9 @@ def find_min_volume_over_last_n_days(
 
 
 def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_is_stored,
-                                                db_where_ticker_which_may_have_fast_breakout_situations,
-                                                table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
-                                                table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+                                                db_where_ticker_which_may_have_false_breakout_situations,
+                                                table_where_ticker_which_may_have_false_breakout_situations_from_ath_will_be,
+                                                table_where_ticker_which_may_have_false_breakout_situations_from_atl_will_be,
                                                 advanced_atr_over_this_period,
                                                 number_of_bars_in_suppression_to_check_for_volume_acceptance,
                                                 factor_to_multiply_atr_by_to_check_suppression,
@@ -684,23 +690,50 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
         connect_to_postgres_db_without_deleting_it_first(db_where_ohlcv_data_for_stocks_is_stored)
 
     # engine_for_db_where_ticker_which_may_have_breakout_situations, \
-    #     connection_to_db_where_ticker_which_may_have_fast_breakout_situations = \
-    #     connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_fast_breakout_situations)
+    #     connection_to_db_where_ticker_which_may_have_false_breakout_situations = \
+    #     connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_false_breakout_situations)
     #
     # engine_for_db_where_ticker_which_may_have_breakout_situations_no_drop, \
-    #     connection_to_db_where_ticker_which_may_have_fast_breakout_situations_no_drop = \
+    #     connection_to_db_where_ticker_which_may_have_false_breakout_situations_no_drop = \
     #     connect_to_postgres_db_without_deleting_it_first(
-    #         db_where_ticker_which_may_have_fast_breakout_situations + "_no_drop")
+    #         db_where_ticker_which_may_have_false_breakout_situations + "_no_drop")
 
     engine_for_db_where_ticker_which_may_have_breakout_situations_hist, \
-        connection_to_db_where_ticker_which_may_have_fast_breakout_situations_hist = \
+        connection_to_db_where_ticker_which_may_have_false_breakout_situations_hist = \
         connect_to_postgres_db_without_deleting_it_first(
-            db_where_ticker_which_may_have_fast_breakout_situations + "_hist")
+            db_where_ticker_which_may_have_false_breakout_situations + "_hist")
 
-    # drop_table(table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
+    # drop_table(table_where_ticker_which_may_have_false_breakout_situations_from_ath_will_be,
     #            engine_for_db_where_ticker_which_may_have_breakout_situations)
-    drop_table ( table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be ,
-                 engine_for_db_where_ticker_which_may_have_breakout_situations_hist )
+
+    ##############################
+    ##############################
+    ##############################
+    engine_for_db_where_ticker_which_may_have_false_breakout_situations_processed, \
+        connection_to_db_where_ticker_which_may_have_false_breakout_situations_processed = \
+        connect_to_postgres_db_without_deleting_it_first(
+            db_where_ticker_which_may_have_false_breakout_situations + "_processed")
+    list_of_tables_in_db_where_ticker_which_may_have_false_breakout_situations_processed = \
+        get_list_of_tables_in_db(engine_for_db_where_ticker_which_may_have_false_breakout_situations_processed)
+    list_of_already_processed_pairs = []
+    ############################
+    ############################
+    ############################
+    column_name = "already_processed_pairs_for_this_bfr"
+    table_where_ticker_which_may_have_false_breakout_situations_from_ath_or_atl_will_be = table_where_ticker_which_may_have_false_breakout_situations_from_atl_will_be
+    list_of_already_processed_pairs, \
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run = \
+        create_empty_table_if_it_does_not_exist_or_return_list_of_already_processed_pairs_if_table_exists(
+            column_name,
+            db_where_ticker_which_may_have_false_breakout_situations,
+            table_where_ticker_which_may_have_false_breakout_situations_from_ath_or_atl_will_be)
+    ############################
+    ############################
+    ############################
+
+    # uncomment this drop if you want to create table with bfr again every time the program is launched
+    # drop_table ( table_where_ticker_which_may_have_false_breakout_situations_from_atl_will_be ,
+    #              engine_for_db_where_ticker_which_may_have_breakout_situations_hist )
 
     list_of_tables_in_ohlcv_db = \
         get_list_of_tables_in_db(engine_for_ohlcv_data_for_stocks)
@@ -770,7 +803,23 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             print(f'{stock_name} is'
                   f' number {counter} out of {len(list_of_tables_in_ohlcv_db)}\n')
 
+            ##############################
+            ##############################
+            ##############################
+            if stock_name in list_of_already_processed_pairs:
+                print(f"{stock_name} has_been_discarded")
+                continue
 
+            add_trading_pairs_to_sql_table_if_they_were_processed(
+                table_where_ticker_which_may_have_false_breakout_situations_from_ath_or_atl_will_be,
+                engine_for_db_where_ticker_which_may_have_false_breakout_situations_processed,
+                list_of_already_processed_pairs,
+                column_name,
+                stock_name,
+                df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run)
+            ######################
+            ######################
+            ######################
 
             # if stock_name not in ['MCOIN_USDT_on_lbank'] :
             #     continue
@@ -779,6 +828,9 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
             table_with_ohlcv_data_df = \
                 pd.read_sql_query(f'''select * from "{stock_name}"''',
                                   engine_for_ohlcv_data_for_stocks)
+
+            if is_length_multiple_of_100(table_with_ohlcv_data_df):
+                continue
 
             entire_original_table_with_ohlcv_data_df = pd.DataFrame()
             try:
@@ -1092,99 +1144,59 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 print(list_of_stocks_which_broke_atl)
 
                 df_with_level_atr_bpu_bsu_etc = pd.DataFrame()
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "ticker"] = stock_name
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "exchange"] = exchange
+                df_with_level_atr_bpu_bsu_etc.at[0, "ticker"] = stock_name
+                df_with_level_atr_bpu_bsu_etc.at[0, "exchange"] = exchange
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "model"] = "ЛОЖНЫЙ_ПРОБОЙ_ATL_1Б"
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "atl"] = all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "advanced_atr"] = advanced_atr
+                df_with_level_atr_bpu_bsu_etc.at[0, "model"] = "ЛОЖНЫЙ_ПРОБОЙ_ATL_1Б"
+                df_with_level_atr_bpu_bsu_etc.at[0, "atl"] = all_time_low
+                df_with_level_atr_bpu_bsu_etc.at[0, "advanced_atr"] = advanced_atr
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "advanced_atr_over_this_period"] = \
+                df_with_level_atr_bpu_bsu_etc.at[0, "advanced_atr_over_this_period"] = \
                     advanced_atr_over_this_period
                 # df_with_level_atr_bpu_bsu_etc.loc[
                 #     0, "low_of_bsu"] = all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "open_of_bsu"] = open_of_last_all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "high_of_bsu"] = high_of_last_all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "low_of_bsu"] = low_of_last_all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "close_of_bsu"] = close_of_last_all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "volume_of_bsu"] = volume_of_last_all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "timestamp_of_bsu"] = timestamp_of_last_all_time_low
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "human_date_of_bsu"] = date_of_last_ath
+                df_with_level_atr_bpu_bsu_etc.at[0, "open_of_bsu"] = open_of_last_all_time_low
+                df_with_level_atr_bpu_bsu_etc.at[0, "high_of_bsu"] = high_of_last_all_time_low
+                df_with_level_atr_bpu_bsu_etc.at[0, "low_of_bsu"] = low_of_last_all_time_low
+                df_with_level_atr_bpu_bsu_etc.at[0, "close_of_bsu"] = close_of_last_all_time_low
+                df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_bsu"] = volume_of_last_all_time_low
+                df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_bsu"] = timestamp_of_last_all_time_low
+                df_with_level_atr_bpu_bsu_etc.at[0, "human_date_of_bsu"] = date_of_last_ath
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "timestamp_of_pre_false_breakout_bar"] = timestamp_of_pre_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "human_date_of_pre_false_breakout_bar"] = date_of_pre_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "open_of_pre_false_breakout_bar"] = open_of_pre_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "high_of_pre_false_breakout_bar"] = high_of_pre_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "low_of_pre_false_breakout_bar"] = low_of_pre_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "close_of_pre_false_breakout_bar"] = close_of_pre_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "volume_of_pre_false_breakout_bar"] = volume_of_pre_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_pre_false_breakout_bar"] = timestamp_of_pre_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "human_date_of_pre_false_breakout_bar"] = date_of_pre_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "open_of_pre_false_breakout_bar"] = open_of_pre_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "high_of_pre_false_breakout_bar"] = high_of_pre_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "low_of_pre_false_breakout_bar"] = low_of_pre_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "close_of_pre_false_breakout_bar"] = close_of_pre_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_pre_false_breakout_bar"] = volume_of_pre_false_breakout_bar
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "timestamp_of_false_breakout_bar"] = timestamp_of_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "human_date_of_false_breakout_bar"] = date_of_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "open_of_false_breakout_bar"] = open_of_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "high_of_false_breakout_bar"] = high_of_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "low_of_false_breakout_bar"] = low_of_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "close_of_false_breakout_bar"] = close_of_false_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "volume_of_false_breakout_bar"] = volume_of_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_false_breakout_bar"] = timestamp_of_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "human_date_of_false_breakout_bar"] = date_of_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "open_of_false_breakout_bar"] = open_of_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "high_of_false_breakout_bar"] = high_of_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "low_of_false_breakout_bar"] = low_of_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "close_of_false_breakout_bar"] = close_of_false_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_false_breakout_bar"] = volume_of_false_breakout_bar
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "min_volume_over_last_n_days"] = last_two_years_of_data['volume'].tail(
+                df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_over_last_n_days"] = last_two_years_of_data['volume'].tail(
                     count_min_volume_over_this_many_days).min()
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
+                df_with_level_atr_bpu_bsu_etc.at[0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "buy_order"] = buy_order
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "technical_stop_loss"] =technical_stop_loss
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_3_1"] = take_profit_when_stop_loss_is_technical_3_to_1
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_4_1"] = take_profit_when_stop_loss_is_technical_4_to_1
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "distance_between_technical_sl_and_buy_order_in_atr"] =\
+                df_with_level_atr_bpu_bsu_etc.at[0, "buy_order"] = buy_order
+                df_with_level_atr_bpu_bsu_etc.at[0, "technical_stop_loss"] =technical_stop_loss
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_3_1"] = take_profit_when_stop_loss_is_technical_3_to_1
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_4_1"] = take_profit_when_stop_loss_is_technical_4_to_1
+                df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_technical_sl_and_buy_order_in_atr"] =\
                     distance_between_technical_stop_loss_and_buy_order_in_atr
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "distance_between_technical_sl_and_buy_order"] = \
+                df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_technical_sl_and_buy_order"] = \
                     distance_between_technical_stop_loss_and_buy_order
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "row_number_of_false_breakout_bar"] = false_breakout_bar_row_number
+                df_with_level_atr_bpu_bsu_etc.at[0, "row_number_of_false_breakout_bar"] = false_breakout_bar_row_number
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "suppression_by_highs"] = suppression_flag_for_highs
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "number_of_bars_when_we_check_suppression_by_highs"] = number_of_bars_when_we_check_suppression_by_highs
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "suppression_by_closes"] = suppression_flag_for_closes
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "number_of_bars_when_we_check_suppression_by_closes"] = number_of_bars_when_we_check_suppression_by_closes
+                df_with_level_atr_bpu_bsu_etc.at[0, "suppression_by_highs"] = suppression_flag_for_highs
+                df_with_level_atr_bpu_bsu_etc.at[0, "number_of_bars_when_we_check_suppression_by_highs"] = number_of_bars_when_we_check_suppression_by_highs
+                df_with_level_atr_bpu_bsu_etc.at[0, "suppression_by_closes"] = suppression_flag_for_closes
+                df_with_level_atr_bpu_bsu_etc.at[0, "number_of_bars_when_we_check_suppression_by_closes"] = number_of_bars_when_we_check_suppression_by_closes
 
                 print("df_with_level_atr_bpu_bsu_etc")
                 print(df_with_level_atr_bpu_bsu_etc.to_string())
@@ -1193,13 +1205,13 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                     asset_type, maker_fee, taker_fee, url_of_trading_pair = \
                         get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
 
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"asset_type"] = asset_type
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"maker_fee"] = maker_fee
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"taker_fee"] = taker_fee
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"url_of_trading_pair"] = url_of_trading_pair
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
+                    df_with_level_atr_bpu_bsu_etc.at[0,"asset_type"] = asset_type
+                    df_with_level_atr_bpu_bsu_etc.at[0,"maker_fee"] = maker_fee
+                    df_with_level_atr_bpu_bsu_etc.at[0,"taker_fee"] = taker_fee
+                    df_with_level_atr_bpu_bsu_etc.at[0,"url_of_trading_pair"] = url_of_trading_pair
+                    df_with_level_atr_bpu_bsu_etc.at[0, "number_of_available_bars"] = number_of_available_days
                     try:
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
+                        df_with_level_atr_bpu_bsu_etc.at[0, "trading_pair_is_traded_with_margin"]=\
                             get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
                     except:
                         traceback.print_exc()
@@ -1232,46 +1244,33 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 # except:
                 #     traceback.print_exc()
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "ticker_last_column"] = stock_name
+                df_with_level_atr_bpu_bsu_etc.at[0, "ticker_last_column"] = stock_name
                 try:
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
+                    df_with_level_atr_bpu_bsu_etc.at[0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
                 except:
                     traceback.print_exc()
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "ticker_will_be_traced_and_position_entered"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "ticker_will_be_traced_and_position_entered"] = False
 
                 side = "buy"
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "side"] = side
+                df_with_level_atr_bpu_bsu_etc.at[0, "side"] = side
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "stop_loss_is_technical"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "stop_loss_is_calculated"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_is_technical"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_is_calculated"] = False
 
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "market_or_limit_stop_loss"] = 'market'
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "market_or_limit_take_profit"] = 'limit'
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "position_size"] = 0
+                df_with_level_atr_bpu_bsu_etc.at[0, "market_or_limit_stop_loss"] = 'market'
+                df_with_level_atr_bpu_bsu_etc.at[0, "market_or_limit_take_profit"] = 'limit'
+                df_with_level_atr_bpu_bsu_etc.at[0, "position_size"] = 0
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_x_to_one"] = 3
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_x_to_one"] = 3
 
                 #########################################################################
                 #########################################################################
                 #########################################################################
                 try:
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "exchange_names_string_where_trading_pair_is_traded"] = exchange_names_string_where_trading_pair_is_traded
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "exchange_id_string_where_trading_pair_is_traded"] = exchange_id_string_where_trading_pair_is_traded
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "number_of_exchanges_where_pair_is_traded_on"] = number_of_exchanges_where_pair_is_traded_on
+                    df_with_level_atr_bpu_bsu_etc.at[0, "exchange_names_string_where_trading_pair_is_traded"] = exchange_names_string_where_trading_pair_is_traded
+                    df_with_level_atr_bpu_bsu_etc.at[0, "exchange_id_string_where_trading_pair_is_traded"] = exchange_id_string_where_trading_pair_is_traded
+                    df_with_level_atr_bpu_bsu_etc.at[0, "number_of_exchanges_where_pair_is_traded_on"] = number_of_exchanges_where_pair_is_traded_on
                 except:
                     traceback.print_exc()
 
@@ -1280,34 +1279,30 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 #########################################################################
 
                 # Choose whether to use spot trading or margin trading with either cross or isolated margin
-                df_with_level_atr_bpu_bsu_etc.loc[0, "spot_without_margin"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[0, "margin"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[0, "cross_margin"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[0, "isolated_margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "spot_without_margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "cross_margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "isolated_margin"] = False
 
                 try:
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "final_position_entry_price"] = buy_order
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "final_stop_loss_price"] = technical_stop_loss
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "final_position_entry_price_default_value"] = buy_order
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "final_stop_loss_price_default_value"] = technical_stop_loss
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "final_take_profit_price"] = take_profit_when_stop_loss_is_technical_3_to_1
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "final_take_profit_price_default_value"] = take_profit_when_stop_loss_is_technical_3_to_1
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_position_entry_price"] = buy_order
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_stop_loss_price"] = technical_stop_loss
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_position_entry_price_default_value"] = buy_order
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_stop_loss_price_default_value"] = technical_stop_loss
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_take_profit_price"] = take_profit_when_stop_loss_is_technical_3_to_1
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_take_profit_price_default_value"] = take_profit_when_stop_loss_is_technical_3_to_1
 
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "timestamp_when_bfr_was_found"] = int(time.time())
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
+                    df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_bfr_was_found"] = int(time.time())
+                    df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
                 except:
                     traceback.print_exc()
 
 
                 try:
                     # add info to df if sl, order, and tp were reached
-                    df_with_level_atr_bpu_bsu_etc=add_to_df_result_of_return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(
+                    level_price=all_time_low
+                    df_with_level_atr_bpu_bsu_etc=add_to_df_result_of_return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(level_price,
+                        advanced_atr,
                         df_with_level_atr_bpu_bsu_etc,
                         index_in_iteration,
                         entire_original_table_with_ohlcv_data_df,
@@ -1318,16 +1313,25 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 except:
                     traceback.print_exc()
 
+                round_to_this_number_of_non_zero_digits = 2
+                try:
+                    df_with_level_atr_bpu_bsu_etc = add_info_to_df_about_all_time_low_number_of_times_it_was_touched_its_timestamps_and_datetimes(
+                        all_time_low,
+                        df_with_level_atr_bpu_bsu_etc,
+                        last_two_years_of_data,
+                        round_to_this_number_of_non_zero_digits)
+                except:
+                    traceback.print_exc()
                 try:
                     df_with_level_atr_bpu_bsu_etc.to_sql(
-                        table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+                        table_where_ticker_which_may_have_false_breakout_situations_from_atl_will_be,
                         engine_for_db_where_ticker_which_may_have_breakout_situations_hist,
                         if_exists='append')
                 except:
                     traceback.print_exc()
 
                 # df_with_level_atr_bpu_bsu_etc.to_sql(
-                #     table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+                #     table_where_ticker_which_may_have_false_breakout_situations_from_atl_will_be,
                 #     engine_for_db_where_ticker_which_may_have_breakout_situations,
                 #     if_exists='append')
                 # print_df_to_file(df_with_level_atr_bpu_bsu_etc,
@@ -1350,30 +1354,30 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
 if __name__ == "__main__":
     start_time = time.time()
-    db_where_ohlcv_data_for_stocks_is_stored = "ohlcv_1d_data_for_usdt_pairs_0000"
+    db_where_ohlcv_data_for_stocks_is_stored = "ohlcv_1d_data_for_usdt_pairs_0000_pagination"
     count_only_round_level = False
-    db_where_ticker_which_may_have_fast_breakout_situations = \
+    db_where_ticker_which_may_have_false_breakout_situations = \
         "levels_formed_by_highs_and_lows_for_cryptos_0000"
-    table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be = \
+    table_where_ticker_which_may_have_false_breakout_situations_from_ath_will_be = \
         "current_false_breakout_of_ath_by_one_bar"
-    table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be = \
+    table_where_ticker_which_may_have_false_breakout_situations_from_atl_will_be = \
         "current_false_breakout_of_atl_by_one_bar"
 
     if count_only_round_level:
-        db_where_ticker_which_may_have_fast_breakout_situations = \
+        db_where_ticker_which_may_have_false_breakout_situations = \
             "round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     # 0.05 means 5%
 
-    atr_over_this_period = 5
+    atr_over_this_period = 30
     advanced_atr_over_this_period = 30
     number_of_bars_in_suppression_to_check_for_volume_acceptance = 14
     factor_to_multiply_atr_by_to_check_suppression = 1
     count_min_volume_over_this_many_days = 7
     search_for_tickers_with_breakout_situations(
         db_where_ohlcv_data_for_stocks_is_stored,
-        db_where_ticker_which_may_have_fast_breakout_situations,
-        table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
-        table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+        db_where_ticker_which_may_have_false_breakout_situations,
+        table_where_ticker_which_may_have_false_breakout_situations_from_ath_will_be,
+        table_where_ticker_which_may_have_false_breakout_situations_from_atl_will_be,
         advanced_atr_over_this_period,
         number_of_bars_in_suppression_to_check_for_volume_acceptance,
         factor_to_multiply_atr_by_to_check_suppression, count_min_volume_over_this_many_days)

@@ -26,6 +26,7 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_las
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
 from get_info_from_load_markets import get_spread
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
@@ -39,6 +40,12 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_df_result_of_return_bool_whether_technical_sl_tp_and_sell_order_have_been_reached
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_sell_order_have_been_reached
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_info_to_df_about_all_time_high_number_of_times_it_was_touched_its_timestamps_and_datetimes
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_info_to_df_about_all_time_low_number_of_times_it_was_touched_its_timestamps_and_datetimes
+from drop_historical_ohlcv_the_length_of_which_is_a_multiple_of_100_without_deleting_primary_db_and_without_deleting_db_with_low_volume import is_length_multiple_of_100
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import add_trading_pairs_to_sql_table_if_they_were_processed
+from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import create_empty_table_if_it_does_not_exist_or_return_list_of_already_processed_pairs_if_table_exists
+
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
@@ -662,12 +669,10 @@ def create_text_file_and_writ_text_to_it(text, subdirectory_name):
 
 
 
-
-
 def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_is_stored,
-                                          db_where_ticker_which_may_have_fast_breakout_situations,
-                                               table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be ,
-                                               table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+                                          db_where_ticker_which_may_have_breakout_situations,
+                                               table_where_ticker_which_may_have_breakout_situations_from_ath_will_be ,
+                                               table_where_ticker_which_may_have_breakout_situations_from_atl_will_be,
                                                advanced_atr_over_this_period,
                                                 number_of_bars_in_suppression_to_check_for_volume_acceptance,
                                                 factor_to_multiply_atr_by_to_check_suppression,
@@ -679,18 +684,49 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
     connection_to_ohlcv_data_for_stocks = \
         connect_to_postgres_db_without_deleting_it_first ( db_where_ohlcv_data_for_stocks_is_stored )
 
-    # engine_for_db_where_ticker_which_may_have_fast_breakout_situations , \
-    # connection_to_db_where_ticker_which_may_have_fast_breakout_situations = \
-    #     connect_to_postgres_db_without_deleting_it_first ( db_where_ticker_which_may_have_fast_breakout_situations )
+    # engine_for_db_where_ticker_which_may_have_breakout_situations , \
+    # connection_to_db_where_ticker_which_may_have_breakout_situations = \
+    #     connect_to_postgres_db_without_deleting_it_first ( db_where_ticker_which_may_have_breakout_situations )
 
-    engine_for_db_where_ticker_which_may_have_fast_breakout_situations_hist, \
-        connection_to_db_where_ticker_which_may_have_fast_breakout_situations_hist = \
-        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_fast_breakout_situations+"_hist")
+    engine_for_db_where_ticker_which_may_have_breakout_situations_hist, \
+        connection_to_db_where_ticker_which_may_have_breakout_situations_hist = \
+        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_breakout_situations+"_hist")
 
-    drop_table ( table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be ,
-                 engine_for_db_where_ticker_which_may_have_fast_breakout_situations_hist )
-    # drop_table ( table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be ,
-    #              engine_for_db_where_ticker_which_may_have_fast_breakout_situations )
+
+    ##############################
+    ##############################
+    ##############################
+    engine_for_db_where_ticker_which_may_have_breakout_situations_processed, \
+        connection_to_db_where_ticker_which_may_have_breakout_situations_processed = \
+        connect_to_postgres_db_without_deleting_it_first(db_where_ticker_which_may_have_breakout_situations + "_processed")
+    list_of_tables_in_db_where_ticker_which_may_have_breakout_situations_processed = \
+        get_list_of_tables_in_db(engine_for_db_where_ticker_which_may_have_breakout_situations_processed)
+    list_of_already_processed_pairs=[]
+    # df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run=pd.DataFrame()
+
+
+    ############################
+    ############################
+    ############################
+    column_name="already_processed_pairs_for_this_bfr"
+    table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be=table_where_ticker_which_may_have_breakout_situations_from_ath_will_be
+    list_of_already_processed_pairs,\
+        df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run=\
+        create_empty_table_if_it_does_not_exist_or_return_list_of_already_processed_pairs_if_table_exists(
+        column_name,
+        db_where_ticker_which_may_have_breakout_situations,
+        table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be)
+    ############################
+    ############################
+    ############################
+
+    # # uncomment this drop if you want to create table with bfr again every time the program is launched
+    # drop_table ( table_where_ticker_which_may_have_breakout_situations_from_ath_will_be ,
+    #              engine_for_db_where_ticker_which_may_have_breakout_situations_hist )
+
+
+    # drop_table ( table_where_ticker_which_may_have_breakout_situations_from_atl_will_be ,
+    #              engine_for_db_where_ticker_which_may_have_breakout_situations )
 
     list_of_tables_in_ohlcv_db=\
         get_list_of_tables_in_db ( engine_for_ohlcv_data_for_stocks )
@@ -762,6 +798,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
         try:
 
             counter=counter+1
+            counter=int(counter)
             print ( f'{stock_name} is'
                     f' number {counter} out of {len ( list_of_tables_in_ohlcv_db )}\n' )
 
@@ -770,9 +807,37 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
 
 
+
+            ##############################
+            ##############################
+            ##############################
+            if stock_name in list_of_already_processed_pairs:
+                print(f"{stock_name} has_been_discarded")
+                continue
+
+            add_trading_pairs_to_sql_table_if_they_were_processed(
+                table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be,
+                engine_for_db_where_ticker_which_may_have_breakout_situations_processed,
+                list_of_already_processed_pairs,
+                column_name,
+                stock_name,
+                df_with_table_name_which_has_been_already_processed_so_we_dont_need_to_process_it_again_on_next_run)
+            ######################
+            ######################
+            ######################
+
+
+
+
+
+
+
             table_with_ohlcv_data_df = \
                 pd.read_sql_query ( f'''select * from "{stock_name}"''' ,
                                     engine_for_ohlcv_data_for_stocks )
+
+            if is_length_multiple_of_100(table_with_ohlcv_data_df):
+                continue
 
             entire_original_table_with_ohlcv_data_df = pd.DataFrame()
             try:
@@ -872,6 +937,8 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 # Find Timestamp, open, high, low, close, volume of breakout_bar
                 timestamp_of_breakout_bar = last_two_years_of_data.loc[
                     breakout_bar_row_number, 'Timestamp']
+                date_and_time_of_breakout_bar, date_of_breakout_bar = get_date_with_and_without_time_from_timestamp(
+                    timestamp_of_breakout_bar)
                 open_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'open']
                 high_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'high']
                 low_of_breakout_bar = last_two_years_of_data.loc[breakout_bar_row_number, 'low']
@@ -928,6 +995,61 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 all_time_high = last_two_years_of_data_but_one_last_day['high'].max()
                 print(f"all_time_high: {all_time_high}")
 
+                ################
+                ################
+                ################
+                # round_to_this_number_of_non_zero_digits=3
+                # number_of_zeroes_in_all_time_high = count_zeros_number_with_e_notaton_is_acceptable(all_time_high)
+                # rounded_all_time_high=round(all_time_high, number_of_zeroes_in_all_time_high + round_to_this_number_of_non_zero_digits)
+                # print("rounded_all_time_high")
+                # print(rounded_all_time_high)
+                # rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df = last_two_years_of_data.copy()
+                # # round high and low to two decimal number
+                # rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["high"] = \
+                #     last_two_years_of_data["high"].apply(round, args=(number_of_zeroes_in_all_time_high + round_to_this_number_of_non_zero_digits,))
+                # rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["low"] = \
+                #     last_two_years_of_data["low"].apply(round, args=(number_of_zeroes_in_all_time_high + round_to_this_number_of_non_zero_digits,))
+                #
+                # print("rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df")
+                # print(rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df.to_string())
+                #
+                # ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines = \
+                #     rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df.loc[
+                #         rounded_high_and_low_table_with_ohlcv_last_two_years_of_data_df["high"] == rounded_all_time_high]
+                #
+                # number_of_times_this_all_time_high_occurred=len(ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines)
+                #
+                # timestamps_of_all_time_highs_as_string=\
+                #     extract_timestamps_as_string(ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines)
+                #
+                # open_times_of_all_time_highs_as_string = \
+                #     extract_open_times_as_string(ohlcv_df_with_high_equal_to_ath_slice_should_be_a_few_lines)
+                #
+                # df_with_level_atr_bpu_bsu_etc["number_of_times_this_all_time_high_occurred"] = \
+                #     df_with_level_atr_bpu_bsu_etc["number_of_times_this_all_time_high_occurred"].astype('object')
+                # df_with_level_atr_bpu_bsu_etc.at[
+                #     0, "number_of_times_this_all_time_high_occurred"] = number_of_times_this_all_time_high_occurred
+                #
+                # df_with_level_atr_bpu_bsu_etc["timestamps_of_all_time_highs_as_string"] = \
+                #     df_with_level_atr_bpu_bsu_etc["timestamps_of_all_time_highs_as_string"].astype('object')
+                # df_with_level_atr_bpu_bsu_etc.at[
+                #     0, "timestamps_of_all_time_highs_as_string"] = timestamps_of_all_time_highs_as_string
+                #
+                # df_with_level_atr_bpu_bsu_etc["open_times_of_all_time_highs_as_string"] = \
+                #     df_with_level_atr_bpu_bsu_etc["open_times_of_all_time_highs_as_string"].astype('object')
+                # df_with_level_atr_bpu_bsu_etc.at[
+                #     0, "open_times_of_all_time_highs_as_string"] = open_times_of_all_time_highs_as_string
+                ################
+                ################
+                ################
+
+
+
+
+
+
+
+
                 all_time_high_row_numbers =\
                     last_two_years_of_data_but_one_last_day[last_two_years_of_data_but_one_last_day['high'] == all_time_high].index
 
@@ -946,7 +1068,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                     print(f"ath_is_not_broken_for_a_long_time for {stock_name}={ath_is_not_broken_for_a_long_time}")
 
                 except:
-                            traceback.print_exc()
+                    traceback.print_exc()
 
                 if ath_is_not_broken_for_a_long_time==False:
                     continue
@@ -1096,101 +1218,70 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 print("list_of_stocks_which_broke_ath")
                 print(list_of_stocks_which_broke_ath)
 
-                df_with_level_atr_bpu_bsu_etc = pd.DataFrame()
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "ticker"] = stock_name
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "exchange"] = exchange
+                # df_with_level_atr_bpu_bsu_etc = pd.DataFrame(dtype='object',columns=['ticker', 'exchange', 'model', 'ath', 'advanced_atr', 'advanced_atr_over_this_period', 'high_of_bsu', 'volume_of_bsu', 'timestamp_of_bsu', 'human_date_of_bsu', 'open_of_breakout_bar', 'high_of_breakout_bar', 'low_of_breakout_bar', 'close_of_breakout_bar', 'volume_of_breakout_bar', 'timestamp_of_breakout_bar', 'human_date_of_breakout_bar', 'min_volume_over_last_n_days', 'count_min_volume_over_this_many_days', 'buy_order', 'calculated_stop_loss', 'take_profit_when_sl_is_calculated_3_to_1', 'take_profit_when_sl_is_calculated_4_to_1', 'distance_between_calculated_sl_and_buy_order_in_atr', 'distance_between_calculated_sl_and_buy_order', 'technical_stop_loss', 'take_profit_when_sl_is_technical_3_to_1', 'take_profit_when_sl_is_technical_4_to_1', 'distance_between_technical_sl_and_buy_order_in_atr', 'distance_between_technical_sl_and_buy_order', 'suppression_by_lows', 'number_of_bars_when_we_check_suppression_by_lows', 'suppression_by_closes', 'number_of_bars_when_we_check_suppression_by_closes', 'asset_type', 'maker_fee', 'taker_fee', 'url_of_trading_pair', 'number_of_available_bars', 'trading_pair_is_traded_with_margin', 'spot_asset_also_available_as_swap_contract_on_same_exchange', 'url_of_swap_contract_if_it_exists', 'ticker_last_column', 'base', 'ticker_will_be_traced_and_position_entered', 'side', 'stop_loss_is_technical', 'stop_loss_is_calculated', 'market_or_limit_stop_loss', 'market_or_limit_take_profit', 'position_size', 'take_profit_x_to_one', 'exchange_names_string_where_trading_pair_is_traded', 'exchange_id_string_where_trading_pair_is_traded', 'number_of_exchanges_where_pair_is_traded_on', 'spot_without_margin', 'margin', 'cross_margin', 'isolated_margin', 'final_position_entry_price', 'final_stop_loss_price', 'final_position_entry_price_default_value', 'final_stop_loss_price_default_value', 'final_take_profit_price', 'final_take_profit_price_default_value', 'timestamp_when_bfr_was_found', 'datetime_when_bfr_was_found', 'daily_data_not_enough_to_get_whether_tp_or_sl_was_reached_first', 'first_bar_after_bfr_opened_lower_than_buy_order', 'take_profit_when_sl_is_technical_3_to_1_is_reached', 'timestamp_take_profit_when_sl_is_technical_3_to_1_was_reached', 'datetime_take_profit_when_sl_is_technical_3_to_1_was_reached', 'technical_stop_loss_is_reached', 'timestamp_when_technical_stop_loss_was_reached', 'datetime_when_technical_stop_loss_was_reached', 'buy_order_was_touched', 'max_distance_from_level_price_in_this_bar_in_atr', 'timestamp_when_buy_order_was_touched', 'datetime_when_buy_order_was_touched', 'max_profit_target_multiple_when_sl_technical', 'take_profit_4_to_one_is_reached_sl_technical', 'take_profit_4_to_one_sl_technical', 'timestamp_of_tp_4_to_one_is_reached_sl_technical', 'datetime_of_tp_4_to_one_is_reached_sl_technical', 'take_profit_5_to_one_is_reached_sl_technical', 'take_profit_5_to_one_sl_technical', 'timestamp_of_tp_5_to_one_is_reached_sl_technical', 'datetime_of_tp_5_to_one_is_reached_sl_technical', 'take_profit_6_to_one_is_reached_sl_technical', 'take_profit_6_to_one_sl_technical', 'timestamp_of_tp_6_to_one_is_reached_sl_technical', 'datetime_of_tp_6_to_one_is_reached_sl_technical', 'take_profit_7_to_one_is_reached_sl_technical', 'take_profit_7_to_one_sl_technical', 'timestamp_of_tp_7_to_one_is_reached_sl_technical', 'datetime_of_tp_7_to_one_is_reached_sl_technical', 'take_profit_8_to_one_is_reached_sl_technical', 'take_profit_8_to_one_sl_technical', 'timestamp_of_tp_8_to_one_is_reached_sl_technical', 'datetime_of_tp_8_to_one_is_reached_sl_technical', 'take_profit_9_to_one_is_reached_sl_technical', 'take_profit_9_to_one_sl_technical', 'timestamp_of_tp_9_to_one_is_reached_sl_technical', 'datetime_of_tp_9_to_one_is_reached_sl_technical', 'take_profit_10_to_one_is_reached_sl_technical', 'take_profit_10_to_one_sl_technical', 'timestamp_of_tp_10_to_one_is_reached_sl_technical', 'datetime_of_tp_10_to_one_is_reached_sl_technical', 'take_profit_11_to_one_is_reached_sl_technical', 'take_profit_11_to_one_sl_technical', 'timestamp_of_tp_11_to_one_is_reached_sl_technical', 'datetime_of_tp_11_to_one_is_reached_sl_technical', 'take_profit_12_to_one_is_reached_sl_technical', 'take_profit_12_to_one_sl_technical', 'timestamp_of_tp_12_to_one_is_reached_sl_technical', 'datetime_of_tp_12_to_one_is_reached_sl_technical', 'take_profit_13_to_one_is_reached_sl_technical', 'take_profit_13_to_one_sl_technical', 'timestamp_of_tp_13_to_one_is_reached_sl_technical', 'datetime_of_tp_13_to_one_is_reached_sl_technical', 'take_profit_14_to_one_is_reached_sl_technical', 'take_profit_14_to_one_sl_technical', 'timestamp_of_tp_14_to_one_is_reached_sl_technical', 'datetime_of_tp_14_to_one_is_reached_sl_technical', 'take_profit_15_to_one_is_reached_sl_technical', 'take_profit_15_to_one_sl_technical', 'timestamp_of_tp_15_to_one_is_reached_sl_technical', 'datetime_of_tp_15_to_one_is_reached_sl_technical', 'take_profit_16_to_one_is_reached_sl_technical', 'take_profit_16_to_one_sl_technical', 'timestamp_of_tp_16_to_one_is_reached_sl_technical', 'datetime_of_tp_16_to_one_is_reached_sl_technical', 'take_profit_17_to_one_is_reached_sl_technical', 'take_profit_17_to_one_sl_technical', 'timestamp_of_tp_17_to_one_is_reached_sl_technical', 'datetime_of_tp_17_to_one_is_reached_sl_technical', 'take_profit_18_to_one_is_reached_sl_technical', 'take_profit_18_to_one_sl_technical', 'timestamp_of_tp_18_to_one_is_reached_sl_technical', 'datetime_of_tp_18_to_one_is_reached_sl_technical', 'take_profit_19_to_one_is_reached_sl_technical', 'take_profit_19_to_one_sl_technical', 'timestamp_of_tp_19_to_one_is_reached_sl_technical', 'datetime_of_tp_19_to_one_is_reached_sl_technical', 'take_profit_20_to_one_is_reached_sl_technical', 'take_profit_20_to_one_sl_technical', 'timestamp_of_tp_20_to_one_is_reached_sl_technical', 'datetime_of_tp_20_to_one_is_reached_sl_technical', 'take_profit_21_to_one_is_reached_sl_technical', 'take_profit_21_to_one_sl_technical', 'timestamp_of_tp_21_to_one_is_reached_sl_technical', 'datetime_of_tp_21_to_one_is_reached_sl_technical', 'take_profit_22_to_one_is_reached_sl_technical', 'take_profit_22_to_one_sl_technical', 'timestamp_of_tp_22_to_one_is_reached_sl_technical', 'datetime_of_tp_22_to_one_is_reached_sl_technical', 'take_profit_23_to_one_is_reached_sl_technical', 'take_profit_23_to_one_sl_technical', 'timestamp_of_tp_23_to_one_is_reached_sl_technical', 'datetime_of_tp_23_to_one_is_reached_sl_technical', 'take_profit_24_to_one_is_reached_sl_technical', 'take_profit_24_to_one_sl_technical', 'timestamp_of_tp_24_to_one_is_reached_sl_technical', 'datetime_of_tp_24_to_one_is_reached_sl_technical', 'take_profit_25_to_one_is_reached_sl_technical', 'take_profit_25_to_one_sl_technical', 'timestamp_of_tp_25_to_one_is_reached_sl_technical', 'datetime_of_tp_25_to_one_is_reached_sl_technical', 'take_profit_26_to_one_is_reached_sl_technical', 'take_profit_26_to_one_sl_technical', 'timestamp_of_tp_26_to_one_is_reached_sl_technical', 'datetime_of_tp_26_to_one_is_reached_sl_technical', 'take_profit_27_to_one_is_reached_sl_technical', 'take_profit_27_to_one_sl_technical', 'timestamp_of_tp_27_to_one_is_reached_sl_technical', 'datetime_of_tp_27_to_one_is_reached_sl_technical', 'take_profit_28_to_one_is_reached_sl_technical', 'take_profit_28_to_one_sl_technical', 'timestamp_of_tp_28_to_one_is_reached_sl_technical', 'datetime_of_tp_28_to_one_is_reached_sl_technical', 'take_profit_29_to_one_is_reached_sl_technical', 'take_profit_29_to_one_sl_technical', 'timestamp_of_tp_29_to_one_is_reached_sl_technical', 'datetime_of_tp_29_to_one_is_reached_sl_technical', 'take_profit_30_to_one_is_reached_sl_technical', 'take_profit_30_to_one_sl_technical', 'timestamp_of_tp_30_to_one_is_reached_sl_technical', 'datetime_of_tp_30_to_one_is_reached_sl_technical', 'take_profit_31_to_one_is_reached_sl_technical', 'take_profit_31_to_one_sl_technical', 'timestamp_of_tp_31_to_one_is_reached_sl_technical', 'datetime_of_tp_31_to_one_is_reached_sl_technical', 'take_profit_32_to_one_is_reached_sl_technical', 'take_profit_32_to_one_sl_technical', 'timestamp_of_tp_32_to_one_is_reached_sl_technical', 'datetime_of_tp_32_to_one_is_reached_sl_technical', 'take_profit_33_to_one_is_reached_sl_technical', 'take_profit_33_to_one_sl_technical', 'timestamp_of_tp_33_to_one_is_reached_sl_technical', 'datetime_of_tp_33_to_one_is_reached_sl_technical', 'take_profit_34_to_one_is_reached_sl_technical', 'take_profit_34_to_one_sl_technical', 'timestamp_of_tp_34_to_one_is_reached_sl_technical', 'datetime_of_tp_34_to_one_is_reached_sl_technical', 'take_profit_35_to_one_is_reached_sl_technical', 'take_profit_35_to_one_sl_technical', 'timestamp_of_tp_35_to_one_is_reached_sl_technical', 'datetime_of_tp_35_to_one_is_reached_sl_technical', 'take_profit_36_to_one_is_reached_sl_technical', 'take_profit_36_to_one_sl_technical', 'timestamp_of_tp_36_to_one_is_reached_sl_technical', 'datetime_of_tp_36_to_one_is_reached_sl_technical', 'take_profit_37_to_one_is_reached_sl_technical', 'take_profit_37_to_one_sl_technical', 'timestamp_of_tp_37_to_one_is_reached_sl_technical', 'datetime_of_tp_37_to_one_is_reached_sl_technical', 'take_profit_38_to_one_is_reached_sl_technical', 'take_profit_38_to_one_sl_technical', 'timestamp_of_tp_38_to_one_is_reached_sl_technical', 'datetime_of_tp_38_to_one_is_reached_sl_technical', 'take_profit_39_to_one_is_reached_sl_technical', 'take_profit_39_to_one_sl_technical', 'timestamp_of_tp_39_to_one_is_reached_sl_technical', 'datetime_of_tp_39_to_one_is_reached_sl_technical', 'take_profit_40_to_one_is_reached_sl_technical', 'take_profit_40_to_one_sl_technical', 'timestamp_of_tp_40_to_one_is_reached_sl_technical', 'datetime_of_tp_40_to_one_is_reached_sl_technical', 'take_profit_41_to_one_is_reached_sl_technical', 'take_profit_41_to_one_sl_technical', 'timestamp_of_tp_41_to_one_is_reached_sl_technical', 'datetime_of_tp_41_to_one_is_reached_sl_technical', 'take_profit_42_to_one_is_reached_sl_technical', 'take_profit_42_to_one_sl_technical', 'timestamp_of_tp_42_to_one_is_reached_sl_technical', 'datetime_of_tp_42_to_one_is_reached_sl_technical', 'take_profit_43_to_one_is_reached_sl_technical', 'take_profit_43_to_one_sl_technical', 'timestamp_of_tp_43_to_one_is_reached_sl_technical', 'datetime_of_tp_43_to_one_is_reached_sl_technical', 'take_profit_44_to_one_is_reached_sl_technical', 'take_profit_44_to_one_sl_technical', 'timestamp_of_tp_44_to_one_is_reached_sl_technical', 'datetime_of_tp_44_to_one_is_reached_sl_technical', 'take_profit_45_to_one_is_reached_sl_technical', 'take_profit_45_to_one_sl_technical', 'timestamp_of_tp_45_to_one_is_reached_sl_technical', 'datetime_of_tp_45_to_one_is_reached_sl_technical', 'take_profit_46_to_one_is_reached_sl_technical', 'take_profit_46_to_one_sl_technical', 'timestamp_of_tp_46_to_one_is_reached_sl_technical', 'datetime_of_tp_46_to_one_is_reached_sl_technical', 'take_profit_47_to_one_is_reached_sl_technical', 'take_profit_47_to_one_sl_technical', 'timestamp_of_tp_47_to_one_is_reached_sl_technical', 'datetime_of_tp_47_to_one_is_reached_sl_technical', 'take_profit_48_to_one_is_reached_sl_technical', 'take_profit_48_to_one_sl_technical', 'timestamp_of_tp_48_to_one_is_reached_sl_technical', 'datetime_of_tp_48_to_one_is_reached_sl_technical', 'take_profit_49_to_one_is_reached_sl_technical', 'take_profit_49_to_one_sl_technical', 'timestamp_of_tp_49_to_one_is_reached_sl_technical', 'datetime_of_tp_49_to_one_is_reached_sl_technical', 'take_profit_50_to_one_is_reached_sl_technical', 'take_profit_50_to_one_sl_technical', 'timestamp_of_tp_50_to_one_is_reached_sl_technical', 'datetime_of_tp_50_to_one_is_reached_sl_technical', 'take_profit_51_to_one_is_reached_sl_technical', 'take_profit_51_to_one_sl_technical', 'timestamp_of_tp_51_to_one_is_reached_sl_technical', 'datetime_of_tp_51_to_one_is_reached_sl_technical', 'take_profit_52_to_one_is_reached_sl_technical', 'take_profit_52_to_one_sl_technical', 'timestamp_of_tp_52_to_one_is_reached_sl_technical', 'datetime_of_tp_52_to_one_is_reached_sl_technical', 'take_profit_53_to_one_is_reached_sl_technical', 'take_profit_53_to_one_sl_technical', 'timestamp_of_tp_53_to_one_is_reached_sl_technical', 'datetime_of_tp_53_to_one_is_reached_sl_technical', 'take_profit_54_to_one_is_reached_sl_technical', 'take_profit_54_to_one_sl_technical', 'timestamp_of_tp_54_to_one_is_reached_sl_technical', 'datetime_of_tp_54_to_one_is_reached_sl_technical', 'take_profit_55_to_one_is_reached_sl_technical', 'take_profit_55_to_one_sl_technical', 'timestamp_of_tp_55_to_one_is_reached_sl_technical', 'datetime_of_tp_55_to_one_is_reached_sl_technical', 'take_profit_56_to_one_is_reached_sl_technical', 'take_profit_56_to_one_sl_technical', 'timestamp_of_tp_56_to_one_is_reached_sl_technical', 'datetime_of_tp_56_to_one_is_reached_sl_technical', 'take_profit_57_to_one_is_reached_sl_technical', 'take_profit_57_to_one_sl_technical', 'timestamp_of_tp_57_to_one_is_reached_sl_technical', 'datetime_of_tp_57_to_one_is_reached_sl_technical', 'take_profit_58_to_one_is_reached_sl_technical', 'take_profit_58_to_one_sl_technical', 'timestamp_of_tp_58_to_one_is_reached_sl_technical', 'datetime_of_tp_58_to_one_is_reached_sl_technical', 'take_profit_59_to_one_is_reached_sl_technical', 'take_profit_59_to_one_sl_technical', 'timestamp_of_tp_59_to_one_is_reached_sl_technical', 'datetime_of_tp_59_to_one_is_reached_sl_technical', 'take_profit_60_to_one_is_reached_sl_technical', 'take_profit_60_to_one_sl_technical', 'timestamp_of_tp_60_to_one_is_reached_sl_technical', 'datetime_of_tp_60_to_one_is_reached_sl_technical', 'take_profit_61_to_one_is_reached_sl_technical', 'take_profit_61_to_one_sl_technical', 'timestamp_of_tp_61_to_one_is_reached_sl_technical', 'datetime_of_tp_61_to_one_is_reached_sl_technical', 'take_profit_62_to_one_is_reached_sl_technical', 'take_profit_62_to_one_sl_technical', 'timestamp_of_tp_62_to_one_is_reached_sl_technical', 'datetime_of_tp_62_to_one_is_reached_sl_technical', 'take_profit_63_to_one_is_reached_sl_technical', 'take_profit_63_to_one_sl_technical', 'timestamp_of_tp_63_to_one_is_reached_sl_technical', 'datetime_of_tp_63_to_one_is_reached_sl_technical', 'take_profit_64_to_one_is_reached_sl_technical', 'take_profit_64_to_one_sl_technical', 'timestamp_of_tp_64_to_one_is_reached_sl_technical', 'datetime_of_tp_64_to_one_is_reached_sl_technical', 'take_profit_65_to_one_is_reached_sl_technical', 'take_profit_65_to_one_sl_technical', 'timestamp_of_tp_65_to_one_is_reached_sl_technical', 'datetime_of_tp_65_to_one_is_reached_sl_technical', 'take_profit_66_to_one_is_reached_sl_technical', 'take_profit_66_to_one_sl_technical', 'timestamp_of_tp_66_to_one_is_reached_sl_technical', 'datetime_of_tp_66_to_one_is_reached_sl_technical', 'take_profit_67_to_one_is_reached_sl_technical', 'take_profit_67_to_one_sl_technical', 'timestamp_of_tp_67_to_one_is_reached_sl_technical', 'datetime_of_tp_67_to_one_is_reached_sl_technical', 'take_profit_68_to_one_is_reached_sl_technical', 'take_profit_68_to_one_sl_technical', 'timestamp_of_tp_68_to_one_is_reached_sl_technical', 'datetime_of_tp_68_to_one_is_reached_sl_technical', 'take_profit_69_to_one_is_reached_sl_technical', 'take_profit_69_to_one_sl_technical', 'timestamp_of_tp_69_to_one_is_reached_sl_technical', 'datetime_of_tp_69_to_one_is_reached_sl_technical', 'take_profit_70_to_one_is_reached_sl_technical', 'take_profit_70_to_one_sl_technical', 'timestamp_of_tp_70_to_one_is_reached_sl_technical', 'datetime_of_tp_70_to_one_is_reached_sl_technical', 'take_profit_71_to_one_is_reached_sl_technical', 'take_profit_71_to_one_sl_technical', 'timestamp_of_tp_71_to_one_is_reached_sl_technical', 'datetime_of_tp_71_to_one_is_reached_sl_technical', 'take_profit_72_to_one_is_reached_sl_technical', 'take_profit_72_to_one_sl_technical', 'timestamp_of_tp_72_to_one_is_reached_sl_technical', 'datetime_of_tp_72_to_one_is_reached_sl_technical', 'take_profit_73_to_one_is_reached_sl_technical', 'take_profit_73_to_one_sl_technical', 'timestamp_of_tp_73_to_one_is_reached_sl_technical', 'datetime_of_tp_73_to_one_is_reached_sl_technical', 'take_profit_74_to_one_is_reached_sl_technical', 'take_profit_74_to_one_sl_technical', 'timestamp_of_tp_74_to_one_is_reached_sl_technical', 'datetime_of_tp_74_to_one_is_reached_sl_technical', 'take_profit_75_to_one_is_reached_sl_technical', 'take_profit_75_to_one_sl_technical', 'timestamp_of_tp_75_to_one_is_reached_sl_technical', 'datetime_of_tp_75_to_one_is_reached_sl_technical', 'take_profit_76_to_one_is_reached_sl_technical', 'take_profit_76_to_one_sl_technical', 'timestamp_of_tp_76_to_one_is_reached_sl_technical', 'datetime_of_tp_76_to_one_is_reached_sl_technical', 'take_profit_77_to_one_is_reached_sl_technical', 'take_profit_77_to_one_sl_technical', 'timestamp_of_tp_77_to_one_is_reached_sl_technical', 'datetime_of_tp_77_to_one_is_reached_sl_technical', 'take_profit_78_to_one_is_reached_sl_technical', 'take_profit_78_to_one_sl_technical', 'timestamp_of_tp_78_to_one_is_reached_sl_technical', 'datetime_of_tp_78_to_one_is_reached_sl_technical', 'take_profit_79_to_one_is_reached_sl_technical', 'take_profit_79_to_one_sl_technical', 'timestamp_of_tp_79_to_one_is_reached_sl_technical', 'datetime_of_tp_79_to_one_is_reached_sl_technical', 'take_profit_80_to_one_is_reached_sl_technical', 'take_profit_80_to_one_sl_technical', 'timestamp_of_tp_80_to_one_is_reached_sl_technical', 'datetime_of_tp_80_to_one_is_reached_sl_technical', 'take_profit_81_to_one_is_reached_sl_technical', 'take_profit_81_to_one_sl_technical', 'timestamp_of_tp_81_to_one_is_reached_sl_technical', 'datetime_of_tp_81_to_one_is_reached_sl_technical', 'take_profit_82_to_one_is_reached_sl_technical', 'take_profit_82_to_one_sl_technical', 'timestamp_of_tp_82_to_one_is_reached_sl_technical', 'datetime_of_tp_82_to_one_is_reached_sl_technical', 'take_profit_83_to_one_is_reached_sl_technical', 'take_profit_83_to_one_sl_technical', 'timestamp_of_tp_83_to_one_is_reached_sl_technical', 'datetime_of_tp_83_to_one_is_reached_sl_technical', 'take_profit_84_to_one_is_reached_sl_technical', 'take_profit_84_to_one_sl_technical', 'timestamp_of_tp_84_to_one_is_reached_sl_technical', 'datetime_of_tp_84_to_one_is_reached_sl_technical', 'take_profit_85_to_one_is_reached_sl_technical', 'take_profit_85_to_one_sl_technical', 'timestamp_of_tp_85_to_one_is_reached_sl_technical', 'datetime_of_tp_85_to_one_is_reached_sl_technical', 'take_profit_86_to_one_is_reached_sl_technical', 'take_profit_86_to_one_sl_technical', 'timestamp_of_tp_86_to_one_is_reached_sl_technical', 'datetime_of_tp_86_to_one_is_reached_sl_technical', 'take_profit_87_to_one_is_reached_sl_technical', 'take_profit_87_to_one_sl_technical', 'timestamp_of_tp_87_to_one_is_reached_sl_technical', 'datetime_of_tp_87_to_one_is_reached_sl_technical', 'take_profit_88_to_one_is_reached_sl_technical', 'take_profit_88_to_one_sl_technical', 'timestamp_of_tp_88_to_one_is_reached_sl_technical', 'datetime_of_tp_88_to_one_is_reached_sl_technical', 'take_profit_89_to_one_is_reached_sl_technical', 'take_profit_89_to_one_sl_technical', 'timestamp_of_tp_89_to_one_is_reached_sl_technical', 'datetime_of_tp_89_to_one_is_reached_sl_technical', 'take_profit_90_to_one_is_reached_sl_technical', 'take_profit_90_to_one_sl_technical', 'timestamp_of_tp_90_to_one_is_reached_sl_technical', 'datetime_of_tp_90_to_one_is_reached_sl_technical', 'take_profit_91_to_one_is_reached_sl_technical', 'take_profit_91_to_one_sl_technical', 'timestamp_of_tp_91_to_one_is_reached_sl_technical', 'datetime_of_tp_91_to_one_is_reached_sl_technical', 'take_profit_92_to_one_is_reached_sl_technical', 'take_profit_92_to_one_sl_technical', 'timestamp_of_tp_92_to_one_is_reached_sl_technical', 'datetime_of_tp_92_to_one_is_reached_sl_technical', 'take_profit_93_to_one_is_reached_sl_technical', 'take_profit_93_to_one_sl_technical', 'timestamp_of_tp_93_to_one_is_reached_sl_technical', 'datetime_of_tp_93_to_one_is_reached_sl_technical', 'take_profit_94_to_one_is_reached_sl_technical', 'take_profit_94_to_one_sl_technical', 'timestamp_of_tp_94_to_one_is_reached_sl_technical', 'datetime_of_tp_94_to_one_is_reached_sl_technical', 'take_profit_95_to_one_is_reached_sl_technical', 'take_profit_95_to_one_sl_technical', 'timestamp_of_tp_95_to_one_is_reached_sl_technical', 'datetime_of_tp_95_to_one_is_reached_sl_technical', 'take_profit_96_to_one_is_reached_sl_technical', 'take_profit_96_to_one_sl_technical', 'timestamp_of_tp_96_to_one_is_reached_sl_technical', 'datetime_of_tp_96_to_one_is_reached_sl_technical', 'take_profit_97_to_one_is_reached_sl_technical', 'take_profit_97_to_one_sl_technical', 'timestamp_of_tp_97_to_one_is_reached_sl_technical', 'datetime_of_tp_97_to_one_is_reached_sl_technical', 'take_profit_98_to_one_is_reached_sl_technical', 'take_profit_98_to_one_sl_technical', 'timestamp_of_tp_98_to_one_is_reached_sl_technical', 'datetime_of_tp_98_to_one_is_reached_sl_technical', 'take_profit_99_to_one_is_reached_sl_technical', 'take_profit_99_to_one_sl_technical', 'timestamp_of_tp_99_to_one_is_reached_sl_technical', 'datetime_of_tp_99_to_one_is_reached_sl_technical', 'take_profit_100_to_one_is_reached_sl_technical', 'take_profit_100_to_one_sl_technical', 'timestamp_of_tp_100_to_one_is_reached_sl_technical', 'datetime_of_tp_100_to_one_is_reached_sl_technical', 'take_profit_when_sl_is_calculated_3_to_1_is_reached', 'timestamp_take_profit_when_sl_is_calculated_3_to_1_was_reached', 'datetime_take_profit_when_sl_is_calculated_3_to_1_was_reached', 'calculated_stop_loss_is_reached', 'timestamp_when_calculated_stop_loss_was_reached', 'datetime_when_calculated_stop_loss_was_reached', 'max_profit_target_multiple_when_sl_calculated', 'take_profit_4_to_one_is_reached_sl_calculated', 'take_profit_4_to_one_sl_calculated', 'timestamp_of_tp_4_to_one_is_reached_sl_calculated', 'datetime_of_tp_4_to_one_is_reached_sl_calculated', 'take_profit_5_to_one_is_reached_sl_calculated', 'take_profit_5_to_one_sl_calculated', 'timestamp_of_tp_5_to_one_is_reached_sl_calculated', 'datetime_of_tp_5_to_one_is_reached_sl_calculated', 'take_profit_6_to_one_is_reached_sl_calculated', 'take_profit_6_to_one_sl_calculated', 'timestamp_of_tp_6_to_one_is_reached_sl_calculated', 'datetime_of_tp_6_to_one_is_reached_sl_calculated', 'take_profit_7_to_one_is_reached_sl_calculated', 'take_profit_7_to_one_sl_calculated', 'timestamp_of_tp_7_to_one_is_reached_sl_calculated', 'datetime_of_tp_7_to_one_is_reached_sl_calculated', 'take_profit_8_to_one_is_reached_sl_calculated', 'take_profit_8_to_one_sl_calculated', 'timestamp_of_tp_8_to_one_is_reached_sl_calculated', 'datetime_of_tp_8_to_one_is_reached_sl_calculated', 'take_profit_9_to_one_is_reached_sl_calculated', 'take_profit_9_to_one_sl_calculated', 'timestamp_of_tp_9_to_one_is_reached_sl_calculated', 'datetime_of_tp_9_to_one_is_reached_sl_calculated', 'take_profit_10_to_one_is_reached_sl_calculated', 'take_profit_10_to_one_sl_calculated', 'timestamp_of_tp_10_to_one_is_reached_sl_calculated', 'datetime_of_tp_10_to_one_is_reached_sl_calculated', 'take_profit_11_to_one_is_reached_sl_calculated', 'take_profit_11_to_one_sl_calculated', 'timestamp_of_tp_11_to_one_is_reached_sl_calculated', 'datetime_of_tp_11_to_one_is_reached_sl_calculated', 'take_profit_12_to_one_is_reached_sl_calculated', 'take_profit_12_to_one_sl_calculated', 'timestamp_of_tp_12_to_one_is_reached_sl_calculated', 'datetime_of_tp_12_to_one_is_reached_sl_calculated', 'take_profit_13_to_one_is_reached_sl_calculated', 'take_profit_13_to_one_sl_calculated', 'timestamp_of_tp_13_to_one_is_reached_sl_calculated', 'datetime_of_tp_13_to_one_is_reached_sl_calculated', 'take_profit_14_to_one_is_reached_sl_calculated', 'take_profit_14_to_one_sl_calculated', 'timestamp_of_tp_14_to_one_is_reached_sl_calculated', 'datetime_of_tp_14_to_one_is_reached_sl_calculated', 'take_profit_15_to_one_is_reached_sl_calculated', 'take_profit_15_to_one_sl_calculated', 'timestamp_of_tp_15_to_one_is_reached_sl_calculated', 'datetime_of_tp_15_to_one_is_reached_sl_calculated', 'take_profit_16_to_one_is_reached_sl_calculated', 'take_profit_16_to_one_sl_calculated', 'timestamp_of_tp_16_to_one_is_reached_sl_calculated', 'datetime_of_tp_16_to_one_is_reached_sl_calculated', 'take_profit_17_to_one_is_reached_sl_calculated', 'take_profit_17_to_one_sl_calculated', 'timestamp_of_tp_17_to_one_is_reached_sl_calculated', 'datetime_of_tp_17_to_one_is_reached_sl_calculated', 'take_profit_18_to_one_is_reached_sl_calculated', 'take_profit_18_to_one_sl_calculated', 'timestamp_of_tp_18_to_one_is_reached_sl_calculated', 'datetime_of_tp_18_to_one_is_reached_sl_calculated', 'take_profit_19_to_one_is_reached_sl_calculated', 'take_profit_19_to_one_sl_calculated', 'timestamp_of_tp_19_to_one_is_reached_sl_calculated', 'datetime_of_tp_19_to_one_is_reached_sl_calculated', 'take_profit_20_to_one_is_reached_sl_calculated', 'take_profit_20_to_one_sl_calculated', 'timestamp_of_tp_20_to_one_is_reached_sl_calculated', 'datetime_of_tp_20_to_one_is_reached_sl_calculated', 'take_profit_21_to_one_is_reached_sl_calculated', 'take_profit_21_to_one_sl_calculated', 'timestamp_of_tp_21_to_one_is_reached_sl_calculated', 'datetime_of_tp_21_to_one_is_reached_sl_calculated', 'take_profit_22_to_one_is_reached_sl_calculated', 'take_profit_22_to_one_sl_calculated', 'timestamp_of_tp_22_to_one_is_reached_sl_calculated', 'datetime_of_tp_22_to_one_is_reached_sl_calculated', 'take_profit_23_to_one_is_reached_sl_calculated', 'take_profit_23_to_one_sl_calculated', 'timestamp_of_tp_23_to_one_is_reached_sl_calculated', 'datetime_of_tp_23_to_one_is_reached_sl_calculated', 'take_profit_24_to_one_is_reached_sl_calculated', 'take_profit_24_to_one_sl_calculated', 'timestamp_of_tp_24_to_one_is_reached_sl_calculated', 'datetime_of_tp_24_to_one_is_reached_sl_calculated', 'take_profit_25_to_one_is_reached_sl_calculated', 'take_profit_25_to_one_sl_calculated', 'timestamp_of_tp_25_to_one_is_reached_sl_calculated', 'datetime_of_tp_25_to_one_is_reached_sl_calculated', 'take_profit_26_to_one_is_reached_sl_calculated', 'take_profit_26_to_one_sl_calculated', 'timestamp_of_tp_26_to_one_is_reached_sl_calculated', 'datetime_of_tp_26_to_one_is_reached_sl_calculated', 'take_profit_27_to_one_is_reached_sl_calculated', 'take_profit_27_to_one_sl_calculated', 'timestamp_of_tp_27_to_one_is_reached_sl_calculated', 'datetime_of_tp_27_to_one_is_reached_sl_calculated', 'take_profit_28_to_one_is_reached_sl_calculated', 'take_profit_28_to_one_sl_calculated', 'timestamp_of_tp_28_to_one_is_reached_sl_calculated', 'datetime_of_tp_28_to_one_is_reached_sl_calculated', 'take_profit_29_to_one_is_reached_sl_calculated', 'take_profit_29_to_one_sl_calculated', 'timestamp_of_tp_29_to_one_is_reached_sl_calculated', 'datetime_of_tp_29_to_one_is_reached_sl_calculated', 'take_profit_30_to_one_is_reached_sl_calculated', 'take_profit_30_to_one_sl_calculated', 'timestamp_of_tp_30_to_one_is_reached_sl_calculated', 'datetime_of_tp_30_to_one_is_reached_sl_calculated', 'take_profit_31_to_one_is_reached_sl_calculated', 'take_profit_31_to_one_sl_calculated', 'timestamp_of_tp_31_to_one_is_reached_sl_calculated', 'datetime_of_tp_31_to_one_is_reached_sl_calculated', 'take_profit_32_to_one_is_reached_sl_calculated', 'take_profit_32_to_one_sl_calculated', 'timestamp_of_tp_32_to_one_is_reached_sl_calculated', 'datetime_of_tp_32_to_one_is_reached_sl_calculated', 'take_profit_33_to_one_is_reached_sl_calculated', 'take_profit_33_to_one_sl_calculated', 'timestamp_of_tp_33_to_one_is_reached_sl_calculated', 'datetime_of_tp_33_to_one_is_reached_sl_calculated', 'take_profit_34_to_one_is_reached_sl_calculated', 'take_profit_34_to_one_sl_calculated', 'timestamp_of_tp_34_to_one_is_reached_sl_calculated', 'datetime_of_tp_34_to_one_is_reached_sl_calculated', 'take_profit_35_to_one_is_reached_sl_calculated', 'take_profit_35_to_one_sl_calculated', 'timestamp_of_tp_35_to_one_is_reached_sl_calculated', 'datetime_of_tp_35_to_one_is_reached_sl_calculated', 'take_profit_36_to_one_is_reached_sl_calculated', 'take_profit_36_to_one_sl_calculated', 'timestamp_of_tp_36_to_one_is_reached_sl_calculated', 'datetime_of_tp_36_to_one_is_reached_sl_calculated', 'take_profit_37_to_one_is_reached_sl_calculated', 'take_profit_37_to_one_sl_calculated', 'timestamp_of_tp_37_to_one_is_reached_sl_calculated', 'datetime_of_tp_37_to_one_is_reached_sl_calculated', 'take_profit_38_to_one_is_reached_sl_calculated', 'take_profit_38_to_one_sl_calculated', 'timestamp_of_tp_38_to_one_is_reached_sl_calculated', 'datetime_of_tp_38_to_one_is_reached_sl_calculated', 'take_profit_39_to_one_is_reached_sl_calculated', 'take_profit_39_to_one_sl_calculated', 'timestamp_of_tp_39_to_one_is_reached_sl_calculated', 'datetime_of_tp_39_to_one_is_reached_sl_calculated', 'take_profit_40_to_one_is_reached_sl_calculated', 'take_profit_40_to_one_sl_calculated', 'timestamp_of_tp_40_to_one_is_reached_sl_calculated', 'datetime_of_tp_40_to_one_is_reached_sl_calculated', 'take_profit_41_to_one_is_reached_sl_calculated', 'take_profit_41_to_one_sl_calculated', 'timestamp_of_tp_41_to_one_is_reached_sl_calculated', 'datetime_of_tp_41_to_one_is_reached_sl_calculated', 'take_profit_42_to_one_is_reached_sl_calculated', 'take_profit_42_to_one_sl_calculated', 'timestamp_of_tp_42_to_one_is_reached_sl_calculated', 'datetime_of_tp_42_to_one_is_reached_sl_calculated', 'take_profit_43_to_one_is_reached_sl_calculated', 'take_profit_43_to_one_sl_calculated', 'timestamp_of_tp_43_to_one_is_reached_sl_calculated', 'datetime_of_tp_43_to_one_is_reached_sl_calculated', 'take_profit_44_to_one_is_reached_sl_calculated', 'take_profit_44_to_one_sl_calculated', 'timestamp_of_tp_44_to_one_is_reached_sl_calculated', 'datetime_of_tp_44_to_one_is_reached_sl_calculated', 'take_profit_45_to_one_is_reached_sl_calculated', 'take_profit_45_to_one_sl_calculated', 'timestamp_of_tp_45_to_one_is_reached_sl_calculated', 'datetime_of_tp_45_to_one_is_reached_sl_calculated', 'take_profit_46_to_one_is_reached_sl_calculated', 'take_profit_46_to_one_sl_calculated', 'timestamp_of_tp_46_to_one_is_reached_sl_calculated', 'datetime_of_tp_46_to_one_is_reached_sl_calculated', 'take_profit_47_to_one_is_reached_sl_calculated', 'take_profit_47_to_one_sl_calculated', 'timestamp_of_tp_47_to_one_is_reached_sl_calculated', 'datetime_of_tp_47_to_one_is_reached_sl_calculated', 'take_profit_48_to_one_is_reached_sl_calculated', 'take_profit_48_to_one_sl_calculated', 'timestamp_of_tp_48_to_one_is_reached_sl_calculated', 'datetime_of_tp_48_to_one_is_reached_sl_calculated', 'take_profit_49_to_one_is_reached_sl_calculated', 'take_profit_49_to_one_sl_calculated', 'timestamp_of_tp_49_to_one_is_reached_sl_calculated', 'datetime_of_tp_49_to_one_is_reached_sl_calculated', 'take_profit_50_to_one_is_reached_sl_calculated', 'take_profit_50_to_one_sl_calculated', 'timestamp_of_tp_50_to_one_is_reached_sl_calculated', 'datetime_of_tp_50_to_one_is_reached_sl_calculated', 'take_profit_51_to_one_is_reached_sl_calculated', 'take_profit_51_to_one_sl_calculated', 'timestamp_of_tp_51_to_one_is_reached_sl_calculated', 'datetime_of_tp_51_to_one_is_reached_sl_calculated', 'take_profit_52_to_one_is_reached_sl_calculated', 'take_profit_52_to_one_sl_calculated', 'timestamp_of_tp_52_to_one_is_reached_sl_calculated', 'datetime_of_tp_52_to_one_is_reached_sl_calculated', 'take_profit_53_to_one_is_reached_sl_calculated', 'take_profit_53_to_one_sl_calculated', 'timestamp_of_tp_53_to_one_is_reached_sl_calculated', 'datetime_of_tp_53_to_one_is_reached_sl_calculated', 'take_profit_54_to_one_is_reached_sl_calculated', 'take_profit_54_to_one_sl_calculated', 'timestamp_of_tp_54_to_one_is_reached_sl_calculated', 'datetime_of_tp_54_to_one_is_reached_sl_calculated', 'take_profit_55_to_one_is_reached_sl_calculated', 'take_profit_55_to_one_sl_calculated', 'timestamp_of_tp_55_to_one_is_reached_sl_calculated', 'datetime_of_tp_55_to_one_is_reached_sl_calculated', 'take_profit_56_to_one_is_reached_sl_calculated', 'take_profit_56_to_one_sl_calculated', 'timestamp_of_tp_56_to_one_is_reached_sl_calculated', 'datetime_of_tp_56_to_one_is_reached_sl_calculated', 'take_profit_57_to_one_is_reached_sl_calculated', 'take_profit_57_to_one_sl_calculated', 'timestamp_of_tp_57_to_one_is_reached_sl_calculated', 'datetime_of_tp_57_to_one_is_reached_sl_calculated', 'take_profit_58_to_one_is_reached_sl_calculated', 'take_profit_58_to_one_sl_calculated', 'timestamp_of_tp_58_to_one_is_reached_sl_calculated', 'datetime_of_tp_58_to_one_is_reached_sl_calculated', 'take_profit_59_to_one_is_reached_sl_calculated', 'take_profit_59_to_one_sl_calculated', 'timestamp_of_tp_59_to_one_is_reached_sl_calculated', 'datetime_of_tp_59_to_one_is_reached_sl_calculated', 'take_profit_60_to_one_is_reached_sl_calculated', 'take_profit_60_to_one_sl_calculated', 'timestamp_of_tp_60_to_one_is_reached_sl_calculated', 'datetime_of_tp_60_to_one_is_reached_sl_calculated', 'take_profit_61_to_one_is_reached_sl_calculated', 'take_profit_61_to_one_sl_calculated', 'timestamp_of_tp_61_to_one_is_reached_sl_calculated', 'datetime_of_tp_61_to_one_is_reached_sl_calculated', 'take_profit_62_to_one_is_reached_sl_calculated', 'take_profit_62_to_one_sl_calculated', 'timestamp_of_tp_62_to_one_is_reached_sl_calculated', 'datetime_of_tp_62_to_one_is_reached_sl_calculated', 'take_profit_63_to_one_is_reached_sl_calculated', 'take_profit_63_to_one_sl_calculated', 'timestamp_of_tp_63_to_one_is_reached_sl_calculated', 'datetime_of_tp_63_to_one_is_reached_sl_calculated', 'take_profit_64_to_one_is_reached_sl_calculated', 'take_profit_64_to_one_sl_calculated', 'timestamp_of_tp_64_to_one_is_reached_sl_calculated', 'datetime_of_tp_64_to_one_is_reached_sl_calculated', 'take_profit_65_to_one_is_reached_sl_calculated', 'take_profit_65_to_one_sl_calculated', 'timestamp_of_tp_65_to_one_is_reached_sl_calculated', 'datetime_of_tp_65_to_one_is_reached_sl_calculated', 'take_profit_66_to_one_is_reached_sl_calculated', 'take_profit_66_to_one_sl_calculated', 'timestamp_of_tp_66_to_one_is_reached_sl_calculated', 'datetime_of_tp_66_to_one_is_reached_sl_calculated', 'take_profit_67_to_one_is_reached_sl_calculated', 'take_profit_67_to_one_sl_calculated', 'timestamp_of_tp_67_to_one_is_reached_sl_calculated', 'datetime_of_tp_67_to_one_is_reached_sl_calculated', 'take_profit_68_to_one_is_reached_sl_calculated', 'take_profit_68_to_one_sl_calculated', 'timestamp_of_tp_68_to_one_is_reached_sl_calculated', 'datetime_of_tp_68_to_one_is_reached_sl_calculated', 'take_profit_69_to_one_is_reached_sl_calculated', 'take_profit_69_to_one_sl_calculated', 'timestamp_of_tp_69_to_one_is_reached_sl_calculated', 'datetime_of_tp_69_to_one_is_reached_sl_calculated', 'take_profit_70_to_one_is_reached_sl_calculated', 'take_profit_70_to_one_sl_calculated', 'timestamp_of_tp_70_to_one_is_reached_sl_calculated', 'datetime_of_tp_70_to_one_is_reached_sl_calculated', 'take_profit_71_to_one_is_reached_sl_calculated', 'take_profit_71_to_one_sl_calculated', 'timestamp_of_tp_71_to_one_is_reached_sl_calculated', 'datetime_of_tp_71_to_one_is_reached_sl_calculated', 'take_profit_72_to_one_is_reached_sl_calculated', 'take_profit_72_to_one_sl_calculated', 'timestamp_of_tp_72_to_one_is_reached_sl_calculated', 'datetime_of_tp_72_to_one_is_reached_sl_calculated', 'take_profit_73_to_one_is_reached_sl_calculated', 'take_profit_73_to_one_sl_calculated', 'timestamp_of_tp_73_to_one_is_reached_sl_calculated', 'datetime_of_tp_73_to_one_is_reached_sl_calculated', 'take_profit_74_to_one_is_reached_sl_calculated', 'take_profit_74_to_one_sl_calculated', 'timestamp_of_tp_74_to_one_is_reached_sl_calculated', 'datetime_of_tp_74_to_one_is_reached_sl_calculated', 'take_profit_75_to_one_is_reached_sl_calculated', 'take_profit_75_to_one_sl_calculated', 'timestamp_of_tp_75_to_one_is_reached_sl_calculated', 'datetime_of_tp_75_to_one_is_reached_sl_calculated', 'take_profit_76_to_one_is_reached_sl_calculated', 'take_profit_76_to_one_sl_calculated', 'timestamp_of_tp_76_to_one_is_reached_sl_calculated', 'datetime_of_tp_76_to_one_is_reached_sl_calculated', 'take_profit_77_to_one_is_reached_sl_calculated', 'take_profit_77_to_one_sl_calculated', 'timestamp_of_tp_77_to_one_is_reached_sl_calculated', 'datetime_of_tp_77_to_one_is_reached_sl_calculated', 'take_profit_78_to_one_is_reached_sl_calculated', 'take_profit_78_to_one_sl_calculated', 'timestamp_of_tp_78_to_one_is_reached_sl_calculated', 'datetime_of_tp_78_to_one_is_reached_sl_calculated', 'take_profit_79_to_one_is_reached_sl_calculated', 'take_profit_79_to_one_sl_calculated', 'timestamp_of_tp_79_to_one_is_reached_sl_calculated', 'datetime_of_tp_79_to_one_is_reached_sl_calculated', 'take_profit_80_to_one_is_reached_sl_calculated', 'take_profit_80_to_one_sl_calculated', 'timestamp_of_tp_80_to_one_is_reached_sl_calculated', 'datetime_of_tp_80_to_one_is_reached_sl_calculated', 'take_profit_81_to_one_is_reached_sl_calculated', 'take_profit_81_to_one_sl_calculated', 'timestamp_of_tp_81_to_one_is_reached_sl_calculated', 'datetime_of_tp_81_to_one_is_reached_sl_calculated', 'take_profit_82_to_one_is_reached_sl_calculated', 'take_profit_82_to_one_sl_calculated', 'timestamp_of_tp_82_to_one_is_reached_sl_calculated', 'datetime_of_tp_82_to_one_is_reached_sl_calculated', 'take_profit_83_to_one_is_reached_sl_calculated', 'take_profit_83_to_one_sl_calculated', 'timestamp_of_tp_83_to_one_is_reached_sl_calculated', 'datetime_of_tp_83_to_one_is_reached_sl_calculated', 'take_profit_84_to_one_is_reached_sl_calculated', 'take_profit_84_to_one_sl_calculated', 'timestamp_of_tp_84_to_one_is_reached_sl_calculated', 'datetime_of_tp_84_to_one_is_reached_sl_calculated', 'take_profit_85_to_one_is_reached_sl_calculated', 'take_profit_85_to_one_sl_calculated', 'timestamp_of_tp_85_to_one_is_reached_sl_calculated', 'datetime_of_tp_85_to_one_is_reached_sl_calculated', 'take_profit_86_to_one_is_reached_sl_calculated', 'take_profit_86_to_one_sl_calculated', 'timestamp_of_tp_86_to_one_is_reached_sl_calculated', 'datetime_of_tp_86_to_one_is_reached_sl_calculated', 'take_profit_87_to_one_is_reached_sl_calculated', 'take_profit_87_to_one_sl_calculated', 'timestamp_of_tp_87_to_one_is_reached_sl_calculated', 'datetime_of_tp_87_to_one_is_reached_sl_calculated', 'take_profit_88_to_one_is_reached_sl_calculated', 'take_profit_88_to_one_sl_calculated', 'timestamp_of_tp_88_to_one_is_reached_sl_calculated', 'datetime_of_tp_88_to_one_is_reached_sl_calculated', 'take_profit_89_to_one_is_reached_sl_calculated', 'take_profit_89_to_one_sl_calculated', 'timestamp_of_tp_89_to_one_is_reached_sl_calculated', 'datetime_of_tp_89_to_one_is_reached_sl_calculated', 'take_profit_90_to_one_is_reached_sl_calculated', 'take_profit_90_to_one_sl_calculated', 'timestamp_of_tp_90_to_one_is_reached_sl_calculated', 'datetime_of_tp_90_to_one_is_reached_sl_calculated', 'take_profit_91_to_one_is_reached_sl_calculated', 'take_profit_91_to_one_sl_calculated', 'timestamp_of_tp_91_to_one_is_reached_sl_calculated', 'datetime_of_tp_91_to_one_is_reached_sl_calculated', 'take_profit_92_to_one_is_reached_sl_calculated', 'take_profit_92_to_one_sl_calculated', 'timestamp_of_tp_92_to_one_is_reached_sl_calculated', 'datetime_of_tp_92_to_one_is_reached_sl_calculated', 'take_profit_93_to_one_is_reached_sl_calculated', 'take_profit_93_to_one_sl_calculated', 'timestamp_of_tp_93_to_one_is_reached_sl_calculated', 'datetime_of_tp_93_to_one_is_reached_sl_calculated', 'take_profit_94_to_one_is_reached_sl_calculated', 'take_profit_94_to_one_sl_calculated', 'timestamp_of_tp_94_to_one_is_reached_sl_calculated', 'datetime_of_tp_94_to_one_is_reached_sl_calculated', 'take_profit_95_to_one_is_reached_sl_calculated', 'take_profit_95_to_one_sl_calculated', 'timestamp_of_tp_95_to_one_is_reached_sl_calculated', 'datetime_of_tp_95_to_one_is_reached_sl_calculated', 'take_profit_96_to_one_is_reached_sl_calculated', 'take_profit_96_to_one_sl_calculated', 'timestamp_of_tp_96_to_one_is_reached_sl_calculated', 'datetime_of_tp_96_to_one_is_reached_sl_calculated', 'take_profit_97_to_one_is_reached_sl_calculated', 'take_profit_97_to_one_sl_calculated', 'timestamp_of_tp_97_to_one_is_reached_sl_calculated', 'datetime_of_tp_97_to_one_is_reached_sl_calculated', 'take_profit_98_to_one_is_reached_sl_calculated', 'take_profit_98_to_one_sl_calculated', 'timestamp_of_tp_98_to_one_is_reached_sl_calculated', 'datetime_of_tp_98_to_one_is_reached_sl_calculated', 'take_profit_99_to_one_is_reached_sl_calculated', 'take_profit_99_to_one_sl_calculated', 'timestamp_of_tp_99_to_one_is_reached_sl_calculated', 'datetime_of_tp_99_to_one_is_reached_sl_calculated', 'take_profit_100_to_one_is_reached_sl_calculated', 'take_profit_100_to_one_sl_calculated', 'timestamp_of_tp_100_to_one_is_reached_sl_calculated', 'datetime_of_tp_100_to_one_is_reached_sl_calculated'])
+                df_with_level_atr_bpu_bsu_etc = pd.DataFrame(dtype='object')
+                df_with_level_atr_bpu_bsu_etc.at[0, "ticker"] = stock_name
+                df_with_level_atr_bpu_bsu_etc.at[0, "exchange"] = exchange
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "model"] = "ПРОБОЙ_ATH_с_подтверждением_вход_на_следующий_день"
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "ath"] = all_time_high
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "advanced_atr"] = advanced_atr
+                df_with_level_atr_bpu_bsu_etc.at[0, "model"] = "ПРОБОЙ_ATH_с_подтверждением_вход_на_следующий_день"
+                df_with_level_atr_bpu_bsu_etc.at[0, "ath"] = all_time_high
+                df_with_level_atr_bpu_bsu_etc.at[0, "advanced_atr"] = advanced_atr
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "advanced_atr_over_this_period"] = \
+                df_with_level_atr_bpu_bsu_etc.at[0, "advanced_atr_over_this_period"] = \
                     advanced_atr_over_this_period
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "high_of_bsu"] = all_time_high
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "volume_of_bsu"] = volume_of_last_all_time_high
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "timestamp_of_bsu"] = timestamp_of_last_all_time_high
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "human_date_of_bsu"] = date_of_last_ath
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "timestamp_of_pre_breakout_bar"] = timestamp_of_pre_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "human_date_of_pre_breakout_bar"] = date_of_pre_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "open_of_breakout_bar"] = open_of_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "high_of_breakout_bar"] = high_of_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "low_of_breakout_bar"] = low_of_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "close_of_breakout_bar"] = close_of_breakout_bar
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "volume_of_breakout_bar"] = volume_of_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "high_of_bsu"] = all_time_high
+                df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_bsu"] = volume_of_last_all_time_high
+                df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_bsu"] = timestamp_of_last_all_time_high
+                df_with_level_atr_bpu_bsu_etc.at[0, "human_date_of_bsu"] = date_of_last_ath
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "min_volume_over_last_n_days"] =  last_two_years_of_data['volume'].tail(count_min_volume_over_this_many_days).min()
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "buy_order"] = buy_order
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "calculated_stop_loss"] = calculated_stop_loss
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_when_sl_is_calculated_3_to_1"] = take_profit_when_sl_is_calculated_3_to_1
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_when_sl_is_calculated_4_to_1"] = take_profit_when_sl_is_calculated_4_to_1
+                df_with_level_atr_bpu_bsu_etc.at[0, "open_of_breakout_bar"] = open_of_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "high_of_breakout_bar"] = high_of_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "low_of_breakout_bar"] = low_of_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "close_of_breakout_bar"] = close_of_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_breakout_bar"] = volume_of_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_breakout_bar"] = timestamp_of_breakout_bar
+                df_with_level_atr_bpu_bsu_etc.at[0, "human_date_of_breakout_bar"] = date_of_breakout_bar
+
+                df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_over_last_n_days"] =  last_two_years_of_data['volume'].tail(count_min_volume_over_this_many_days).min()
+                df_with_level_atr_bpu_bsu_etc.at[0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
+
+                df_with_level_atr_bpu_bsu_etc.at[0, "buy_order"] = buy_order
+                df_with_level_atr_bpu_bsu_etc.at[0, "calculated_stop_loss"] = calculated_stop_loss
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_calculated_3_to_1"] = take_profit_when_sl_is_calculated_3_to_1
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_calculated_4_to_1"] = take_profit_when_sl_is_calculated_4_to_1
 
                 distance_between_calculated_stop_loss_and_buy_order = buy_order - calculated_stop_loss
                 distance_between_calculated_stop_loss_and_buy_order_in_atr = \
                     distance_between_calculated_stop_loss_and_buy_order / advanced_atr
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "distance_between_calculated_sl_and_buy_order_in_atr"] =\
+                df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_calculated_sl_and_buy_order_in_atr"] =\
                     distance_between_calculated_stop_loss_and_buy_order_in_atr
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "distance_between_calculated_sl_and_buy_order"] = \
+                df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_calculated_sl_and_buy_order"] = \
                     distance_between_calculated_stop_loss_and_buy_order
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "technical_stop_loss"] = technical_stop_loss
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_when_sl_is_technical_3_to_1"] = take_profit_when_sl_is_technical_3_to_1
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_when_sl_is_technical_4_to_1"] = take_profit_when_sl_is_technical_4_to_1
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "distance_between_technical_sl_and_buy_order_in_atr"] = distance_between_technical_stop_loss_and_buy_order_in_atr
+                df_with_level_atr_bpu_bsu_etc.at[0, "technical_stop_loss"] = technical_stop_loss
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_technical_3_to_1"] = take_profit_when_sl_is_technical_3_to_1
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_technical_4_to_1"] = take_profit_when_sl_is_technical_4_to_1
+                df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_technical_sl_and_buy_order_in_atr"] = distance_between_technical_stop_loss_and_buy_order_in_atr
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "distance_between_technical_sl_and_buy_order"] = distance_between_technical_stop_loss_and_buy_order
+                df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_technical_sl_and_buy_order"] = distance_between_technical_stop_loss_and_buy_order
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "suppression_by_lows"] = suppression_flag_for_lows
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "number_of_bars_when_we_check_suppression_by_lows"] = number_of_bars_when_we_check_suppression_by_lows
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "suppression_by_closes"] = suppression_flag_for_closes
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "number_of_bars_when_we_check_suppression_by_closes"] = number_of_bars_when_we_check_suppression_by_closes
+                df_with_level_atr_bpu_bsu_etc.at[0, "suppression_by_lows"] = suppression_flag_for_lows
+                df_with_level_atr_bpu_bsu_etc.at[0, "number_of_bars_when_we_check_suppression_by_lows"] = number_of_bars_when_we_check_suppression_by_lows
+                df_with_level_atr_bpu_bsu_etc.at[0, "suppression_by_closes"] = suppression_flag_for_closes
+                df_with_level_atr_bpu_bsu_etc.at[0, "number_of_bars_when_we_check_suppression_by_closes"] = number_of_bars_when_we_check_suppression_by_closes
 
                 try:
                     asset_type, maker_fee, taker_fee, url_of_trading_pair = \
                         get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(table_with_ohlcv_data_df)
 
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"asset_type"] = asset_type
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"maker_fee"] = maker_fee
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"taker_fee"] = taker_fee
-                    df_with_level_atr_bpu_bsu_etc.loc[0,"url_of_trading_pair"] = url_of_trading_pair
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "number_of_available_bars"] = number_of_available_days
+                    df_with_level_atr_bpu_bsu_etc.at[0,"asset_type"] = asset_type
+                    df_with_level_atr_bpu_bsu_etc.at[0,"maker_fee"] = maker_fee
+                    df_with_level_atr_bpu_bsu_etc.at[0,"taker_fee"] = taker_fee
+                    df_with_level_atr_bpu_bsu_etc.at[0,"url_of_trading_pair"] = url_of_trading_pair
+                    df_with_level_atr_bpu_bsu_etc.at[0, "number_of_available_bars"] = number_of_available_days
                     try:
-                        df_with_level_atr_bpu_bsu_etc.loc[0, "trading_pair_is_traded_with_margin"]=\
+                        df_with_level_atr_bpu_bsu_etc.at[0, "trading_pair_is_traded_with_margin"]=\
                             get_bool_if_asset_is_traded_with_margin(table_with_ohlcv_data_df)
                     except:
                         traceback.print_exc()
@@ -1224,46 +1315,33 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 # except:
                 #     traceback.print_exc()
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "ticker_last_column"] = stock_name
+                df_with_level_atr_bpu_bsu_etc.at[0, "ticker_last_column"] = stock_name
                 try:
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
+                    df_with_level_atr_bpu_bsu_etc.at[0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
                 except:
                     traceback.print_exc()
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "ticker_will_be_traced_and_position_entered"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "ticker_will_be_traced_and_position_entered"] = False
 
                 side = "buy"
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "side"] = side
+                df_with_level_atr_bpu_bsu_etc.at[0, "side"] = side
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "stop_loss_is_technical"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "stop_loss_is_calculated"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_is_technical"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_is_calculated"] = False
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "market_or_limit_stop_loss"] = 'market'
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "market_or_limit_take_profit"] = 'limit'
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "position_size"] = 0
+                df_with_level_atr_bpu_bsu_etc.at[0, "market_or_limit_stop_loss"] = 'market'
+                df_with_level_atr_bpu_bsu_etc.at[0, "market_or_limit_take_profit"] = 'limit'
+                df_with_level_atr_bpu_bsu_etc.at[0, "position_size"] = 0
 
-                df_with_level_atr_bpu_bsu_etc.loc[
-                    0, "take_profit_x_to_one"] = 3
+                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_x_to_one"] = 3
 
 
                 #########################################################################
                 #########################################################################
                 #########################################################################
                 try:
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "exchange_names_string_where_trading_pair_is_traded"] = exchange_names_string_where_trading_pair_is_traded
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "exchange_id_string_where_trading_pair_is_traded"] = exchange_id_string_where_trading_pair_is_traded
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "number_of_exchanges_where_pair_is_traded_on"] = number_of_exchanges_where_pair_is_traded_on
+                    df_with_level_atr_bpu_bsu_etc.at[0, "exchange_names_string_where_trading_pair_is_traded"] = exchange_names_string_where_trading_pair_is_traded
+                    df_with_level_atr_bpu_bsu_etc.at[0, "exchange_id_string_where_trading_pair_is_traded"] = exchange_id_string_where_trading_pair_is_traded
+                    df_with_level_atr_bpu_bsu_etc.at[0, "number_of_exchanges_where_pair_is_traded_on"] = number_of_exchanges_where_pair_is_traded_on
                 except:
                     traceback.print_exc()
 
@@ -1272,23 +1350,20 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 #########################################################################
 
                 # Choose whether to use spot trading or margin trading with either cross or isolated margin
-                df_with_level_atr_bpu_bsu_etc.loc[0, "spot_without_margin"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[0, "margin"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[0, "cross_margin"] = False
-                df_with_level_atr_bpu_bsu_etc.loc[0, "isolated_margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "spot_without_margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "cross_margin"] = False
+                df_with_level_atr_bpu_bsu_etc.at[0, "isolated_margin"] = False
 
                 try:
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "final_position_entry_price"]= buy_order
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "final_stop_loss_price"] = technical_stop_loss
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "final_position_entry_price_default_value"] = buy_order
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "final_stop_loss_price_default_value"] = technical_stop_loss
-                    df_with_level_atr_bpu_bsu_etc.loc[0, "final_take_profit_price"] = take_profit_when_sl_is_technical_3_to_1
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "final_take_profit_price_default_value"] = take_profit_when_sl_is_technical_3_to_1
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "timestamp_when_bfr_was_found"] = int(time.time())
-                    df_with_level_atr_bpu_bsu_etc.loc[
-                        0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_position_entry_price"]= buy_order
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_stop_loss_price"] = technical_stop_loss
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_position_entry_price_default_value"] = buy_order
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_stop_loss_price_default_value"] = technical_stop_loss
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_take_profit_price"] = take_profit_when_sl_is_technical_3_to_1
+                    df_with_level_atr_bpu_bsu_etc.at[0, "final_take_profit_price_default_value"] = take_profit_when_sl_is_technical_3_to_1
+                    df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_bfr_was_found"] = int(time.time())
+                    df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
                 except:
                     traceback.print_exc()
 
@@ -1429,7 +1504,10 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
                 try:
                     # add info to df if sl, order, and tp were reached
+                    level_price=all_time_high
                     df_with_level_atr_bpu_bsu_etc=add_to_df_result_of_return_bool_whether_technical_sl_tp_and_buy_order_have_been_reached(
+                        level_price,
+                        advanced_atr,
                         df_with_level_atr_bpu_bsu_etc,
                         index_in_iteration,
                         entire_original_table_with_ohlcv_data_df,
@@ -1439,6 +1517,8 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                         technical_stop_loss)
 
                     df_with_level_atr_bpu_bsu_etc=add_to_df_result_of_return_bool_whether_calculated_sl_tp_and_buy_order_have_been_reached(
+                        level_price,
+                        advanced_atr,
                         df_with_level_atr_bpu_bsu_etc,
                         index_in_iteration,
                         entire_original_table_with_ohlcv_data_df,
@@ -1453,19 +1533,39 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 ############################################
                 ############################################
 
+                # print("df_with_level_atr_bpu_bsu_etc.columns")
+                # print(list(df_with_level_atr_bpu_bsu_etc.columns))
+
+                # print("number_of_times_this_all_time_high_occurred")
+                # print(number_of_times_this_all_time_high_occurred)
+                # print("timestamps_of_all_time_highs_as_string")
+                # print(timestamps_of_all_time_highs_as_string)
+                # print("open_times_of_all_time_highs_as_string")
+                # print(open_times_of_all_time_highs_as_string)
+
+                round_to_this_number_of_non_zero_digits=2
+                try:
+                    df_with_level_atr_bpu_bsu_etc=add_info_to_df_about_all_time_high_number_of_times_it_was_touched_its_timestamps_and_datetimes(
+                        all_time_high,
+                        df_with_level_atr_bpu_bsu_etc,
+                        last_two_years_of_data,
+                        round_to_this_number_of_non_zero_digits)
+                except:
+                    traceback.print_exc()
+
                 try:
                     # add found bfr to new db where there is no table drop
                     df_with_level_atr_bpu_bsu_etc.to_sql(
-                        table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
-                        engine_for_db_where_ticker_which_may_have_fast_breakout_situations_hist,
+                        table_where_ticker_which_may_have_breakout_situations_from_ath_will_be,
+                        engine_for_db_where_ticker_which_may_have_breakout_situations_hist,
                         if_exists='append')
 
                 except:
                     traceback.print_exc()
 
             # df_with_level_atr_bpu_bsu_etc.to_sql(
-            #     table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
-            #     engine_for_db_where_ticker_which_may_have_fast_breakout_situations,
+            #     table_where_ticker_which_may_have_breakout_situations_from_ath_will_be,
+            #     engine_for_db_where_ticker_which_may_have_breakout_situations,
             #     if_exists='append')
             # print_df_to_file(df_with_level_atr_bpu_bsu_etc,
             #                  'current_rebound_breakout_and_false_breakout')
@@ -1491,30 +1591,30 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
 if __name__=="__main__":
     start_time=time.time ()
-    db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_usdt_pairs_0000"
+    db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_usdt_pairs_0000_pagination"
     count_only_round_rebound_level=False
-    db_where_ticker_which_may_have_fast_breakout_situations=\
+    db_where_ticker_which_may_have_breakout_situations=\
         "levels_formed_by_highs_and_lows_for_cryptos_0000"
-    table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be =\
+    table_where_ticker_which_may_have_breakout_situations_from_ath_will_be =\
         "current_breakout_situations_of_ath_position_entry_next_day"
-    table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be =\
+    table_where_ticker_which_may_have_breakout_situations_from_atl_will_be =\
         "current_breakout_situations_of_atl_position_entry_next_day"
 
     if count_only_round_rebound_level:
-        db_where_ticker_which_may_have_fast_breakout_situations=\
+        db_where_ticker_which_may_have_breakout_situations=\
             "round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     #0.05 means 5%
     
-    atr_over_this_period=5
+    atr_over_this_period = 30
     advanced_atr_over_this_period=30
     number_of_bars_in_suppression_to_check_for_volume_acceptance=14
     factor_to_multiply_atr_by_to_check_suppression=1
-    count_min_volume_over_this_many_days=30
+    count_min_volume_over_this_many_days=7
     search_for_tickers_with_breakout_situations(
                                               db_where_ohlcv_data_for_stocks_is_stored,
-                                              db_where_ticker_which_may_have_fast_breakout_situations,
-                                              table_where_ticker_which_may_have_fast_breakout_situations_from_ath_will_be,
-                                                table_where_ticker_which_may_have_fast_breakout_situations_from_atl_will_be,
+                                              db_where_ticker_which_may_have_breakout_situations,
+                                              table_where_ticker_which_may_have_breakout_situations_from_ath_will_be,
+                                                table_where_ticker_which_may_have_breakout_situations_from_atl_will_be,
                                             advanced_atr_over_this_period,
                                             number_of_bars_in_suppression_to_check_for_volume_acceptance,
                                             factor_to_multiply_atr_by_to_check_suppression,count_min_volume_over_this_many_days)

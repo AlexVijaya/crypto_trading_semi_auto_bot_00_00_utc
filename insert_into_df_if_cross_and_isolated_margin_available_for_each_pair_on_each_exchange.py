@@ -210,6 +210,8 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://ascendex.com/en/margin-trading/{quote.lower()}/{base.lower()}"
     elif exchange_id == 'phemex':
         return f"https://phemex.com/trade/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'digifinex':
+        return f"https://www.digifinex.com/en-ww/swap/{base.upper()}{quote.upper()}PERP"
     else:
         return "Exchange not supported"
 
@@ -384,6 +386,8 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://oceanex.pro/en/trades/{market['base'].lower()}{market['quote'].lower()}"
     elif exchange_id == 'phemex':
         return f"https://phemex.com/margin/trade/{market['base'].upper()}{market['quote'].upper()}"
+    elif exchange_id == 'digifinex':
+        return f"https://www.digifinex.com/en-ww/trade/{market['quote'].upper()}/{market['base'].upper()}"
     else:
         return "Exchange not supported"
 
@@ -905,7 +909,7 @@ def get_exchange_object2(exchange_name):
         'bl3p': ccxt.bl3p(),
         # 'bleutrade': ccxt.bleutrade(),
         # 'braziliex': ccxt.braziliex(),
-        'bkex': ccxt.bkex(),
+        # 'bkex': ccxt.bkex(),
         'btcalpha': ccxt.btcalpha(),
         'btcbox': ccxt.btcbox(),
         'btcmarkets': ccxt.btcmarkets(),
@@ -995,7 +999,7 @@ def get_exchange_object2(exchange_name):
         'huobi': ccxt.huobi(),
         'lbank2': ccxt.lbank2(),
         'blockchaincom': ccxt.blockchaincom(),
-        'btcex': ccxt.btcex(),
+        # 'btcex': ccxt.btcex(),
         'kucoinfutures': ccxt.kucoinfutures(),
         # 'okex4': ccxt.okex4(),
         # 'p2pb2b': ccxt.p2pb2b(),
@@ -1007,7 +1011,7 @@ def get_exchange_object2(exchange_name):
         # 'qtrade': ccxt.qtrade(),
         # 'ripio': ccxt.ripio(),
         # 'southxchange': ccxt.southxchange(),
-        'stex': ccxt.stex(),
+        # 'stex': ccxt.stex(),
         # 'stronghold': ccxt.stronghold(),
         # 'surbitcoin': ccxt.surbitcoin(),
         # 'therock': ccxt.therock(),
@@ -1028,8 +1032,9 @@ def get_exchange_object2(exchange_name):
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
         # 'zb': ccxt.zb(),
-        'xt':ccxt.xt(),
-        'zonda':ccxt.zonda()
+        # 'xt':ccxt.xt(),
+        'zonda':ccxt.zonda(),
+        'bingx': ccxt.bingx()
     }
     exchange_object = exchange_objects.get(exchange_name)
     if exchange_object is None:

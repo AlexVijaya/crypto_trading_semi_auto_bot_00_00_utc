@@ -26,6 +26,7 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_las
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from count_leading_zeros_in_a_number import count_zeros
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
 from get_info_from_load_markets import get_spread
 import pprint
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
@@ -308,22 +309,16 @@ def insert_sl_tp_order_price_into_df(df_with_level_atr_bpu_bsu_etc,
     take_profit_when_stop_loss_is_technical_4_to_1 = sell_order - (technical_stop_loss-sell_order) * 4
     distance_between_technical_stop_loss_and_sell_order_in_atr = distance_between_technical_stop_loss_and_sell_order / advanced_atr
 
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "min_volume_over_last_n_days"] = add_min_volume_over_n_days(table_with_ohlcv_data_df_slice_numpy_array,
+    df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_over_last_n_days"] = add_min_volume_over_n_days(table_with_ohlcv_data_df_slice_numpy_array,
                                                                        number_of_last_row_in_np_array_row_slice,
                                                                        count_min_volume_over_this_many_days)
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
+    df_with_level_atr_bpu_bsu_etc.at[0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
 
 
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "sell_order"] = sell_order
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "technical_stop_loss"] = technical_stop_loss
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "take_profit_3_to_1"] = take_profit_when_stop_loss_is_technical_3_to_1
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "take_profit_4_to_1"] = take_profit_when_stop_loss_is_technical_4_to_1
+    df_with_level_atr_bpu_bsu_etc.at[0, "sell_order"] = sell_order
+    df_with_level_atr_bpu_bsu_etc.at[0, "technical_stop_loss"] = technical_stop_loss
+    df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_3_to_1"] = take_profit_when_stop_loss_is_technical_3_to_1
+    df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_4_to_1"] = take_profit_when_stop_loss_is_technical_4_to_1
 
     # df_with_level_atr_bpu_bsu_etc.loc[
     #     0, "timestamp_of_next_day_bar_after_break_out_bar"] = timestamp_of_next_day_bar_after_break_out_bar
@@ -340,12 +335,10 @@ def insert_sl_tp_order_price_into_df(df_with_level_atr_bpu_bsu_etc,
 
 
 
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "distance_between_technical_sl_and_sell_order"] = \
+    df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_technical_sl_and_sell_order"] = \
         distance_between_technical_stop_loss_and_sell_order
 
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "distance_between_technical_sl_and_sell_order_in_atr"] =\
+    df_with_level_atr_bpu_bsu_etc.at[0, "distance_between_technical_sl_and_sell_order_in_atr"] =\
         distance_between_technical_stop_loss_and_sell_order_in_atr
 
     # print("crypto name in function")
@@ -376,16 +369,11 @@ def insert_sl_tp_order_price_into_df(df_with_level_atr_bpu_bsu_etc,
                                                                  number_of_last_row_in_np_array_row_slice + 2,
                                                                  technical_stop_loss,
                                                                  take_profit_when_stop_loss_is_technical_3_to_1)
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "technical_take_profit_3_to_1_achieved"] = take_profit_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "stop_loss_with_technical_tp_3_to_1_achieved"] = stop_loss_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "neither_technical_tp_3_to_1_or_sl_3_to_1_achieved"] = neither_tp_or_sl_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "human_datetime_when_technical_tp_3_to_1_was_achieved"] = human_date_and_time_when_tp_was_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "human_datetime_when_sl_with_technical_tp_3_to_1_was_achieved"] = human_date_and_time_when_sl_was_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "technical_take_profit_3_to_1_achieved"] = take_profit_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_with_technical_tp_3_to_1_achieved"] = stop_loss_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "neither_technical_tp_3_to_1_or_sl_3_to_1_achieved"] = neither_tp_or_sl_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "human_datetime_when_technical_tp_3_to_1_was_achieved"] = human_date_and_time_when_tp_was_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "human_datetime_when_sl_with_technical_tp_3_to_1_was_achieved"] = human_date_and_time_when_sl_was_achieved
     ##################################
     take_profit_achieved, \
         stop_loss_achieved, \
@@ -396,16 +384,11 @@ def insert_sl_tp_order_price_into_df(df_with_level_atr_bpu_bsu_etc,
                                                                  number_of_last_row_in_np_array_row_slice + 2,
                                                                  technical_stop_loss,
                                                                  take_profit_when_stop_loss_is_technical_4_to_1)
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "technical_take_profit_4_to_1_achieved"] = take_profit_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "stop_loss_with_technical_tp_4_to_1_achieved"] = stop_loss_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "neither_technical_tp_4_to_1_or_sl_4_to_1_achieved"] = neither_tp_or_sl_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "human_datetime_when_technical_tp_4_to_1_was_achieved"] = human_date_and_time_when_tp_was_achieved
-    df_with_level_atr_bpu_bsu_etc.loc[
-        0, "human_datetime_when_sl_with_technical_tp_4_to_1_was_achieved"] = human_date_and_time_when_sl_was_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "technical_take_profit_4_to_1_achieved"] = take_profit_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_with_technical_tp_4_to_1_achieved"] = stop_loss_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "neither_technical_tp_4_to_1_or_sl_4_to_1_achieved"] = neither_tp_or_sl_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "human_datetime_when_technical_tp_4_to_1_was_achieved"] = human_date_and_time_when_tp_was_achieved
+    df_with_level_atr_bpu_bsu_etc.at[0, "human_datetime_when_sl_with_technical_tp_4_to_1_was_achieved"] = human_date_and_time_when_sl_was_achieved
 
     return df_with_level_atr_bpu_bsu_etc
 
@@ -1121,7 +1104,7 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
             # print ( table_with_ohlcv_data_df.loc[0 , "close"] )
 
             last_close_price = get_last_close_price_of_asset(table_with_ohlcv_data_df)
-            number_of_zeroes_in_price = count_zeros(last_close_price)
+            number_of_zeroes_in_price = count_zeros_number_with_e_notaton_is_acceptable(last_close_price)
 
             # round high and low to two decimal number
             truncated_high_and_low_table_with_ohlcv_data_df["high"] = \
@@ -1697,10 +1680,10 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                                                                     get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(
                                                                         table_with_ohlcv_data_df)
 
-                                                                df_with_level_atr_bpu_bsu_etc.loc[0,"asset_type"] = asset_type
-                                                                df_with_level_atr_bpu_bsu_etc.loc[0,"maker_fee"] = maker_fee
-                                                                df_with_level_atr_bpu_bsu_etc.loc[0,"taker_fee"] = taker_fee
-                                                                df_with_level_atr_bpu_bsu_etc.loc[0,
+                                                                df_with_level_atr_bpu_bsu_etc.at[0,"asset_type"] = asset_type
+                                                                df_with_level_atr_bpu_bsu_etc.at[0,"maker_fee"] = maker_fee
+                                                                df_with_level_atr_bpu_bsu_etc.at[0,"taker_fee"] = taker_fee
+                                                                df_with_level_atr_bpu_bsu_etc.at[0,
                                                                     "url_of_trading_pair"] = url_of_trading_pair
                                                                 df_with_level_atr_bpu_bsu_etc.loc[
                                                                     0, "number_of_available_bars"] = number_of_available_days
@@ -1766,72 +1749,45 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
 
                                                 list_of_stocks_approaching_ath.append ( stock_name )
                                                 df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-                                                df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-                                                df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
                                                 short_name=""
-                                                df_with_level_atr_bpu_bsu_etc.loc[0 , "short_name"] = short_name
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "ath"] = current_ath_in_iteration_over_numpy_array
-                                                df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "short_name"] = short_name
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "ath"] = current_ath_in_iteration_over_numpy_array
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "advanced_atr_over_this_period"] = \
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr_over_this_period"] = \
                                                     advanced_atr_over_this_period
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "high_of_bsu"] = current_ath_in_iteration_over_numpy_array
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "volume_of_bsu"] = volume_in_current_ath
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "timestamp_of_bsu"] = timestamp_of_current_ath
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "human_date_of_bsu"] = date_of_ath
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "timestamp_of_pre_false_breakout_bar"] = current_timestamp
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "human_date_of_pre_false_breakout_bar"] = date_of_current_timestamp
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_bsu"] = current_ath_in_iteration_over_numpy_array
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bsu"] = volume_in_current_ath
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bsu"] = timestamp_of_current_ath
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_bsu"] = date_of_ath
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_pre_false_breakout_bar"] = current_timestamp
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_pre_false_breakout_bar"] = date_of_current_timestamp
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "open_of_bar_before_false_breakout"] = open_of_bar_before_false_breakout
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "high_of_bar_before_false_breakout"] = high_of_bar_before_false_breakout
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "low_of_bar_before_false_breakout"] = low_of_bar_before_false_breakout
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "close_of_bar_before_false_breakout"] = close_of_bar_before_false_breakout
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "volume_of_bar_before_false_breakout"] = volume_of_bar_before_false_breakout
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_bar_before_false_breakout"] = open_of_bar_before_false_breakout
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_bar_before_false_breakout"] = high_of_bar_before_false_breakout
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_bar_before_false_breakout"] = low_of_bar_before_false_breakout
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_bar_before_false_breakout"] = close_of_bar_before_false_breakout
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bar_before_false_breakout"] = volume_of_bar_before_false_breakout
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "open_of_false_breakout_bar"] = open_of_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "high_of_false_breakout_bar"] = high_of_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "low_of_false_breakout_bar"] = low_of_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "close_of_false_breakout_bar"] = close_of_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "volume_of_false_breakout_bar"] = volume_of_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_false_breakout_bar"] = open_of_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_false_breakout_bar"] = high_of_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_false_breakout_bar"] = low_of_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_false_breakout_bar"] = close_of_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_false_breakout_bar"] = volume_of_false_breakout_bar
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "open_of_second_false_breakout_bar"] = open_of_second_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "high_of_second_false_breakout_bar"] = high_of_second_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "low_of_second_false_breakout_bar"] = low_of_second_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "close_of_second_false_breakout_bar"] = close_of_second_false_breakout_bar
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "volume_of_second_false_breakout_bar"] = volume_of_second_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_second_false_breakout_bar"] = open_of_second_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_second_false_breakout_bar"] = high_of_second_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_second_false_breakout_bar"] = low_of_second_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_second_false_breakout_bar"] = close_of_second_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_second_false_breakout_bar"] = volume_of_second_false_breakout_bar
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "open_of_bar_next_day_after_second_false_breakout_bar"] = open_of_bar_next_day_after_second_false_breakout_bar
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_bar_next_day_after_second_false_breakout_bar"] = open_of_bar_next_day_after_second_false_breakout_bar
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0 , "row_number_of_false_breakout_bar"] = number_of_last_row_in_np_array_row_slice
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
+                                                df_with_level_atr_bpu_bsu_etc.at[0 , "row_number_of_false_breakout_bar"] = number_of_last_row_in_np_array_row_slice
 
                                                 try:
                                                     df_with_level_atr_bpu_bsu_etc.loc[
@@ -1852,40 +1808,31 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                                                 except:
                                                     traceback.print_exc()
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "ticker_last_column"] = stock_name
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "ticker_last_column"] = stock_name
                                                 try:
                                                     df_with_level_atr_bpu_bsu_etc.loc[
                                                         0, "base"] = get_base_of_trading_pair(trading_pair=stock_name)
                                                 except:
                                                     traceback.print_exc()
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "ticker_will_be_traced_and_position_entered"] = False
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "ticker_will_be_traced_and_position_entered"] = False
 
                                                 side = "sell"
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "side"] = side
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "side"] = side
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "stop_loss_is_technical"] = False
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "stop_loss_is_calculated"] = False
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_is_technical"] = False
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "stop_loss_is_calculated"] = False
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "market_or_limit_stop_loss"] = 'market'
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "market_or_limit_take_profit"] = 'limit'
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "position_size"] = 0
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "market_or_limit_stop_loss"] = 'market'
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "market_or_limit_take_profit"] = 'limit'
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "position_size"] = 0
 
-                                                df_with_level_atr_bpu_bsu_etc.loc[
-                                                    0, "take_profit_x_to_one"] = 3
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_x_to_one"] = 3
 
                                                 # Choose whether to use spot trading or margin trading with either cross or isolated margin
-                                                df_with_level_atr_bpu_bsu_etc.loc[0, "spot_without_margin"] = False
-                                                df_with_level_atr_bpu_bsu_etc.loc[0, "margin"] = False
-                                                df_with_level_atr_bpu_bsu_etc.loc[0, "cross_margin"] = False
-                                                df_with_level_atr_bpu_bsu_etc.loc[0, "isolated_margin"] = False
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "spot_without_margin"] = False
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "margin"] = False
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "cross_margin"] = False
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "isolated_margin"] = False
 
                                                 try:
                                                     df_with_level_atr_bpu_bsu_etc.loc[
@@ -1932,68 +1879,42 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
 
                                             list_of_stocks_approaching_ath.append ( stock_name )
                                             df_with_level_atr_bpu_bsu_etc = pd.DataFrame ()
-                                            df_with_level_atr_bpu_bsu_etc.loc[0 , "ticker"] = stock_name
-                                            df_with_level_atr_bpu_bsu_etc.loc[0 , "exchange"] = exchange
-                                            df_with_level_atr_bpu_bsu_etc.loc[0 , "short_name"] = short_name
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "ath"] = current_ath_in_iteration_over_numpy_array
-                                            df_with_level_atr_bpu_bsu_etc.loc[0 , "advanced_atr"] = advanced_atr
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "ticker"] = stock_name
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "exchange"] = exchange
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "short_name"] = short_name
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "ath"] = current_ath_in_iteration_over_numpy_array
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr"] = advanced_atr
 
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "advanced_atr_over_this_period"] = \
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "advanced_atr_over_this_period"] = \
                                                 advanced_atr_over_this_period
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "high_of_bsu"] = current_ath_in_iteration_over_numpy_array
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "volume_of_bsu"] = volume_in_current_ath
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "timestamp_of_bsu"] = timestamp_of_current_ath
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "human_date_of_bsu"] = date_of_ath
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "timestamp_of_pre_false_breakout_bar"] = current_timestamp
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "human_date_of_pre_false_breakout_bar"] = date_of_current_timestamp
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_bsu"] = current_ath_in_iteration_over_numpy_array
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bsu"] = volume_in_current_ath
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_bsu"] = timestamp_of_current_ath
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_bsu"] = date_of_ath
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "timestamp_of_pre_false_breakout_bar"] = current_timestamp
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "human_date_of_pre_false_breakout_bar"] = date_of_current_timestamp
 
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "open_of_bar_before_false_breakout"] = open_of_bar_before_false_breakout
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "high_of_bar_before_false_breakout"] = high_of_bar_before_false_breakout
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "low_of_bar_before_false_breakout"] = low_of_bar_before_false_breakout
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "close_of_bar_before_false_breakout"] = close_of_bar_before_false_breakout
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "volume_of_bar_before_false_breakout"] = volume_of_bar_before_false_breakout
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_bar_before_false_breakout"] = open_of_bar_before_false_breakout
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_bar_before_false_breakout"] = high_of_bar_before_false_breakout
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_bar_before_false_breakout"] = low_of_bar_before_false_breakout
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_bar_before_false_breakout"] = close_of_bar_before_false_breakout
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_bar_before_false_breakout"] = volume_of_bar_before_false_breakout
 
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "open_of_false_breakout_bar"] = open_of_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "high_of_false_breakout_bar"] = high_of_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "low_of_false_breakout_bar"] = low_of_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "close_of_false_breakout_bar"] = close_of_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "volume_of_false_breakout_bar"] = volume_of_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_false_breakout_bar"] = open_of_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_false_breakout_bar"] = high_of_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_false_breakout_bar"] = low_of_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_false_breakout_bar"] = close_of_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_false_breakout_bar"] = volume_of_false_breakout_bar
 
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "open_of_second_false_breakout_bar"] = open_of_second_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "high_of_second_false_breakout_bar"] = high_of_second_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "low_of_second_false_breakout_bar"] = low_of_second_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "close_of_second_false_breakout_bar"] = close_of_second_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "volume_of_second_false_breakout_bar"] = volume_of_second_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_second_false_breakout_bar"] = open_of_second_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "high_of_second_false_breakout_bar"] = high_of_second_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "low_of_second_false_breakout_bar"] = low_of_second_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "close_of_second_false_breakout_bar"] = close_of_second_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "volume_of_second_false_breakout_bar"] = volume_of_second_false_breakout_bar
 
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "open_of_bar_next_day_after_second_false_breakout_bar"] = open_of_bar_next_day_after_second_false_breakout_bar
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "open_of_bar_next_day_after_second_false_breakout_bar"] = open_of_bar_next_day_after_second_false_breakout_bar
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "min_volume_over_last_n_days"] = min_volume_over_last_n_days
+                                            df_with_level_atr_bpu_bsu_etc.at[0 , "count_min_volume_over_this_many_days"] = number_of_bars_in_suppression_to_check_for_volume_acceptance
 
                                             try:
                                                 df_with_level_atr_bpu_bsu_etc = insert_sl_tp_order_price_into_df(
@@ -2006,8 +1927,7 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                                             except:
                                                 traceback.print_exc()
 
-                                            df_with_level_atr_bpu_bsu_etc.loc[
-                                                0, "ticker"] = stock_name
+                                            df_with_level_atr_bpu_bsu_etc.at[0, "ticker"] = stock_name
 
                                             # df_with_level_atr_bpu_bsu_etc.to_sql (
                                             #     table_where_ticker_which_may_have_false_breakout_situations_from_ath_will_be ,
@@ -2059,12 +1979,12 @@ if __name__=="__main__":
             "round_historical_levels_for_cryptos"
     #0.05 means 5%
     
-    atr_over_this_period=5
+    atr_over_this_period = 30
     advanced_atr_over_this_period=30
     number_of_bars_in_suppression_to_check_for_volume_acceptance=30
     factor_to_multiply_atr_by_to_check_suppression=1
     number_of_days_between_bsu_and_false_breakout_bar=7
-    count_min_volume_over_this_many_days=30
+    count_min_volume_over_this_many_days=7
     search_for_tickers_with_false_breakout_situations(
                                               db_where_ohlcv_data_for_stocks_is_stored,
                                               db_where_ticker_which_may_have_false_breakout_situations,

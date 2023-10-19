@@ -724,12 +724,12 @@ if __name__=="__main__":
     db_where_levels_formed_by_rebound_level_will_be="levels_formed_by_highs_and_lows_for_cryptos_0000"
     table_where_ticker_which_had_rebound_situations_from_ath_will_be = "current_rebound_situations_from_ath"
     table_where_ticker_exchange_print_time_will_be = "ticker_exchange_print_time"
-    count_min_volume_over_this_many_days=30
+    count_min_volume_over_this_many_days=7
     if count_only_round_rebound_level:
         db_where_levels_formed_by_rebound_level_will_be="round_levels_formed_by_highs_and_lows_for_cryptos_0000"
     #0.05 means 5%
     acceptable_backlash=0.05
-    atr_over_this_period=5
+    atr_over_this_period = 30
     advanced_atr_over_this_period=30
     search_for_print_time(
                                             db_where_ohlcv_data_for_stocks_is_stored,

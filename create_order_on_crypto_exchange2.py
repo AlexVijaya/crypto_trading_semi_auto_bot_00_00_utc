@@ -86,7 +86,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'bl3p': ccxt.bl3p(),
         # 'bleutrade': ccxt.bleutrade(),
         # 'braziliex': ccxt.braziliex(),
-        'bkex': ccxt.bkex(),
+        # 'bkex': ccxt.bkex(),
         'btcalpha': ccxt.btcalpha(),
         'btcbox': ccxt.btcbox(),
         'btcmarkets': ccxt.btcmarkets(),
@@ -243,7 +243,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         # 'qtrade': ccxt.qtrade(),
         # 'ripio': ccxt.ripio(),
         # 'southxchange': ccxt.southxchange(),
-        'stex': ccxt.stex(),
+        # 'stex': ccxt.stex(),
         # 'stronghold': ccxt.stronghold(),
         # 'surbitcoin': ccxt.surbitcoin(),
         # 'therock': ccxt.therock(),
@@ -262,11 +262,12 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'apiKey': public_api_key ,
         'secret': api_secret }),
         # 'xbtce': ccxt.xbtce(),
-        'xt': ccxt.xt(),
+        # 'xt': ccxt.xt(),
         'yobit': ccxt.yobit(),
         'zaif': ccxt.zaif(),
         # 'zb': ccxt.zb(),
-        'zonda':ccxt.zonda()
+        'zonda':ccxt.zonda(),
+        'bingx': ccxt.bingx()
     }
     exchange_object = exchange_objects.get(exchange_name)
     exchange_object.set_sandbox_mode(False)
