@@ -1558,7 +1558,8 @@ def create_button_show_or_hide_trading_view_chart(trading_pair,exchange,exchange
     #     if df_visible:
     #         st.dataframe(entire_ohlcv_df)
 
-def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,index_of_trading_pair_to_select,trading_pair_to_select,
+def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                     table_name,index_of_trading_pair_to_select,trading_pair_to_select,
                                      df_with_resulting_table_of_certain_models,
                                          engine_for_ohlcv_data_for_stocks_0000,
                                      engine_for_ohlcv_data_for_stocks_0000_todays_pairs,height,width):
@@ -1702,8 +1703,17 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
                     table_with_ohlcv_data_df = \
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT", "")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
-                plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,table_name,row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
-                           df_with_resulting_table_of_certain_models,table_with_ohlcv_data_df, trading_pair_to_select, asset_type, height, width,
+                plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                           table_name,
+                           row_of_pair_ready_for_model,
+                           index_of_trading_pair_to_select,
+                           ticker_with_exchange_where_model_was_found,
+                           df_with_resulting_table_of_certain_models,
+                           table_with_ohlcv_data_df,
+                           trading_pair_to_select,
+                           asset_type,
+                           height,
+                           width,
                            key_for_placeholder)
 
 

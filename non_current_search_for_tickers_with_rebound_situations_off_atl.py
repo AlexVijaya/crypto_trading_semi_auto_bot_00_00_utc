@@ -848,9 +848,9 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
             # round high and low to two decimal number
             truncated_high_and_low_table_with_ohlcv_data_df["high"] = \
-                table_with_ohlcv_data_df["high"].apply(round, args=(number_of_zeroes_in_price + 2,))
+                table_with_ohlcv_data_df["high"].apply(round, args=(number_of_zeroes_in_price + 3,))
             truncated_high_and_low_table_with_ohlcv_data_df["low"] = \
-                table_with_ohlcv_data_df["low"].apply(round, args=(number_of_zeroes_in_price + 2,))
+                table_with_ohlcv_data_df["low"].apply(round, args=(number_of_zeroes_in_price + 3,))
 
             # print ( "after_table_with_ohlcv_data_df" )
             # print ( table_with_ohlcv_data_df )
@@ -1165,6 +1165,9 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "count_min_volume_over_this_many_days"] = int(count_min_volume_over_this_many_days)
 
+                        df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_in_usd_over_last_n_days"] = int(
+                        table_with_ohlcv_data_df['volume*low'].tail(
+                            count_min_volume_over_this_many_days).min())
 
                         print("df_with_level_atr_bpu_bsu_etc")
                         print(df_with_level_atr_bpu_bsu_etc.to_string())
@@ -1319,7 +1322,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                         except:
                             traceback.print_exc()
 
-                        round_to_this_number_of_non_zero_digits = 2
+                        round_to_this_number_of_non_zero_digits = 3
                         try:
                             df_with_level_atr_bpu_bsu_etc = add_info_to_df_about_all_time_low_number_of_times_it_was_touched_its_timestamps_and_datetimes(
                                 all_time_low,
@@ -1381,7 +1384,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
 
 if __name__=="__main__":
     start_time=time.time ()
-    db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_usdt_pairs_0000_pagination"
+    db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_low_volume_usdt_pairs_0000_pagination"
     count_only_round_rebound_level=False
     db_where_levels_formed_by_rebound_level_will_be="levels_formed_by_highs_and_lows_for_cryptos_0000"
     table_where_ticker_which_had_rebound_situations_from_ath_will_be = "current_rebound_situations_from_ath"

@@ -432,6 +432,8 @@ def streamlit_func():
     )
 
     st.header("Screen shitcoins and stocks for breakouts, false breakouts and rebounds")
+    # st.header("Screen shitcoins and stocks for breakouts, false breakouts and rebounds")
+    # st.header("Screen shitcoins and stocks for breakouts, false breakouts and rebounds")
 
     db_where_ohlcv_data_for_stocks_is_stored_0000_todays_pairs = "ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
     engine_for_ohlcv_data_for_stocks_0000_todays_pairs, \

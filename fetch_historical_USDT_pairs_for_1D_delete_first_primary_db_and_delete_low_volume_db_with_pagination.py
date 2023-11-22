@@ -885,7 +885,10 @@ def get_real_time_bitcoin_price():
     last_bitcoin_price=btc_ticker['close']
     return last_bitcoin_price
 
-def fetch_historical_usdt_pairs_asynchronously(engine_for_ohlcv_database_without_enough_volume,last_bitcoin_price,engine_for_ohlcv_database_with_enough_volume,exchanges_list,timeframe):
+def fetch_historical_usdt_pairs_asynchronously(engine_for_ohlcv_database_without_enough_volume,
+                                               last_bitcoin_price,
+                                               engine_for_ohlcv_database_with_enough_volume,
+                                               exchanges_list,timeframe):
     start=time.perf_counter()
     # exchanges_list=['aax', 'ascendex', 'bequant', 'bibox', 'bigone',
     #                 'binance', 'binancecoinm', 'binanceus', 'binanceusdm',

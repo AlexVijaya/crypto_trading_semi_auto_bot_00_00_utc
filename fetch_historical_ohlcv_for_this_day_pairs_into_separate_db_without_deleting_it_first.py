@@ -269,53 +269,71 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
     exchange_object=""
     # limit_of_daily_candles=1000
 
-    limit_of_daily_candles = 100
-
-    if exchange == "mex3":
-        limit_of_daily_candles = 4000
-    if exchange == "coinex":
-        limit_of_daily_candles = 4000
-    if exchange == "bequant":
-        limit_of_daily_candles = 4000
-    if exchange == "bitcoincom":
-        limit_of_daily_candles = 4000
-    # you can return bitget limit back to 100
-    if exchange == "bitget":
-        limit_of_daily_candles = 1000
-    if exchange == "bitrue":
-        limit_of_daily_candles = 4000
-    if exchange == "bittrex":
-        limit_of_daily_candles = 4000
-    if exchange == "coinex":
-        limit_of_daily_candles = 4000
-    if exchange == "cryptocom":
-        limit_of_daily_candles = 4000
-    if exchange == "fmfwio":
-        limit_of_daily_candles = 1000
-    if exchange == "hitbtc3":
-        limit_of_daily_candles = 1000
-
-    if exchange == "oceanex":
-        limit_of_daily_candles = 4000
-    if exchange == "phemex":
-        limit_of_daily_candles = 4000
-    if exchange == "poloniex":
-        limit_of_daily_candles = 4000
-    if exchange == "latoken":
-        limit_of_daily_candles = 4000
-    if exchange == "wazirx":
-        limit_of_daily_candles = 4000
-    if exchange == "woo":
-        limit_of_daily_candles = 4000
+    # limit_of_daily_candles = 100
+    #
+    # if exchange == "mex3":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "coinex":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "bequant":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "bitcoincom":
+    #     limit_of_daily_candles = 4000
+    # # you can return bitget limit back to 100
+    # if exchange == "bitget":
+    #     limit_of_daily_candles = 1000
+    # if exchange == "bitrue":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "bittrex":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "coinex":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "cryptocom":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "fmfwio":
+    #     limit_of_daily_candles = 1000
+    # if exchange == "hitbtc3":
+    #     limit_of_daily_candles = 1000
+    #
+    # if exchange == "oceanex":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "phemex":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "poloniex":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "latoken":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "wazirx":
+    #     limit_of_daily_candles = 4000
+    # if exchange == "woo":
+    #     limit_of_daily_candles = 4000
 
     active_trading_pairs_list=[]
+    limit_of_daily_candles = np.nan
     # active_trading_pairs_list_from_huobipro=[]
     try:
         # active_trading_pairs_list_from_huobipro=[]
         # if exchange in ["huobipro"]:
         #     active_trading_pairs_list_from_huobipro = get_active_trading_pairs_from_huobipro()
-        exchange_object=get_exchange_object6(exchange)
+
+
+
+
+        # exchange_object=get_exchange_object6(exchange)
+
+
+        # exchange_object, limit_of_daily_candles = \
+        #     get_limit_of_daily_candles_original_limits(exchange)
+
+        exchange_object, limit_of_daily_candles = \
+            get_limit_of_daily_candles_original_limits(exchange)
+
         exchange_object.enableRateLimit=True
+
+
+
+
+
         # exchange_object.fetch_markets()
         # exchange_object_huobipro=np.nan
 
@@ -501,23 +519,6 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
                     # except:
                     #     traceback.print_exc()
 
-                    # Fetch the most recent 100 days of data for latoken exchange
-                    try:
-                        # exchange latoken has a specific limit of one request number of candles
-                        if isinstance(exchange_object, ccxt.latoken):
-                            print("exchange is latoken")
-                            limit_of_daily_candles = 100
-                    except:
-                        traceback.print_exc()
-
-                    # Fetch the most recent 200 days of data bybit exchange
-                    try:
-                        # exchange bybit has a specific limit of one request number of candles
-                        if isinstance(exchange_object, ccxt.bybit):
-                            print("exchange is bybit")
-                            limit_of_daily_candles = 200
-                    except:
-                        traceback.print_exc()
 
 
 

@@ -289,6 +289,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(last_bitcoin_price,exchang
 
         exchange_object.enableRateLimit = True
     except:
+        print("exchange1=", exchange)
         traceback.print_exc()
     list_of_updated_trading_pairs = []
 

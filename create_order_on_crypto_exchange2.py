@@ -92,7 +92,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'btcmarkets': ccxt.btcmarkets(),
         # 'btctradeim': ccxt.btctradeim(),
         'btcturk': ccxt.btcturk(),
-        'btctradeua':ccxt.btctradeua(),
+        # 'btctradeua':ccxt.btctradeua(),
         # 'buda': ccxt.buda(),
         'bybit': ccxt.bybit({
         'apiKey': public_api_key ,

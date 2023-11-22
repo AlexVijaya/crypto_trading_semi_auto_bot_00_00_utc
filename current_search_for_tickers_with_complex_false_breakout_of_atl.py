@@ -322,6 +322,10 @@ def insert_sl_tp_order_price_into_df(df_with_level_atr_bpu_bsu_etc,
                                                                        count_min_volume_over_this_many_days)
     df_with_level_atr_bpu_bsu_etc.at[0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
 
+    df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_in_usd_over_last_n_days"] = last_two_years_of_data[
+        'volume*low'].tail(
+        count_min_volume_over_this_many_days).min()
+
 
     df_with_level_atr_bpu_bsu_etc.at[0, "buy_order"] = buy_order
     df_with_level_atr_bpu_bsu_etc.at[0, "technical_stop_loss"] = technical_stop_loss

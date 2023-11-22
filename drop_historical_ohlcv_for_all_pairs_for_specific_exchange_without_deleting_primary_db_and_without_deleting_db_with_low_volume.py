@@ -68,9 +68,9 @@ if __name__=="__main__":
     last_bitcoin_price=30000
     print("last_bitcoin_price")
     print(last_bitcoin_price)
-    database_name="ohlcv_1d_data_for_usdt_pairs_0000_pagination"
-    database_name_for_low_volume_pairs = "ohlcv_1d_data_for_low_volume_usdt_pairs_0000_pagination"
-    exchange_name_to_drop="whitebit"
+    database_name="ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+    database_name_for_low_volume_pairs = "ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+    exchange_name_to_drop="fmfwio"
     
     drop_all_ohlcv_tables(database_name_for_low_volume_pairs,database_name,exchange_name_to_drop)
 #asyncio.run(get_hisorical_data_from_exchange_for_many_symbols_and_exchanges())

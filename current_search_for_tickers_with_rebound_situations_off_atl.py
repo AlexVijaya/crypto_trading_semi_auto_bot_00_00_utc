@@ -764,6 +764,8 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
             last_close_price = get_last_close_price_of_asset(table_with_ohlcv_data_df)
             number_of_zeroes_in_price = count_zeros_number_with_e_notaton_is_acceptable(last_close_price)
 
+
+
             # round high and low to two decimal number
             truncated_high_and_low_table_with_ohlcv_data_df["high"] = \
                 table_with_ohlcv_data_df["high"].apply(round, args=(number_of_zeroes_in_price + 3,))
@@ -1071,6 +1073,11 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                             count_min_volume_over_this_many_days).min())
                         df_with_level_atr_bpu_bsu_etc.loc[
                             0, "count_min_volume_over_this_many_days"] = int(count_min_volume_over_this_many_days)
+
+
+                        df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_in_usd_over_last_n_days"] = int(
+                        table_with_ohlcv_data_df['volume*low'].tail(
+                            count_min_volume_over_this_many_days).min())
 
 
                         print("df_with_level_atr_bpu_bsu_etc")

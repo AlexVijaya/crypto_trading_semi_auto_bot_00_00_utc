@@ -25,6 +25,8 @@ cryptocompare = "*"
 dash-tvlwc = "*"
 protobuf = "==3.20"
 dash-bootstrap-components = "*"
+mypy = "*"
+streamlit-lightweight-charts = "*"
 
 [dev-packages]
 

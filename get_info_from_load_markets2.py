@@ -402,6 +402,8 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://phemex.com/margin/trade/{market['base'].upper()}{market['quote'].upper()}"
     elif exchange_id == 'digifinex':
         return f"https://www.digifinex.com/en-ww/trade/{market['quote'].upper()}/{market['base'].upper()}"
+    elif exchange_id == 'bequant':
+        return f"https://bequant.io/{market['base'].lower()}-to-{market['quote'].lower()}"
     else:
         return "Exchange not supported"
 
@@ -910,7 +912,7 @@ def get_exchange_object2(exchange_name):
         'btcmarkets': ccxt.btcmarkets(),
         # 'btctradeim': ccxt.btctradeim(),
         'btcturk': ccxt.btcturk(),
-        'btctradeua':ccxt.btctradeua(),
+        # 'btctradeua':ccxt.btctradeua(),
         # 'buda': ccxt.buda(),
         'bybit': ccxt.bybit(),
         # 'bytetrade': ccxt.bytetrade(),
@@ -923,7 +925,7 @@ def get_exchange_object2(exchange_name):
         'coincheck': ccxt.coincheck(),
         # 'coinegg': ccxt.coinegg(),
         'coinex': ccxt.coinex(),
-        'coinfalcon': ccxt.coinfalcon(),
+        # 'coinfalcon': ccxt.coinfalcon(),
         'coinsph':ccxt.coinsph(),
         # 'coinfloor': ccxt.coinfloor(),
         # 'coingi': ccxt.coingi(),
@@ -1083,7 +1085,7 @@ def get_exchange_object2_using_async_ccxt(exchange_name):
         'btcmarkets': ccxt.btcmarkets(),
         # 'btctradeim': ccxt.btctradeim(),
         'btcturk': ccxt.btcturk(),
-        'btctradeua':ccxt.btctradeua(),
+        # 'btctradeua':ccxt.btctradeua(),
         # 'buda': ccxt.buda(),
         'bybit': ccxt.bybit(),
         # 'bytetrade': ccxt.bytetrade(),
@@ -1096,7 +1098,7 @@ def get_exchange_object2_using_async_ccxt(exchange_name):
         'coincheck': ccxt.coincheck(),
         # 'coinegg': ccxt.coinegg(),
         'coinex': ccxt.coinex(),
-        'coinfalcon': ccxt.coinfalcon(),
+        # 'coinfalcon': ccxt.coinfalcon(),
         'coinsph':ccxt.coinsph(),
         # 'coinfloor': ccxt.coinfloor(),
         # 'coingi': ccxt.coingi(),
@@ -1300,7 +1302,7 @@ def check_if_stable_coin_is_the_first_part_of_ticker(trading_pair):
         "sADA/", "sLINK/", "sXTZ/", "sDOT/", "sFIL/", "sYFI/", "sCOMP/", "sAAVE/",
         "sSNX/", "sMKR/", "sUNI/", "sBAL/", "sCRV/", "sLEND/", "sNEXO/", "sUMA/",
         "sMUST/", "sSTORJ/", "sREN/", "sBSV/", "sDASH/", "sZEC/", "sEOS/", "sXTZ/",
-        "sATOM/", "sVET/", "sTRX/", "sADA/", "sDOGE/", "sDGB/"
+        "sATOM/", "sVET/", "sTRX/", "sADA/", "sDOGE/", "sDGB/","UUSD"
     ]
 
     for first_part_in_trading_pair in stablecoin_tickers:
@@ -1320,7 +1322,7 @@ def return_list_of_all_stablecoin_bases_with_slash():
         "sADA/", "sLINK/", "sXTZ/", "sDOT/", "sFIL/", "sYFI/", "sCOMP/", "sAAVE/",
         "sSNX/", "sMKR/", "sUNI/", "sBAL/", "sCRV/", "sLEND/", "sNEXO/", "sUMA/",
         "sMUST/", "sSTORJ/", "sREN/", "sBSV/", "sDASH/", "sZEC/", "sEOS/", "sXTZ/",
-        "sATOM/", "sVET/", "sTRX/", "sADA/", "sDOGE/", "sDGB/"
+        "sATOM/", "sVET/", "sTRX/", "sADA/", "sDOGE/", "sDGB/","UUSD"
     ]
     return stablecoin_bases_with_slash_list
 

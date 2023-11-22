@@ -1225,6 +1225,10 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
                 df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_over_last_n_days"] =  last_two_years_of_data['volume'].tail(count_min_volume_over_this_many_days).min()
                 df_with_level_atr_bpu_bsu_etc.at[0, "count_min_volume_over_this_many_days"] = count_min_volume_over_this_many_days
 
+                df_with_level_atr_bpu_bsu_etc.at[0, "min_volume_in_usd_over_last_n_days"] = last_two_years_of_data[
+                    'volume*low'].tail(
+                    count_min_volume_over_this_many_days).min()
+
                 df_with_level_atr_bpu_bsu_etc.at[0, "buy_order"] = buy_order
                 df_with_level_atr_bpu_bsu_etc.at[0, "calculated_stop_loss"] = calculated_stop_loss
                 df_with_level_atr_bpu_bsu_etc.at[0, "take_profit_when_sl_is_calculated_3_to_1"] = take_profit_when_sl_is_calculated_3_to_1
@@ -1416,7 +1420,7 @@ def search_for_tickers_with_breakout_situations(db_where_ohlcv_data_for_stocks_i
 
 if __name__=="__main__":
     start_time=time.time ()
-    db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_usdt_pairs_0000_pagination"
+    db_where_ohlcv_data_for_stocks_is_stored="ohlcv_1d_data_for_low_volume_usdt_pairs_0000_pagination"
     count_only_round_rebound_level=False
     db_where_ticker_which_may_have_breakout_situations=\
         "levels_formed_by_highs_and_lows_for_cryptos_0000"
