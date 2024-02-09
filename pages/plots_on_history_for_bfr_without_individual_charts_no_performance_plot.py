@@ -31,248 +31,9 @@ import dash_tvlwc
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 from streamlit_lightweight_charts import renderLightweightCharts
-import uuid
+
 from plotly.subplots import make_subplots
 import plotly.express as px
-
-def number_of_trades_in_max_drawdown_longest_drawdown_start_and_longest_drawdown_end(df_with_resulting_table_of_certain_models,
-                                                                         longest_drawdown_start,
-                                                                         longest_drawdown_end):
-    # Count the values falling between the start and end timestamps
-    number_of_trades_in_max_drawdown = df_with_resulting_table_of_certain_models[
-        (df_with_resulting_table_of_certain_models['timestamp_of_order_placement_bar'] >= longest_drawdown_start) &
-        (df_with_resulting_table_of_certain_models['timestamp_of_order_placement_bar'] <= longest_drawdown_end)
-        ].shape[0]
-    return number_of_trades_in_max_drawdown
-def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_technical(
-        df_with_resulting_table_of_certain_models,
-        risk_percent_value,
-        tp_value):
-    # Calculate the cumulative maximum of the deposit values
-    df_with_resulting_table_of_certain_models['cumulative_max'] = df_with_resulting_table_of_certain_models[
-        'deposit_by_end_of_period_with_risk_{}_and_tp_{}_to_one_sl_technical'.format(risk_percent_value,
-                                                                                      tp_value)].cummax()
-
-    # st.write("df_with_resulting_table_of_certain_models['cumulative_max']")
-    # st.write(df_with_resulting_table_of_certain_models['cumulative_max'])
-    # print("df_with_resulting_table_of_certain_models['cumulative_max']")
-    # print(df_with_resulting_table_of_certain_models['cumulative_max'])
-    # print("risk_percent_value")
-    # print(risk_percent_value)
-    # print("tp_value")
-    # print(tp_value)
-
-    # Calculate the drawdown as the difference between the deposit value and the cumulative maximum
-    df_with_resulting_table_of_certain_models['drawdown'] = df_with_resulting_table_of_certain_models[
-                                                                'cumulative_max'] - \
-                                                            df_with_resulting_table_of_certain_models[
-                                                                'deposit_by_end_of_period_with_risk_{}_and_tp_{}_to_one_sl_technical'.format(
-                                                                    risk_percent_value, tp_value)]
-
-    # Creating a new column for percentage drawdown
-    df_with_resulting_table_of_certain_models['percentage_drawdown'] = \
-        (df_with_resulting_table_of_certain_models['cumulative_max'] -
-         df_with_resulting_table_of_certain_models[
-             'deposit_by_end_of_period_with_risk_{}_and_tp_{}_to_one_sl_technical'.format(risk_percent_value, tp_value)]
-         ) / df_with_resulting_table_of_certain_models['cumulative_max'] * 100
-
-
-    st.write("df_with_resulting_table_of_certain_models['drawdown']_sl_technical")
-    st.write(df_with_resulting_table_of_certain_models['drawdown'])
-    st.write("df_with_resulting_table_of_certain_models['cumulative_max']_sl_technical")
-    st.write(df_with_resulting_table_of_certain_models['cumulative_max'])
-    print("df_with_resulting_table_of_certain_models['drawdown']")
-    print(df_with_resulting_table_of_certain_models['drawdown'])
-
-    # Identify the maximum drawdown and its related details
-    max_drawdown = df_with_resulting_table_of_certain_models['drawdown'].max()
-    abs_max_drawdown = abs(max_drawdown)
-    max_drawdown_percentage = (abs_max_drawdown / df_with_resulting_table_of_certain_models[
-        'cumulative_max'].max()) * 100
-
-    # Find start and end dates of the drawdown
-    drawdown_date_when_drawdawn_is_max_unix_timestamp = df_with_resulting_table_of_certain_models.loc[
-        df_with_resulting_table_of_certain_models['drawdown'].idxmax(), 'timestamp_of_order_placement_bar']
-    drawdown_begin_date_unix_timestamp = df_with_resulting_table_of_certain_models.loc[
-        df_with_resulting_table_of_certain_models['cumulative_max'].idxmax(), 'timestamp_of_order_placement_bar']
-
-    drawdown_begin_date = datetime.datetime.fromtimestamp(drawdown_begin_date_unix_timestamp)
-    drawdown_date_when_drawdawn_is_max = datetime.datetime.fromtimestamp(drawdown_date_when_drawdawn_is_max_unix_timestamp)
-
-    # Count number of trades in the drawdown
-    num_trades_in_drawdowns = \
-    df_with_resulting_table_of_certain_models.loc[df_with_resulting_table_of_certain_models['drawdown'] > 0].shape[0]
-
-    # Print the results
-    print("Absolute Maximum Drawdown when sl_technical:", abs_max_drawdown)
-    print("Percentage Maximum Drawdown when sl_technical:", max_drawdown_percentage)
-    print("Drawdown Begin Date when sl_technical:", drawdown_begin_date)
-    print("drawdown_date_when_drawdawn_is_max when sl_technical:", drawdown_date_when_drawdawn_is_max)
-    print("Number of Trades in all Drawdowns when sl_technical:", num_trades_in_drawdowns)
-
-    # Step 1: Create a mask to identify consecutive zeros in the drawdown column
-    mask = ((df_with_resulting_table_of_certain_models['drawdown'] == 0) &
-            (df_with_resulting_table_of_certain_models['drawdown'].shift(-1) > 0))
-
-    # Step 2: Find the indices of consecutive zeros
-    consecutive_zero_indices = df_with_resulting_table_of_certain_models[mask].index.tolist()
-
-    # Step 3: Calculate the periods of consecutive zeros
-    drawdown_periods = []
-    for i in range(1, len(consecutive_zero_indices)):
-        start_date = df_with_resulting_table_of_certain_models.loc[
-            consecutive_zero_indices[i - 1], 'timestamp_of_order_placement_bar']
-        end_date = df_with_resulting_table_of_certain_models.loc[
-            consecutive_zero_indices[i], 'timestamp_of_order_placement_bar']
-        drawdown_period_length = (end_date - start_date) / (60 * 60 * 24)  # Convert to days
-        drawdown_periods.append((start_date, end_date, drawdown_period_length))
-
-    # Step 4: Determine the longest drawdown period
-    longest_drawdown=np.nan
-    longest_drawdown_days=np.nan
-    if len(drawdown_periods)>0:
-        longest_drawdown = max(drawdown_periods, key=lambda x: x[2])
-        longest_drawdown_start, longest_drawdown_end, longest_drawdown_days = longest_drawdown
-    else:
-        # longest_drawdown=len((df_with_resulting_table_of_certain_models['drawdown']))
-        longest_drawdown_start=df_with_resulting_table_of_certain_models.loc[0, 'timestamp_of_order_placement_bar']
-        longest_drawdown_end=df_with_resulting_table_of_certain_models.loc[len(df_with_resulting_table_of_certain_models)-1, 'timestamp_of_order_placement_bar']
-        longest_drawdown_days=len((df_with_resulting_table_of_certain_models['drawdown']))
-
-    number_of_trades_in_max_drawdown = number_of_trades_in_max_drawdown_longest_drawdown_start_and_longest_drawdown_end(
-        df_with_resulting_table_of_certain_models,
-        longest_drawdown_start,
-        longest_drawdown_end)
-    st.write(f"number_of_trades_in_max_drawdown when sl is technical={number_of_trades_in_max_drawdown}")
-
-    # Output the results
-    print(
-        f"The longest drawdown period when sl_technical starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
-
-    # Output the results
-    st.write(f"The longest drawdown period when sl_technical starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
-
-    return df_with_resulting_table_of_certain_models, abs_max_drawdown,max_drawdown_percentage,drawdown_begin_date,drawdown_date_when_drawdawn_is_max,num_trades_in_drawdowns
-def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
-        df_with_resulting_table_of_certain_models,
-        risk_percent_value,
-        tp_value):
-    # Calculate the cumulative maximum of the deposit values
-    df_with_resulting_table_of_certain_models['cumulative_max'] = df_with_resulting_table_of_certain_models[
-        'deposit_by_end_of_period_with_risk_{}_and_tp_{}_to_one_sl_calculated'.format(risk_percent_value,
-                                                                                     tp_value)].cummax()
-
-    st.write("df_with_resulting_table_of_certain_models['cumulative_max']_sl_calculated")
-    st.write(df_with_resulting_table_of_certain_models['cumulative_max'])
-    st.write("df_with_resulting_table_of_certain_models['drawdown']_sl_calculated")
-    st.write(df_with_resulting_table_of_certain_models['drawdown'])
-    print("df_with_resulting_table_of_certain_models['cumulative_max']")
-    print(df_with_resulting_table_of_certain_models['cumulative_max'])
-    print("risk_percent_value")
-    print(risk_percent_value)
-    print("tp_value")
-    print(tp_value)
-
-    # Calculate the drawdown as the difference between the deposit value and the cumulative maximum
-    df_with_resulting_table_of_certain_models['drawdown'] = df_with_resulting_table_of_certain_models[
-                                                                'cumulative_max'] - \
-                                                            df_with_resulting_table_of_certain_models[
-                                                                'deposit_by_end_of_period_with_risk_{}_and_tp_{}_to_one_sl_calculated'.format(
-                                                                    risk_percent_value, tp_value)]
-
-    # Creating a new column for percentage drawdown
-    df_with_resulting_table_of_certain_models['percentage_drawdown'] = \
-        (df_with_resulting_table_of_certain_models['cumulative_max'] -
-         df_with_resulting_table_of_certain_models[
-             'deposit_by_end_of_period_with_risk_{}_and_tp_{}_to_one_sl_calculated'.format(risk_percent_value, tp_value)]
-         ) / df_with_resulting_table_of_certain_models['cumulative_max'] * 100
-
-    # st.write("df_with_resulting_table_of_certain_models['drawdown']")
-    # st.write(df_with_resulting_table_of_certain_models['drawdown'])
-    print("df_with_resulting_table_of_certain_models['drawdown']")
-    print(df_with_resulting_table_of_certain_models['drawdown'])
-
-    # Identify the maximum drawdown and its related details
-    max_drawdown = df_with_resulting_table_of_certain_models['drawdown'].max()
-    abs_max_drawdown = abs(max_drawdown)
-    max_drawdown_percentage = (abs_max_drawdown / df_with_resulting_table_of_certain_models[
-        'cumulative_max'].max()) * 100
-
-    # Find start and end dates of the drawdown
-    drawdown_date_when_drawdawn_is_max_unix_timestamp = df_with_resulting_table_of_certain_models.loc[
-        df_with_resulting_table_of_certain_models['drawdown'].idxmax(), 'timestamp_of_order_placement_bar']
-    drawdown_begin_date_unix_timestamp = df_with_resulting_table_of_certain_models.loc[
-        df_with_resulting_table_of_certain_models['cumulative_max'].idxmax(), 'timestamp_of_order_placement_bar']
-
-    drawdown_begin_date = datetime.datetime.fromtimestamp(drawdown_begin_date_unix_timestamp)
-    drawdown_date_when_drawdawn_is_max = datetime.datetime.fromtimestamp(
-        drawdown_date_when_drawdawn_is_max_unix_timestamp)
-
-    # Count number of trades in the drawdown
-    num_trades_in_drawdowns = \
-        df_with_resulting_table_of_certain_models.loc[df_with_resulting_table_of_certain_models['drawdown'] > 0].shape[
-            0]
-
-
-
-    # Print the results
-    print("Absolute Maximum Drawdown when sl_calculated:", abs_max_drawdown)
-    print("Percentage Maximum Drawdown when sl_calculated:", max_drawdown_percentage)
-    print("Drawdown Begin Date when sl_calculated:", drawdown_begin_date)
-    print("drawdown_date_when_drawdawn_is_max when sl_calculated:", drawdown_date_when_drawdawn_is_max)
-    print("Number of Trades in all Drawdowns when sl_calculated:", num_trades_in_drawdowns)
-
-    # Step 1: Create a mask to identify consecutive zeros in the drawdown column
-    mask = ((df_with_resulting_table_of_certain_models['drawdown'] == 0) &
-            (df_with_resulting_table_of_certain_models['drawdown'].shift(-1) > 0))
-
-    # Step 2: Find the indices of consecutive zeros
-    consecutive_zero_indices = df_with_resulting_table_of_certain_models[mask].index.tolist()
-    st.write("consecutive_zero_indices")
-    st.write(consecutive_zero_indices)
-
-    # Step 3: Calculate the periods of consecutive zeros
-    drawdown_periods = []
-    for i in range(1, len(consecutive_zero_indices)):
-        start_date = df_with_resulting_table_of_certain_models.loc[
-            consecutive_zero_indices[i - 1], 'timestamp_of_order_placement_bar']
-        end_date = df_with_resulting_table_of_certain_models.loc[
-            consecutive_zero_indices[i], 'timestamp_of_order_placement_bar']
-        drawdown_period_length = (end_date - start_date) / (60 * 60 * 24)  # Convert to days
-        drawdown_periods.append((start_date, end_date, drawdown_period_length))
-
-    # Step 4: Determine the longest drawdown period
-    longest_drawdown = np.nan
-    longest_drawdown_days = np.nan
-    if len(drawdown_periods) > 0:
-        longest_drawdown = max(drawdown_periods, key=lambda x: x[2])
-        longest_drawdown_start, longest_drawdown_end, longest_drawdown_days = longest_drawdown
-    else:
-        # longest_drawdown=len((df_with_resulting_table_of_certain_models['drawdown']))
-        longest_drawdown_start = df_with_resulting_table_of_certain_models.loc[
-            0, 'timestamp_of_order_placement_bar']
-        longest_drawdown_end = df_with_resulting_table_of_certain_models.loc[
-            len(df_with_resulting_table_of_certain_models) - 1, 'timestamp_of_order_placement_bar']
-        longest_drawdown_days = len((df_with_resulting_table_of_certain_models['drawdown']))
-
-
-    number_of_trades_in_max_drawdown = number_of_trades_in_max_drawdown_longest_drawdown_start_and_longest_drawdown_end(
-        df_with_resulting_table_of_certain_models,
-        longest_drawdown_start,
-        longest_drawdown_end)
-    st.write(f"number_of_trades_in_max_drawdown when sl is calculated={number_of_trades_in_max_drawdown}")
-
-    # Output the results
-    print(
-        f"The longest drawdown period when sl_calculated starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
-
-    # Output the results
-    st.write(
-        f"The longest drawdown period when sl_calculated starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
-
-    return df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_date_when_drawdawn_is_max, num_trades_in_drawdowns
-
-
 @st.cache_data
 def get_ohlcv_df_for_btc_usdt_on_gateio(_engine_for_ohlcv_data_for_stocks_0000):
     entire_ohlcv_df = \
@@ -1603,7 +1364,7 @@ def plot_three_charts(number_of_time_period_one_means_the_most_recent,half_year_
         st.write(f"number_of_positions={len(df_with_resulting_table_of_certain_models)}")
 
         fig = make_subplots(rows=3, cols=1, shared_xaxes=True,
-                            subplot_titles=("BTC_USDT_on_gatio", "When SL is Technical", "When SL is Calculated"),vertical_spacing = 0.01,)
+                            subplot_titles=("BTC_USDT_on_gatio", "When SL is Technical", "When SL is Calculated"),vertical_spacing = 0.05,)
 
         # Add line chart for close price in the third subplot
         fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
@@ -1830,8 +1591,7 @@ def add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_techn
         for risk_percent_value1 in risk_percent_list:
             initial_deposit_for_this_risk_and_tp_sl_technical=initial_funds_for_performance_calculation_over_given_period
             initial_deposit_for_this_risk_and_tp_sl_calculated=initial_funds_for_performance_calculation_over_given_period
-            risk_for_one_trade_in_usd_sl_technical=initial_funds_for_performance_calculation_over_given_period*risk_percent_value1/100.0
-            risk_for_one_trade_in_usd_sl_calculated=initial_funds_for_performance_calculation_over_given_period*risk_percent_value1/100.0
+            risk_for_one_trade_in_usd=initial_funds_for_performance_calculation_over_given_period*risk_percent_value1/100.0
 
             # for index, row in df_with_resulting_table_of_certain_models.iterrows():
 
@@ -1880,24 +1640,19 @@ def add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_techn
             #                 initial_deposit_for_this_risk_and_tp_sl_technical - risk_for_one_trade_in_usd - taker_fees * risk_for_one_trade_in_usd)
             # )
 
-
             for idx, max_profit_target_multiple_when_sl_technical_value in np.ndenumerate(max_profit_target_multiple_when_sl_technical_ndarray):
                 deposit_for_this_trade_sl_technical = np.nan
                 if max_profit_target_multiple_when_sl_technical_value >= tp_value:
                     deposit_for_this_trade_sl_technical = \
-                        initial_deposit_for_this_risk_and_tp_sl_technical + tp_value * risk_for_one_trade_in_usd_sl_technical - maker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_technical
+                        initial_deposit_for_this_risk_and_tp_sl_technical + tp_value * risk_for_one_trade_in_usd - maker_fees_ndarray[idx] * risk_for_one_trade_in_usd
                     deposit_for_this_trade_sl_technical_ndarray[idx] = deposit_for_this_trade_sl_technical
 
 
                 else:
                     deposit_for_this_trade_sl_technical = \
-                        initial_deposit_for_this_risk_and_tp_sl_technical - risk_for_one_trade_in_usd_sl_technical - taker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_technical
+                        initial_deposit_for_this_risk_and_tp_sl_technical - risk_for_one_trade_in_usd - taker_fees_ndarray[idx] * risk_for_one_trade_in_usd
                     deposit_for_this_trade_sl_technical_ndarray[idx] = deposit_for_this_trade_sl_technical
                 initial_deposit_for_this_risk_and_tp_sl_technical = deposit_for_this_trade_sl_technical
-
-
-                # uncomment if you want to calculate risk changing with your deposit changing
-                risk_for_one_trade_in_usd_sl_technical=deposit_for_this_trade_sl_technical*risk_percent_value1/100.0
 
             # Update the DataFrame column with the technical deposit values
             column_name = f"deposit_by_end_of_period_with_risk_{risk_percent_value1}_and_tp_{tp_value}_to_one_sl_technical"
@@ -1913,19 +1668,17 @@ def add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_techn
                 deposit_for_this_trade_sl_calculated = np.nan
                 if max_profit_target_multiple_when_sl_calculated_value >= tp_value:
                     deposit_for_this_trade_sl_calculated = \
-                        initial_deposit_for_this_risk_and_tp_sl_calculated + tp_value * risk_for_one_trade_in_usd_sl_calculated - \
-                        maker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_calculated
+                        initial_deposit_for_this_risk_and_tp_sl_calculated + tp_value * risk_for_one_trade_in_usd - \
+                        maker_fees_ndarray[idx] * risk_for_one_trade_in_usd
                     deposit_for_this_trade_sl_calculated_ndarray[idx] = deposit_for_this_trade_sl_calculated
 
 
                 else:
                     deposit_for_this_trade_sl_calculated = \
-                        initial_deposit_for_this_risk_and_tp_sl_calculated - risk_for_one_trade_in_usd_sl_calculated - \
-                        taker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_calculated
+                        initial_deposit_for_this_risk_and_tp_sl_calculated - risk_for_one_trade_in_usd - \
+                        taker_fees_ndarray[idx] * risk_for_one_trade_in_usd
                     deposit_for_this_trade_sl_calculated_ndarray[idx] = deposit_for_this_trade_sl_calculated
                 initial_deposit_for_this_risk_and_tp_sl_calculated = deposit_for_this_trade_sl_calculated
-                # uncomment if you want to calculate risk changing with your deposit changing
-                risk_for_one_trade_in_usd_sl_calculated = deposit_for_this_trade_sl_calculated * risk_percent_value1 / 100.0
 
             # Update the DataFrame column with the calculated deposit values
             column_name = f"deposit_by_end_of_period_with_risk_{risk_percent_value1}_and_tp_{tp_value}_to_one_sl_calculated"
@@ -1966,7 +1719,12 @@ def add_order_counts_by_exchange(dataframe, unique_exchanges, number_of_days_bef
             dataframe.at[i, f'orders_{exchange}_{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}d_back_and_forth_window'] = count
 
     return dataframe
-def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,
+
+def add_trades_on_same_day_column(dataframe):
+    counts = dataframe['timestamp_of_order_placement_bar'].value_counts()
+    dataframe['number_of_trades_on_the_same_day'] = dataframe['timestamp_of_order_placement_bar'].map(counts)
+    return dataframe
+def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,
         number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,
         table_name,
         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
@@ -1986,7 +1744,7 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
     #                                                                                    "deposit_by_the_end_of_the_given_period_if_sl_is_calculated"])
     # Create an empty list to store the dictionaries
     width_of_line_chart=1000
-    height_of_line_chart=800
+    height_of_line_chart=500
     data_sl_technical = []
     data_sl_calculated = []
     risk_percent_list =[5,4,3,2,1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]
@@ -2137,13 +1895,15 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
         fig = make_subplots(rows=8, cols=1, shared_xaxes=True,
                             subplot_titles=("deposit by end of period with different tp When SL is Technical",
                                             "deposit by end of period with different tp When SL is Calculated",
-                                            "number of trades within [-n days: +n days] superimposed on BTC_USDT_on_gateio",
+                                            f"number of trades within [-{number_of_prev_and_next_days} days: +{number_of_prev_and_next_days} days]"
+                                            f" superimposed on BTC_USDT_on_gateio",
                                             "performance of account with given risk and tp when sl is technical",
-                                            "performance of account with given risk and tp when sl is calculated",
+                                            "number_of_trades_on_the_same_day",
                                             "max_profit_target_multiple_when_sl_technical",
                                             "max_profit_target_multiple_when_sl_calculated",
-                                            "count of orders within the defined time window for each exchange"),
-                            vertical_spacing = 0.05,specs=[[{"secondary_y": True}],
+                                            f"count of orders within [-{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed},"
+                                            f"{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}] days for each exchange"),
+                            vertical_spacing = 0.01,specs=[[{"secondary_y": True}],
                                                            [{"secondary_y": True}],
                                                            [{"secondary_y": True}],
                                                            [{"secondary_y": True}],
@@ -2151,8 +1911,6 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
                                                            [{"secondary_y": True}],
                                                            [{"secondary_y": True}],
                                                            [{"secondary_y": True}]])
-
-
 
         for risk_percent_value in risk_percent_list:
             fig.add_trace(go.Scatter(x=deposit_by_the_end_of_the_given_period_if_sl_is_technical_df.index,
@@ -2193,46 +1951,25 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
                                      name='Close Price of BTC'),
                           row=4, col=1)
 
-        if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-
-
-
-            for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
-                for tp_value in range(3,51):
-
-                    # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-                    #     st.write(True)
-                    # else:
-                    #     st.write(False)
-                    fig.add_trace(
-                        go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                   y=df_with_resulting_table_of_certain_models[
-                                       f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_technical"],
-                                   mode='markers', yaxis='y2', visible='legendonly',marker=dict(size=3),
-                                   name=f"performance_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_technical"
-
-
-                                   ), secondary_y=True,
-                        row=4, col=1)
-
-                    if risk_percent_value==risk_percent_value_for_drawdown_calculation and tp_value==tp_value_for_drawdown_calculation:
-                        df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown = \
-                            calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_technical(
-                                df_with_resulting_table_of_certain_models,
-                                risk_percent_value,
-                                tp_value)
-                        fig.add_trace(
-                            go.Scatter(
-                                x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                y=df_with_resulting_table_of_certain_models[
-                                    f"percentage_drawdown"],
-                                mode='markers', yaxis='y2', marker=dict(size=3),
-                                name=f"percentage_drawdown_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_technical"
-
-                                ), secondary_y=True,
-                            row=4, col=1)
-
-
+        # if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
+        #     risk_percent_value=1
+        #     for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
+        #         for tp_value in range(3,51):
+        #
+        #             # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_technical" in df_with_resulting_table_of_certain_models.columns:
+        #             #     st.write(True)
+        #             # else:
+        #             #     st.write(False)
+        #             fig.add_trace(
+        #                 go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+        #                            y=df_with_resulting_table_of_certain_models[
+        #                                f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_technical"],
+        #                            mode='lines', yaxis='y2', visible='legendonly',marker=dict(size=5),
+        #                            name=f"performance_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_technical"
+        #
+        #
+        #                            ), secondary_y=True,
+        #                 row=4, col=1)
 
         # if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
         #     fig.add_trace(
@@ -2245,68 +1982,82 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
         #                    ), secondary_y=True,
         #         row=4, col=1)
 
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
+        fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
                                      name='Close Price of BTC'),
                           row=5, col=1)
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
 
-            # with st.form(key=str(uuid.uuid4())):
-            #     # Creating an expander
-            #     risk_percent_value1=1
-            #     with st.expander("Choose a Value"):
-            #         risk_percent_value1 = st.selectbox("Select risk_percent_value",
-            #                                       [5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1], index=9)
-            #     tp_value1=st.number_input("Select take profit N value (tp is N/1)", min_value=3, max_value=100, step=1)
-            #     form_submit_button_is_pressed1=st.form_submit_button("Calculate abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown ")
-            #
-            #     if form_submit_button_is_pressed1:
-            #         abs_max_drawdown,max_drawdown_percentage,drawdown_begin_date,drawdown_end_date,num_trades_in_drawdown=\
-            #             calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
-            #             df_with_resulting_table_of_certain_models,
-            #             risk_percent_value1,
-            #             tp_value1)
-            #         st.write("Absolute Maximum Drawdown:", abs_max_drawdown)
-            #         st.write("Percentage Maximum Drawdown:", max_drawdown_percentage)
-            #         st.write("Drawdown Begin Date:", drawdown_begin_date)
-            #         st.write("Drawdown End Date:", drawdown_end_date)
-            #         st.write("Number of Trades in the Drawdown:", num_trades_in_drawdown)
+        df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched = \
+            return_df_from_postgres_sql_table(query_buy_or_sell_order_was_touched_and_not_touched, table_name,
+                                              engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
+        df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched = \
+            add_trades_on_same_day_column(
+                df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched)
+        df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched[
+            'human_datetime_of_order_placement_bar'] = pd.to_datetime(
+            df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched['timestamp_of_order_placement_bar'], unit='s')
 
 
+        df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched = \
+            return_df_from_postgres_sql_table(query_buy_or_sell_order_was_not_touched, table_name,
+                                              engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
+        df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched = \
+            add_trades_on_same_day_column(df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched)
+        df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched['human_datetime_of_order_placement_bar'] = pd.to_datetime(
+            df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched['timestamp_of_order_placement_bar'], unit='s')
 
-            for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
-                for tp_value in range(3, 51):
 
-                    # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-                    #     st.write(True)
-                    # else:
-                    #     st.write(False)
-                    fig.add_trace(
-                        go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                   y=df_with_resulting_table_of_certain_models[
-                                       f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated"],
-                                   mode='lines', yaxis='y2', visible='legendonly',marker=dict(size=3),
-                                   name=f"performance_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
+        st.write("df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched")
+        st.dataframe(df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched)
 
-                                   ), secondary_y=True,
-                        row=5, col=1)
+        st.write("df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched")
+        st.dataframe(df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched)
 
-                    if risk_percent_value==risk_percent_value_for_drawdown_calculation and tp_value==tp_value_for_drawdown_calculation:
-                        df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown = \
-                            calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
-                                df_with_resulting_table_of_certain_models,
-                                risk_percent_value,
-                                tp_value)
-                        fig.add_trace(
-                            go.Scatter(
-                                x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                y=df_with_resulting_table_of_certain_models[
-                                    f"percentage_drawdown"],
-                                mode='markers', yaxis='y2', marker=dict(size=3),
-                                name=f"percentage_drawdown_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
+        df_with_resulting_table_of_certain_models_with_number_of_trades_on_the_same_day_column_buy_or_sell_order_was_touched=\
+            add_trades_on_same_day_column(df_with_resulting_table_of_certain_models)
+        # if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+        #     for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
+        #         for tp_value in range(3, 51):
+        #
+        #             # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+        #             #     st.write(True)
+        #             # else:
+        #             #     st.write(False)
 
-                                ), secondary_y=True,
-                            row=5, col=1)
+
+
+        fig.add_trace(
+            go.Scatter(x=df_with_resulting_table_of_certain_models_with_number_of_trades_on_the_same_day_column_buy_or_sell_order_was_touched[
+                "human_datetime_of_order_placement_bar"],
+                       y=df_with_resulting_table_of_certain_models_with_number_of_trades_on_the_same_day_column_buy_or_sell_order_was_touched[
+                           f"number_of_trades_on_the_same_day"],
+                       mode='markers', yaxis='y2',marker=dict(size=3),
+                       name=f"number_of_trades_on_the_same_day_buy_or_sell_order_was_touched"
+
+                       ), secondary_y=True,
+            row=5, col=1)
+
+        fig.add_trace(
+            go.Scatter(x=df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched["human_datetime_of_order_placement_bar"],
+                       y=
+                       df_with_resulting_table_of_certain_models_buy_or_sell_order_was_touched_and_not_touched[
+                           f"number_of_trades_on_the_same_day"],
+                       mode='markers', yaxis='y3', marker=dict(size=3),
+                       name=f"number_of_trades_on_the_same_day_buy_or_sell_order_was_touched_and_not_touched"
+
+                       ), secondary_y=True,
+            row=5, col=1)
+
+        fig.add_trace(
+            go.Scatter(x=df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched[
+                "human_datetime_of_order_placement_bar"],
+                       y=
+                       df_with_resulting_table_of_certain_models_buy_or_sell_order_order_was_not_touched[
+                           f"number_of_trades_on_the_same_day"],
+                       mode='markers', yaxis='y4', marker=dict(size=3),
+                       name=f"number_of_trades_on_the_same_day_buy_or_sell_order_order_was_not_touched"
+
+                       ), secondary_y=True,
+            row=5, col=1)
 
         # if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
         #     fig.add_trace(
@@ -2390,6 +2141,7 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
         fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
                                      name='Close Price of BTC'),
                           row=8, col=1)
+        list_of_exchanges_in_df=sorted(list_of_exchanges_in_df)
         for exchange_name in list_of_exchanges_in_df:
 
             fig.add_trace(
@@ -3853,7 +3605,7 @@ def streamlit_func():
     ###############################
     ###############################
 
-    df_with_resulting_table_of_certain_models=pd.DataFrame()
+
 
     query=""
     with st.form("bfr_criteria_selection_form"):
@@ -3963,13 +3715,6 @@ def streamlit_func():
         number_of_days_before_and_after_to_count_exchanges_where_order_was_placed=\
             st.number_input(label="number_of_days_before_and_after_to_count_exchanges_where_order_was_placed", value=15,min_value=1, step=1)
 
-        risk_percent_value1=0.5
-        with st.expander("Select risk_percent_value for drawdown_calculation"):
-            risk_percent_value_for_drawdown_calculation = st.selectbox("Select risk_percent_value",
-                                               [5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1], index=9)
-        tp_value_for_drawdown_calculation = st.number_input("Select take profit N value (tp is N/1)", min_value=3, max_value=100, step=1,
-                                    value=9)
-
         # # Display the selected Unix timestamps
         # st.write("Unix timestamp of the left selected date:", left_selected_timestamp)
         # st.write("Unix timestamp of the right selected date:", right_selected_timestamp)
@@ -3998,6 +3743,39 @@ def streamlit_func():
                             max_distance_from_level_price_in_this_bar_in_atr <= {max_distance_from_level_price_in_this_bar_in_atr_until_order_was_touched}
                             and exchange IN ({exchange_conditions}) and number_of_exchanges_where_ath_or_atl_were_broken_int <= {number_of_exchanges_where_ath_or_atl_were_broken}
                             and timestamp_of_order_placement_bar BETWEEN {left_selected_timestamp} AND {right_selected_timestamp};'''
+
+            query_buy_or_sell_order_was_not_touched = f'''SELECT *
+                                        FROM public."{table_name}"
+                                        WHERE (base, timestamp_of_bsu, min_volume_in_usd_over_last_n_days) IN (
+                                            SELECT base, timestamp_of_bsu, MAX(min_volume_in_usd_over_last_n_days)
+                                            FROM public."{table_name}"
+                                            GROUP BY base, timestamp_of_bsu
+                                        )
+                                        AND min_volume_in_usd_over_last_n_days >= {min_volume_in_usd_over_last_n_days}
+                                        AND distance_between_technical_sl_order_in_atr<= {max_distance_between_technical_sl_order_in_atr}
+                                        AND distance_between_technical_sl_order_in_atr>= {min_distance_between_technical_sl_order_in_atr}
+                                        AND buy_or_sell_order_was_touched = False
+                                        {sql_query_part_whether_to_consider_suppression_by_highs_or_lows}
+                                        {sql_query_part_if_pair_is_traded_with_margin_or_swap_is_available} AND
+                                        max_distance_from_level_price_in_this_bar_in_atr <= {max_distance_from_level_price_in_this_bar_in_atr_until_order_was_touched}
+                                        and exchange IN ({exchange_conditions}) and number_of_exchanges_where_ath_or_atl_were_broken_int <= {number_of_exchanges_where_ath_or_atl_were_broken}
+                                        and timestamp_of_order_placement_bar BETWEEN {left_selected_timestamp} AND {right_selected_timestamp};'''
+
+            query_buy_or_sell_order_was_touched_and_not_touched = f'''SELECT *
+                                                    FROM public."{table_name}"
+                                                    WHERE (base, timestamp_of_bsu, min_volume_in_usd_over_last_n_days) IN (
+                                                        SELECT base, timestamp_of_bsu, MAX(min_volume_in_usd_over_last_n_days)
+                                                        FROM public."{table_name}"
+                                                        GROUP BY base, timestamp_of_bsu
+                                                    )
+                                                    AND min_volume_in_usd_over_last_n_days >= {min_volume_in_usd_over_last_n_days}
+                                                    AND distance_between_technical_sl_order_in_atr<= {max_distance_between_technical_sl_order_in_atr}
+                                                    AND distance_between_technical_sl_order_in_atr>= {min_distance_between_technical_sl_order_in_atr}
+                                                    {sql_query_part_whether_to_consider_suppression_by_highs_or_lows}
+                                                    {sql_query_part_if_pair_is_traded_with_margin_or_swap_is_available} AND
+                                                    max_distance_from_level_price_in_this_bar_in_atr <= {max_distance_from_level_price_in_this_bar_in_atr_until_order_was_touched}
+                                                    and exchange IN ({exchange_conditions}) and number_of_exchanges_where_ath_or_atl_were_broken_int <= {number_of_exchanges_where_ath_or_atl_were_broken}
+                                                    and timestamp_of_order_placement_bar BETWEEN {left_selected_timestamp} AND {right_selected_timestamp};'''
 
             list_of_tables_in_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist=\
                 get_list_of_tables_in_db(engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
@@ -4031,8 +3809,6 @@ def streamlit_func():
             print("query1")
             print(query)
 
-
-
             st.write(query)
 
             height = 1000
@@ -4046,7 +3822,12 @@ def streamlit_func():
                     df_with_resulting_table_of_certain_models = \
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(
+                        query,query_buy_or_sell_order_was_not_touched,
+                        query_buy_or_sell_order_was_touched_and_not_touched,
+                        number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,
+                        table_name,
+                        engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
                                                   dict_of_identical_queries_for_each_table,
                                                   number_of_prev_and_next_days,
                                                   engine_for_ohlcv_data_for_stocks_0000,
@@ -4091,7 +3872,7 @@ def streamlit_func():
                     df_with_resulting_table_of_certain_models = \
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4120,20 +3901,20 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models=\
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                        table_name,
-                        engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                        dict_of_identical_queries_for_each_table,
-                        number_of_prev_and_next_days,
-                        engine_for_ohlcv_data_for_stocks_0000,
-                        df_with_resulting_table_of_certain_models,
-                        initial_funds_for_performance_calculation_over_given_period,
-                        risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models=\
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #     table_name,
+                    #     engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #     dict_of_identical_queries_for_each_table,
+                    #     number_of_prev_and_next_days,
+                    #     engine_for_ohlcv_data_for_stocks_0000,
+                    #     df_with_resulting_table_of_certain_models,
+                    #     initial_funds_for_performance_calculation_over_given_period,
+                    #     risk_for_one_trade_in_usd)
 
 
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,
                         table_name,
                         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
                         dict_of_identical_queries_for_each_table,
@@ -4244,18 +4025,18 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4350,18 +4131,18 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4452,18 +4233,18 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4554,18 +4335,18 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4656,19 +4437,19 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4759,19 +4540,19 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4862,18 +4643,18 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -4964,18 +4745,18 @@ def streamlit_func():
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
 
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -5067,18 +4848,18 @@ def streamlit_func():
                     df_with_resulting_table_of_certain_models=\
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-                    df_with_resulting_table_of_certain_models = \
-                        add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
-                            table_name,
-                            engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
-                            dict_of_identical_queries_for_each_table,
-                            number_of_prev_and_next_days,
-                            engine_for_ohlcv_data_for_stocks_0000,
-                            df_with_resulting_table_of_certain_models,
-                            initial_funds_for_performance_calculation_over_given_period,
-                            risk_for_one_trade_in_usd)
+                    # df_with_resulting_table_of_certain_models = \
+                    #     add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_technical_or_calculated(
+                    #         table_name,
+                    #         engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
+                    #         dict_of_identical_queries_for_each_table,
+                    #         number_of_prev_and_next_days,
+                    #         engine_for_ohlcv_data_for_stocks_0000,
+                    #         df_with_resulting_table_of_certain_models,
+                    #         initial_funds_for_performance_calculation_over_given_period,
+                    #         risk_for_one_trade_in_usd)
 
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -5169,7 +4950,7 @@ def streamlit_func():
                     df_with_resulting_table_of_certain_models = \
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -5197,7 +4978,7 @@ def streamlit_func():
                     df_with_resulting_table_of_certain_models = \
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -5224,7 +5005,7 @@ def streamlit_func():
                     df_with_resulting_table_of_certain_models = \
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,dict_of_identical_queries_for_each_table,number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
                                                   initial_funds_for_performance_calculation_over_given_period,
                                                   take_profit_for_performance_calculation_over_given_period,
                                                   risk_for_one_trade_in_usd)
@@ -5255,7 +5036,7 @@ def streamlit_func():
                     df_with_resulting_table_of_certain_models = \
                         return_df_from_postgres_sql_table(query, table_name,
                                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(risk_percent_value_for_drawdown_calculation,tp_value_for_drawdown_calculation,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,
+                    plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades_within_n_days(query,query_buy_or_sell_order_was_not_touched,query_buy_or_sell_order_was_touched_and_not_touched,number_of_days_before_and_after_to_count_exchanges_where_order_was_placed,
                         table_name, engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
                                                   dict_of_identical_queries_for_each_table,
                                                   number_of_prev_and_next_days,engine_for_ohlcv_data_for_stocks_0000,df_with_resulting_table_of_certain_models,
@@ -5303,34 +5084,6 @@ def streamlit_func():
             #                                      engine_for_ohlcv_low_volume_data_for_stocks_0000,
             #                                      connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist,
             #                                      number_of_split_periods_to_plot)
-
-    # df_with_resulting_table_of_certain_models
-    # st.write("df_with_resulting_table_of_certain_models")
-    # st.dataframe(df_with_resulting_table_of_certain_models)
-    #
-    # # Creating an expander
-    # # risk_percent_value1 = 1
-    # # with st.expander("Choose a Value"):
-    # risk_percent_value1 = st.selectbox("Select risk_percent_value",
-    #                                    [5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1], index=9)
-    # tp_value1 = st.number_input("Select take profit N value (tp is N/1)", min_value=3, max_value=100, step=1, value=9)
-    # st.write("Calculate abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown ")
-
-
-
-    # df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown = \
-    #     calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_technical(
-    #         df_with_resulting_table_of_certain_models,
-    #         risk_percent_value1,
-    #         tp_value1)
-
-    # st.write("df_with_resulting_table_of_certain_models")
-    # st.dataframe(df_with_resulting_table_of_certain_models)
-    # st.write("Absolute Maximum Drawdown:", abs_max_drawdown)
-    # st.write("Percentage Maximum Drawdown:", max_drawdown_percentage)
-    # st.write("Drawdown Begin Date:", drawdown_begin_date)
-    # st.write("Drawdown End Date:", drawdown_end_date)
-    # st.write("Number of Trades in the Drawdown:", num_trades_in_drawdown)
 
 
 

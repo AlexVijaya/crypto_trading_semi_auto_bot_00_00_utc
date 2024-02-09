@@ -1,6 +1,6 @@
 import ccxt  # noqa: E402
 from api_config import api_dict_for_all_exchanges
-
+import toml
 
 def create_exchange(exchange_name):
     try:

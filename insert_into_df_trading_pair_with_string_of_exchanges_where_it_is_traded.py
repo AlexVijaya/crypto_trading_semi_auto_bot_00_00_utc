@@ -210,6 +210,16 @@ def get_perpetual_swap_url(exchange_id, trading_pair):
         return f"https://phemex.com/trade/{base.upper()}{quote.upper()}"
     elif exchange_id == 'digifinex':
         return f"https://www.digifinex.com/en-ww/swap/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'bingx':
+        return f"https://swap.bingx.com/en-us/{base.upper()}-{quote.upper()}"
+    elif exchange_id == 'bitforex':
+        return f"https://www.bitforex.com/en/perpetual/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'bitrue':
+        return f"https://www.bitrue.com/futures/{base.upper()}"
+    elif exchange_id == 'bitbns':
+        return f"https://bitbns.com/trade/#/futures/{base.upper()}{quote.upper()}_Perpetual"
+    elif exchange_id == 'fmfwio':
+        return f"https://fmfw.io/futures/{base.lower()}-to-{quote.lower()}"
     else:
         return "Exchange not supported"
 
@@ -390,6 +400,22 @@ def get_exchange_url(exchange_id, exchange_object,symbol):
         return f"https://www.digifinex.com/en-ww/trade/{market['quote'].upper()}/{market['base'].upper()}"
     elif exchange_id == 'bequant':
         return f"https://bequant.io/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id== 'bingx':
+        return f"https://bingx.com/en-us/spot/{market['base'].upper()}{market['quote'].upper()}/"
+    elif exchange_id == 'bitforex':
+        return f"https://www.bitforex.com/en/spot/{market['base'].lower()}_{market['quote'].lower()}"
+    elif exchange_id == 'bitrue':
+        return f"https://www.bitrue.com/trade/{market['base'].lower()}_{market['quote'].lower()}"
+    elif exchange_id == 'bitbns':
+        return f"https://bitbns.com/trade/#/{market['base'].lower()}"
+    elif exchange_id == 'fmfwio':
+        return f"https://fmfw.io/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id == 'hollaex':
+        return f"https://pro.hollaex.com/trade/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'upbit':
+        return f"https://upbit.com/exchange?code=CRIX.UPBIT.{market['quote'].upper()}-{market['base'].upper()}"
+    elif exchange_id == 'zonda':
+        return f"https://app.zondacrypto.exchange/market/{market['base'].lower()}-{market['quote'].lower()}"
     else:
         return "Exchange not supported"
 

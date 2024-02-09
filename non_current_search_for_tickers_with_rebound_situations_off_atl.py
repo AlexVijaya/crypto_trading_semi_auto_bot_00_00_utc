@@ -1302,7 +1302,7 @@ def search_for_tickers_with_rebound_situations(db_where_ohlcv_data_for_stocks_is
                             df_with_level_atr_bpu_bsu_etc.loc[
                                 0, "timestamp_when_bfr_was_found"] = int(time.time())
                             df_with_level_atr_bpu_bsu_etc.loc[
-                                0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
+                                0, "datetime_when_bfr_was_found"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         except:
                             traceback.print_exc()
 

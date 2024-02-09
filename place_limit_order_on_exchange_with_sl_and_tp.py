@@ -10,6 +10,7 @@ import ccxt
 from create_order_on_crypto_exchange2 import get_exchange_object_with_api_key
 from create_order_on_crypto_exchange2 import get_public_api_private_api_and_trading_password
 from get_info_from_load_markets import get_exchange_object6
+import toml
 
 def convert_to_necessary_types_values_from_bfr_dataframe(stop_loss_is_calculated,
                                                          stop_loss_is_technical,
@@ -29,15 +30,18 @@ def convert_to_necessary_types_values_from_bfr_dataframe(stop_loss_is_calculated
         amount_of_sl,post_only_for_limit_tp_bool,\
         price_of_buy_or_sell_market_stop_order,amount_of_asset_for_entry
 def get_exchange_object_where_api_is_required(exchange_id):
-    # print("exchange_id_1")
-    # print(exchange_id)
-    public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
-    api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    # Load the secrets from the toml file
+    secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
+    # public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
+    # api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    public_api_key = secrets['secrets'][f"{exchange_id}_api_key"]
+    api_secret = secrets['secrets'][f"{exchange_id}_api_secret"]
     trading_password = None
 
-    if exchange_id == "kucoin":
+    if exchange_id in [ "kucoin","okex5"]:
         try:
-            trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
+            # trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
+            trading_password = secrets['secrets'][f"{exchange_id}_trading_password"]
         except:
             traceback.print_exc()
 

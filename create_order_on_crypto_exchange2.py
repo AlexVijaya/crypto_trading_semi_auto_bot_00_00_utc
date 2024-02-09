@@ -1,5 +1,5 @@
 import traceback
-
+import toml
 import ccxt  # noqa: E402
 from api_config import api_dict_for_all_exchanges
 
@@ -206,13 +206,16 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'okcoin': ccxt.okcoin(),
         'okex': ccxt.okex({
         'apiKey': public_api_key ,
-        'secret': api_secret }),
+        'secret': api_secret,
+        'password': trading_password }),
         'okex5':ccxt.okex5({
         'apiKey': public_api_key ,
-        'secret': api_secret }),
+        'secret': api_secret,
+        'password': trading_password }),
         'okx':ccxt.okx({
         'apiKey': public_api_key ,
-        'secret': api_secret }),
+        'secret': api_secret,
+        'password': trading_password }),
         'bitopro': ccxt.bitopro(),
         'huobi': ccxt.huobi({
         'apiKey': public_api_key ,
@@ -221,9 +224,9 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'apiKey': public_api_key ,
         'secret': api_secret }),
         'blockchaincom': ccxt.blockchaincom(),
-        'btcex': ccxt.btcex({
-        'apiKey': public_api_key ,
-        'secret': api_secret }),
+        # 'btcex': ccxt.btcex({
+        # 'apiKey': public_api_key ,
+        # 'secret': api_secret }),
         'kucoinfutures': ccxt.kucoinfutures({
         'apiKey': public_api_key ,
         'secret': api_secret }),
@@ -275,11 +278,16 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         raise ValueError(f"Exchange '{exchange_name}' is not available via CCXT.")
     return exchange_object
 def get_exchange_object_when_api_is_used(exchange_id):
-    public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
-    api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    # Load the secrets from the toml file
+    secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
+    # public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
+    # api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    public_api_key = secrets['secrets'][f"{exchange_id}_api_key"]
+    api_secret = secrets['secrets'][f"{exchange_id}_api_secret"]
     trading_password = None
     try:
-        trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
+        # trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
+        trading_password = secrets['secrets'][f"{exchange_id}_trading_password"]
     except:
         traceback.print_exc()
 
@@ -290,20 +298,28 @@ def get_exchange_object_when_api_is_used(exchange_id):
                                          trading_password=trading_password)
     return exchange_object
 def get_public_api_private_api_and_trading_password(exchange_id):
-    public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
-    api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    # Load the secrets from the toml file
+    secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
+    # public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
+    # api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    public_api_key = secrets['secrets'][f"{exchange_id}_api_key"]
+    api_secret = secrets['secrets'][f"{exchange_id}_api_secret"]
     trading_password = None
     try:
-        trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
+        # trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
+        trading_password = secrets['secrets'][f"{exchange_id}_trading_password"]
     except:
         traceback.print_exc()
 
     return public_api_key,api_secret,trading_password
 
 def create_order(exchange_id,trading_pair,type,side,amount,price,params):
-
-    public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
-    api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    # Load the secrets from the toml file
+    secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
+    # public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
+    # api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    public_api_key = secrets['secrets'][f"{exchange_id}_api_key"]
+    api_secret = secrets['secrets'][f"{exchange_id}_api_secret"]
     trading_password=None
     exchange_object=None
     if exchange_id=="kucoin":

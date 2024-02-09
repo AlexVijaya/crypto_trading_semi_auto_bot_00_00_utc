@@ -1795,19 +1795,28 @@ def add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_techn
     height_of_line_chart = 800
     number_of_take_profits=list(range(3,101))
 
-    risk_percent_list = [5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+
     list_of_columns_to_create=[]
-    for risk_percent_value in risk_percent_list:
-        for tp_value in number_of_take_profits:
-            column_to_create=f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_technical"
-            list_of_columns_to_create.append(column_to_create)
+
+    for tp_value in number_of_take_profits:
+        column_to_create=f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_technical_tp_reached"
+        list_of_columns_to_create.append(column_to_create)
+    df_with_resulting_table_of_certain_models = add_columns_to_dataframe(df_with_resulting_table_of_certain_models,
+                                                                         list_of_columns_to_create)
+    for tp_value in number_of_take_profits:
+        column_to_create=f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_technical_sl_reached"
+        list_of_columns_to_create.append(column_to_create)
     df_with_resulting_table_of_certain_models = add_columns_to_dataframe(df_with_resulting_table_of_certain_models,
                                                                          list_of_columns_to_create)
 
-    for risk_percent_value in risk_percent_list:
-        for tp_value in number_of_take_profits:
-            column_to_create=f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated"
-            list_of_columns_to_create.append(column_to_create)
+    for tp_value in number_of_take_profits:
+        column_to_create = f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_calculated_tp_reached"
+        list_of_columns_to_create.append(column_to_create)
+    df_with_resulting_table_of_certain_models = add_columns_to_dataframe(df_with_resulting_table_of_certain_models,
+                                                                         list_of_columns_to_create)
+    for tp_value in number_of_take_profits:
+        column_to_create = f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_calculated_sl_reached"
+        list_of_columns_to_create.append(column_to_create)
     df_with_resulting_table_of_certain_models = add_columns_to_dataframe(df_with_resulting_table_of_certain_models,
                                                                          list_of_columns_to_create)
 
@@ -1822,115 +1831,162 @@ def add_columns_like_deposit_by_end_of_period_with_risk_and_tp_n_to_one_sl_techn
     # st.write('df_with_resulting_table_of_certain_models_enhanced')
     # st.dataframe(df_with_resulting_table_of_certain_models)
 
+    timestamp_when_technical_stop_loss_was_reached_ndarray = np.empty(len(df_with_resulting_table_of_certain_models))
+    if "timestamp_when_technical_stop_loss_was_reached" in df_with_resulting_table_of_certain_models.columns:
+        timestamp_when_technical_stop_loss_was_reached_ndarray = df_with_resulting_table_of_certain_models[
+            f"timestamp_when_technical_stop_loss_was_reached"].to_numpy()
+
+    timestamp_when_calculated_stop_loss_was_reached_ndarray = np.empty(len(df_with_resulting_table_of_certain_models))
+    if "timestamp_when_calculated_stop_loss_was_reached" in df_with_resulting_table_of_certain_models.columns:
+        timestamp_when_calculated_stop_loss_was_reached_ndarray = df_with_resulting_table_of_certain_models[
+            f"timestamp_when_calculated_stop_loss_was_reached"].to_numpy()
+
+    timestamp_of_order_placement_bar_ndarray= np.empty(len(df_with_resulting_table_of_certain_models))
+    if "timestamp_of_order_placement_bar" in df_with_resulting_table_of_certain_models.columns:
+        timestamp_of_order_placement_bar_ndarray = df_with_resulting_table_of_certain_models[
+            f"timestamp_of_order_placement_bar"].to_numpy()
 
     # Iterating over each row and selecting each row as a DataFrame
     for tp_value in number_of_take_profits:
         print("tp_value1")
         print(tp_value)
-        for risk_percent_value1 in risk_percent_list:
-            initial_deposit_for_this_risk_and_tp_sl_technical=initial_funds_for_performance_calculation_over_given_period
-            initial_deposit_for_this_risk_and_tp_sl_calculated=initial_funds_for_performance_calculation_over_given_period
-            risk_for_one_trade_in_usd_sl_technical=initial_funds_for_performance_calculation_over_given_period*risk_percent_value1/100.0
-            risk_for_one_trade_in_usd_sl_calculated=initial_funds_for_performance_calculation_over_given_period*risk_percent_value1/100.0
 
-            # for index, row in df_with_resulting_table_of_certain_models.iterrows():
 
-            # Data Preprocessing and Conversion to NumPy Arrays
-            taker_fees = df_with_resulting_table_of_certain_models['taker_fee'].fillna(0).values
-            maker_fees = df_with_resulting_table_of_certain_models['maker_fee'].fillna(0).values
+        # for index, row in df_with_resulting_table_of_certain_models.iterrows():
 
 
 
-            taker_fees_ndarray = df_with_resulting_table_of_certain_models[
-                "taker_fee"].fillna(0).to_numpy()
 
-            maker_fees_ndarray = df_with_resulting_table_of_certain_models[
-                "maker_fee"].fillna(0).to_numpy()
-
-            max_profit_target_multiple_when_sl_calculated_ndarray=np.empty(len(df_with_resulting_table_of_certain_models))
-            max_profit_target_multiple_when_sl_technical_ndarray=np.empty(len(df_with_resulting_table_of_certain_models))
-            if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-                max_profit_target_multiple_when_sl_technical_ndarray = df_with_resulting_table_of_certain_models[
-                    "max_profit_target_multiple_when_sl_technical"].to_numpy()
-
-            if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-                max_profit_target_multiple_when_sl_calculated_ndarray = df_with_resulting_table_of_certain_models[
-                    "max_profit_target_multiple_when_sl_calculated"].to_numpy()
-
-            # Initialize deposit_for_this_trade_sl_calculated with NaN values
-            deposit_for_this_trade_sl_calculated_ndarray = np.empty_like(max_profit_target_multiple_when_sl_calculated_ndarray)
-            # Convert the array to a float data type to accommodate NaN values
-            deposit_for_this_trade_sl_calculated_ndarray = deposit_for_this_trade_sl_calculated_ndarray.astype(float)
-            # Set NaN values in the array
-            deposit_for_this_trade_sl_calculated_ndarray[:] = np.nan
-
-            # Initialize deposit_for_this_trade_sl_technical with NaN values
-            deposit_for_this_trade_sl_technical_ndarray = np.empty_like(max_profit_target_multiple_when_sl_technical_ndarray)
-            # Convert the array to a float data type to accommodate NaN values
-            deposit_for_this_trade_sl_technical_ndarray = deposit_for_this_trade_sl_technical_ndarray.astype(float)
-            # Set NaN values in the array
-            deposit_for_this_trade_sl_technical_ndarray[:] = np.nan
-
-            # condition = max_profit_target_multiple_when_sl_technical >= tp_value
-            # deposit_for_this_trade_sl_technical = np.where(
-            #     condition,
-            #     (
-            #                 initial_deposit_for_this_risk_and_tp_sl_technical + tp_value * risk_for_one_trade_in_usd - maker_fees * risk_for_one_trade_in_usd),
-            #     (
-            #                 initial_deposit_for_this_risk_and_tp_sl_technical - risk_for_one_trade_in_usd - taker_fees * risk_for_one_trade_in_usd)
-            # )
+        max_profit_target_multiple_when_sl_calculated_ndarray=np.empty(len(df_with_resulting_table_of_certain_models))
+        max_profit_target_multiple_when_sl_technical_ndarray=np.empty(len(df_with_resulting_table_of_certain_models))
+        timestamp_of_tp_n_to_one_is_reached_sl_technical_ndarray=np.empty(len(df_with_resulting_table_of_certain_models))
+        timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray=np.empty(len(df_with_resulting_table_of_certain_models))
+        if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
+            max_profit_target_multiple_when_sl_technical_ndarray = df_with_resulting_table_of_certain_models[
+                "max_profit_target_multiple_when_sl_technical"].to_numpy()
+            if f"timestamp_of_tp_{tp_value}_to_one_is_reached_sl_technical" in df_with_resulting_table_of_certain_models.columns:
+                timestamp_of_tp_n_to_one_is_reached_sl_technical_ndarray=df_with_resulting_table_of_certain_models[
+                f"timestamp_of_tp_{tp_value}_to_one_is_reached_sl_technical"].to_numpy()
 
 
-            for idx, max_profit_target_multiple_when_sl_technical_value in np.ndenumerate(max_profit_target_multiple_when_sl_technical_ndarray):
-                deposit_for_this_trade_sl_technical = np.nan
-                if max_profit_target_multiple_when_sl_technical_value >= tp_value:
-                    deposit_for_this_trade_sl_technical = \
-                        initial_deposit_for_this_risk_and_tp_sl_technical + tp_value * risk_for_one_trade_in_usd_sl_technical - maker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_technical
-                    deposit_for_this_trade_sl_technical_ndarray[idx] = deposit_for_this_trade_sl_technical
+
+        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+            max_profit_target_multiple_when_sl_calculated_ndarray = df_with_resulting_table_of_certain_models[
+                "max_profit_target_multiple_when_sl_calculated"].to_numpy()
+            if f"timestamp_of_tp_{tp_value}_to_one_is_reached_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+                timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray=df_with_resulting_table_of_certain_models[
+                f"timestamp_of_tp_{tp_value}_to_one_is_reached_sl_calculated"].to_numpy()
+
+        # Initialize trade_duration_for_this_trade_sl_technical with NaN values
+        trade_duration_for_this_trade_sl_technical_ndarray_sl_reached = np.empty_like(
+            max_profit_target_multiple_when_sl_technical_ndarray)
+        trade_duration_for_this_trade_sl_technical_ndarray_tp_reached = np.empty_like(
+            max_profit_target_multiple_when_sl_technical_ndarray)
+        # Convert the array to a float data type to accommodate NaN values
+        trade_duration_for_this_trade_sl_technical_ndarray_sl_reached = trade_duration_for_this_trade_sl_technical_ndarray_sl_reached.astype(
+            float)
+        trade_duration_for_this_trade_sl_technical_ndarray_tp_reached = trade_duration_for_this_trade_sl_technical_ndarray_tp_reached.astype(
+            float)
+        timestamp_of_tp_n_to_one_is_reached_sl_technical_ndarray=timestamp_of_tp_n_to_one_is_reached_sl_technical_ndarray.astype(int)
+        timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray=timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray.astype(int)
+
+        # Set NaN values in the array
+        trade_duration_for_this_trade_sl_technical_ndarray_sl_reached[:] = np.nan
+        trade_duration_for_this_trade_sl_technical_ndarray_tp_reached[:] = np.nan
+
+        # Initialize trade_duration_for_this_trade_sl_calculated with NaN values
+        trade_duration_for_this_trade_sl_calculated_ndarray_sl_reached = np.empty_like(
+            max_profit_target_multiple_when_sl_calculated_ndarray)
+        trade_duration_for_this_trade_sl_calculated_ndarray_tp_reached = np.empty_like(
+            max_profit_target_multiple_when_sl_calculated_ndarray)
+        # Convert the array to a float data type to accommodate NaN values
+        trade_duration_for_this_trade_sl_calculated_ndarray_sl_reached = trade_duration_for_this_trade_sl_calculated_ndarray_sl_reached.astype(
+            float)
+        trade_duration_for_this_trade_sl_calculated_ndarray_tp_reached = trade_duration_for_this_trade_sl_calculated_ndarray_tp_reached.astype(
+            float)
+        timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray = timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray.astype(
+            int)
+        timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray = timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray.astype(
+            int)
+
+        # Set NaN values in the array
+        trade_duration_for_this_trade_sl_calculated_ndarray_sl_reached[:] = np.nan
+        trade_duration_for_this_trade_sl_calculated_ndarray_tp_reached[:] = np.nan
 
 
-                else:
-                    deposit_for_this_trade_sl_technical = \
-                        initial_deposit_for_this_risk_and_tp_sl_technical - risk_for_one_trade_in_usd_sl_technical - taker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_technical
-                    deposit_for_this_trade_sl_technical_ndarray[idx] = deposit_for_this_trade_sl_technical
-                initial_deposit_for_this_risk_and_tp_sl_technical = deposit_for_this_trade_sl_technical
+
+        # condition = max_profit_target_multiple_when_sl_technical >= tp_value
+        # trade_duration_for_this_trade_sl_technical = np.where(
+        #     condition,
+        #     (
+        #                 initial_trade_duration_this_risk_and_tp_sl_technical + tp_value * risk_for_one_trade_in_usd - maker_fees * risk_for_one_trade_in_usd),
+        #     (
+        #                 initial_trade_duration_this_risk_and_tp_sl_technical - risk_for_one_trade_in_usd - taker_fees * risk_for_one_trade_in_usd)
+        # )
 
 
-                # uncomment if you want to calculate risk changing with your deposit changing
-                risk_for_one_trade_in_usd_sl_technical=deposit_for_this_trade_sl_technical*risk_percent_value1/100.0
+        for idx, max_profit_target_multiple_when_sl_technical_value in np.ndenumerate(max_profit_target_multiple_when_sl_technical_ndarray):
+            trade_duration_for_this_trade_sl_technical = np.nan
+            if max_profit_target_multiple_when_sl_technical_value >= tp_value:
+                trade_duration_for_this_trade_sl_technical = timestamp_of_tp_n_to_one_is_reached_sl_technical_ndarray[idx]-timestamp_of_order_placement_bar_ndarray[idx]
+                trade_duration_for_this_trade_sl_technical=trade_duration_for_this_trade_sl_technical/86400
+                trade_duration_for_this_trade_sl_technical_ndarray_tp_reached[idx] = trade_duration_for_this_trade_sl_technical
 
-            # Update the DataFrame column with the technical deposit values
-            column_name = f"deposit_by_end_of_period_with_risk_{risk_percent_value1}_and_tp_{tp_value}_to_one_sl_technical"
-            df_with_resulting_table_of_certain_models[column_name] = deposit_for_this_trade_sl_technical_ndarray
-
-
-            ##################################
-            ##################################
-            ##################################
-
-            for idx, max_profit_target_multiple_when_sl_calculated_value in np.ndenumerate(
-                    max_profit_target_multiple_when_sl_calculated_ndarray):
-                deposit_for_this_trade_sl_calculated = np.nan
-                if max_profit_target_multiple_when_sl_calculated_value >= tp_value:
-                    deposit_for_this_trade_sl_calculated = \
-                        initial_deposit_for_this_risk_and_tp_sl_calculated + tp_value * risk_for_one_trade_in_usd_sl_calculated - \
-                        maker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_calculated
-                    deposit_for_this_trade_sl_calculated_ndarray[idx] = deposit_for_this_trade_sl_calculated
+                if trade_duration_for_this_trade_sl_technical==0:
+                    print("max_profit_target_multiple_when_sl_technical_value")
+                    print(max_profit_target_multiple_when_sl_technical_value)
+                    print("idx")
+                    print(idx)
+                    print("timestamp_of_tp_n_to_one_is_reached_sl_technical_ndarray[idx]")
+                    print(timestamp_of_tp_n_to_one_is_reached_sl_technical_ndarray[idx])
+                    print("timestamp_of_order_placement_bar_ndarray[idx]")
+                    print(timestamp_of_order_placement_bar_ndarray[idx])
+                    # time.sleep(100000)
 
 
-                else:
-                    deposit_for_this_trade_sl_calculated = \
-                        initial_deposit_for_this_risk_and_tp_sl_calculated - risk_for_one_trade_in_usd_sl_calculated - \
-                        taker_fees_ndarray[idx] * risk_for_one_trade_in_usd_sl_calculated
-                    deposit_for_this_trade_sl_calculated_ndarray[idx] = deposit_for_this_trade_sl_calculated
-                initial_deposit_for_this_risk_and_tp_sl_calculated = deposit_for_this_trade_sl_calculated
-                # uncomment if you want to calculate risk changing with your deposit changing
-                risk_for_one_trade_in_usd_sl_calculated = deposit_for_this_trade_sl_calculated * risk_percent_value1 / 100.0
+            else:
+                trade_duration_for_this_trade_sl_technical = timestamp_when_technical_stop_loss_was_reached_ndarray[
+                                                                 idx] - timestamp_of_order_placement_bar_ndarray[idx]
+                trade_duration_for_this_trade_sl_technical = trade_duration_for_this_trade_sl_technical / 86400
+                trade_duration_for_this_trade_sl_technical_ndarray_sl_reached[idx] = trade_duration_for_this_trade_sl_technical
+            
 
-            # Update the DataFrame column with the calculated deposit values
-            column_name = f"deposit_by_end_of_period_with_risk_{risk_percent_value1}_and_tp_{tp_value}_to_one_sl_calculated"
-            df_with_resulting_table_of_certain_models[column_name] = deposit_for_this_trade_sl_calculated_ndarray
+        # Update the DataFrame column with the technical deposit values
+        column_name = f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_technical_tp_reached"
+        df_with_resulting_table_of_certain_models[column_name] = trade_duration_for_this_trade_sl_technical_ndarray_tp_reached
+        column_name = f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_technical_sl_reached"
+        df_with_resulting_table_of_certain_models[
+            column_name] = trade_duration_for_this_trade_sl_technical_ndarray_sl_reached
 
+
+        ##################################
+        ##################################
+        ##################################
+
+        for idx, max_profit_target_multiple_when_sl_calculated_value in np.ndenumerate(
+                max_profit_target_multiple_when_sl_calculated_ndarray):
+            trade_duration_for_this_trade_sl_calculated = np.nan
+            if max_profit_target_multiple_when_sl_calculated_value >= tp_value:
+                trade_duration_for_this_trade_sl_calculated = timestamp_of_tp_n_to_one_is_reached_sl_calculated_ndarray[
+                                                                 idx] - timestamp_of_order_placement_bar_ndarray[idx]
+                trade_duration_for_this_trade_sl_calculated=trade_duration_for_this_trade_sl_calculated/86400
+                trade_duration_for_this_trade_sl_calculated_ndarray_tp_reached[idx] = trade_duration_for_this_trade_sl_calculated
+
+
+            else:
+                trade_duration_for_this_trade_sl_calculated = timestamp_when_calculated_stop_loss_was_reached_ndarray[
+                                                                     idx] - timestamp_of_order_placement_bar_ndarray[
+                                                                     idx]
+                trade_duration_for_this_trade_sl_calculated = trade_duration_for_this_trade_sl_calculated / 86400
+                trade_duration_for_this_trade_sl_calculated_ndarray_sl_reached[idx] = trade_duration_for_this_trade_sl_calculated
+
+        # Update the DataFrame column with the calculated deposit values
+        column_name = f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_calculated_tp_reached"
+        df_with_resulting_table_of_certain_models[
+            column_name] = trade_duration_for_this_trade_sl_calculated_ndarray_tp_reached
+        column_name = f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_calculated_sl_reached"
+        df_with_resulting_table_of_certain_models[
+            column_name] = trade_duration_for_this_trade_sl_calculated_ndarray_sl_reached
 
 
 
@@ -1980,120 +2036,12 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
 
 
 
-    deposit_by_the_end_of_the_given_period_if_sl_is_technical=initial_funds_for_performance_calculation_over_given_period
-    deposit_by_the_end_of_the_given_period_if_sl_is_calculated=initial_funds_for_performance_calculation_over_given_period
+
     # deposit_by_the_end_of_the_given_period_if_sl_is_technical_and_calculated_df=pd.DataFrame(columns=["deposit_by_the_end_of_the_given_period_if_sl_is_technical",
     #                                                                                    "deposit_by_the_end_of_the_given_period_if_sl_is_calculated"])
     # Create an empty list to store the dictionaries
     width_of_line_chart=1000
     height_of_line_chart=800
-    data_sl_technical = []
-    data_sl_calculated = []
-    risk_percent_list =[5,4,3,2,1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]
-    # Define the number of rows
-    num_rows = 101
-
-    df_with_resulting_table_of_certain_models=create_column_in_df_called_number_of_order_placement_within_next_and_prev_n_days(
-        df_with_resulting_table_of_certain_models,
-        number_of_prev_and_next_days)
-
-    # st.write("df_with_resulting_table_of_certain_models.columns")
-    # st.write(df_with_resulting_table_of_certain_models.columns)
-
-    # df_with_resulting_table_of_certain_models['human_datetime_of_order_placement_bar'] =\
-    #     df_with_resulting_table_of_certain_models['timestamp_of_order_placement_bar'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
-    # st.write("df_with_resulting_table_of_certain_models3")
-    # st.dataframe(df_with_resulting_table_of_certain_models)
-
-    
-    # Initialize empty DataFrames
-    deposit_by_the_end_of_the_given_period_if_sl_is_technical_df = pd.DataFrame()
-    deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df = pd.DataFrame()
-    
-    # Create DataFrames for the specified number of rows
-    for risk_percent_value in risk_percent_list:
-        df_technical = pd.DataFrame({f"deposit_risk_{risk_percent_value}%_sl_is_technical": [np.nan] * num_rows})
-        df_calculated = pd.DataFrame({f"deposit_risk_{risk_percent_value}%_sl_is_calculated": [np.nan] * num_rows})
-        deposit_by_the_end_of_the_given_period_if_sl_is_technical_df = pd.concat(
-            [deposit_by_the_end_of_the_given_period_if_sl_is_technical_df, df_technical], axis=1)
-        deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df = pd.concat(
-            [deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df, df_calculated], axis=1)
-
-    # # Create the DataFrame from the list of dictionaries
-    # deposit_by_the_end_of_the_given_period_if_sl_is_technical_df = pd.DataFrame(data_sl_technical)
-    # deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df = pd.DataFrame(data_sl_calculated)
-    deposit_by_the_end_of_the_given_period_if_sl_is_technical_df["take_profit_value"]=\
-        list(range(0,len(deposit_by_the_end_of_the_given_period_if_sl_is_technical_df)))
-    deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df["take_profit_value"] = \
-        list(range(0, len(deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df)))
-    for risk_percent_value in risk_percent_list:
-        risk_for_one_trade_in_usd=initial_funds_for_performance_calculation_over_given_period*risk_percent_value/100.0
-
-        for take_profit_for_performance_calculation_over_given_period in range(initial_take_profit_for_performance_calculation_over_given_period,num_rows):
-            if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-
-
-                count_of_values_greater_than_or_equal_to_take_profit_for_performance_calculation_over_given_period = (
-                            df_with_resulting_table_of_certain_models[
-                                'max_profit_target_multiple_when_sl_technical'] >= take_profit_for_performance_calculation_over_given_period).sum()
-                count_of_values_technical_stop_loss_is_reached = df_with_resulting_table_of_certain_models.technical_stop_loss_is_reached.sum()
-
-                deposit_by_the_end_of_the_given_period_if_sl_is_technical = \
-                    initial_funds_for_performance_calculation_over_given_period + \
-                    count_of_values_greater_than_or_equal_to_take_profit_for_performance_calculation_over_given_period * \
-                    take_profit_for_performance_calculation_over_given_period * \
-                    risk_for_one_trade_in_usd - \
-                    (count_of_values_technical_stop_loss_is_reached * risk_for_one_trade_in_usd)
-                # st.write(f"deposit_by_the_end_of_the_given_period_if_sl_is_technical with risk={risk_for_one_trade_in_usd*100/initial_funds_for_performance_calculation_over_given_period}% from initial deposit")
-                # st.write(deposit_by_the_end_of_the_given_period_if_sl_is_technical)
-
-                condition = deposit_by_the_end_of_the_given_period_if_sl_is_technical_df[
-                                'take_profit_value'] == take_profit_for_performance_calculation_over_given_period
-                deposit_by_the_end_of_the_given_period_if_sl_is_technical_df.loc[
-                    condition, f"deposit_risk_{risk_percent_value}%_sl_is_technical"] = deposit_by_the_end_of_the_given_period_if_sl_is_technical
-                # deposit_by_the_end_of_the_given_period_if_sl_is_technical_df.loc[
-                #     take_profit_for_performance_calculation_over_given_period, f"deposit_risk_{risk_percent_value}%_sl_is_technical"
-                # ] = deposit_by_the_end_of_the_given_period_if_sl_is_technical
-
-
-
-            if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-
-
-
-                count_of_values_greater_than_or_equal_to_take_profit_for_performance_calculation_over_given_period = (
-                            df_with_resulting_table_of_certain_models[
-                                'max_profit_target_multiple_when_sl_calculated'] >= take_profit_for_performance_calculation_over_given_period).sum()
-
-
-                count_of_values_calculated_stop_loss_is_reached = df_with_resulting_table_of_certain_models.calculated_stop_loss_is_reached.sum()
-
-                deposit_by_the_end_of_the_given_period_if_sl_is_calculated = \
-                    initial_funds_for_performance_calculation_over_given_period + \
-                    count_of_values_greater_than_or_equal_to_take_profit_for_performance_calculation_over_given_period * \
-                    take_profit_for_performance_calculation_over_given_period * \
-                    risk_for_one_trade_in_usd - \
-                    (count_of_values_calculated_stop_loss_is_reached * risk_for_one_trade_in_usd)
-                condition = deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df[
-                                'take_profit_value'] == take_profit_for_performance_calculation_over_given_period
-
-                deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df.loc[
-                    condition, f"deposit_risk_{risk_percent_value}%_sl_is_calculated"
-                ] = deposit_by_the_end_of_the_given_period_if_sl_is_calculated
-
-    # deposit_by_the_end_of_the_given_period_if_sl_is_technical_df["take_profit_value_new"] = \
-    #     deposit_by_the_end_of_the_given_period_if_sl_is_technical_df["take_profit_value"]
-    deposit_by_the_end_of_the_given_period_if_sl_is_technical_df.set_index('take_profit_value',
-                         inplace=True)
-    deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df.set_index('take_profit_value',
-                                                                           inplace=True)
-
-    # fig1=None
-    # for risk_percent_value in risk_percent_list:
-    #     # st.line_chart(deposit_by_the_end_of_the_given_period_if_sl_is_technical_df,
-    #     #
-        #               y=f"deposit_risk_{risk_percent_value}%_sl_is_technical")
-
 
 
 
@@ -2123,7 +2071,12 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
 
     entire_ohlcv_df=get_ohlcv_df_for_btc_usdt_on_gateio(engine_for_ohlcv_data_for_stocks_0000)
 
+    df_with_resulting_table_of_certain_models['human_datetime_of_order_placement_bar'] = pd.to_datetime(
+        df_with_resulting_table_of_certain_models['timestamp_of_order_placement_bar'], unit='s')
 
+    # Sort the dataframe by the timestamp column (in case it's not already sorted)
+    df_with_resulting_table_of_certain_models = df_with_resulting_table_of_certain_models.sort_values(
+        'human_datetime_of_order_placement_bar')
 
 
     if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns or\
@@ -2132,289 +2085,68 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
 
 
 
-        
 
-        fig = make_subplots(rows=8, cols=1, shared_xaxes=True,
-                            subplot_titles=("deposit by end of period with different tp When SL is Technical",
-                                            "deposit by end of period with different tp When SL is Calculated",
-                                            "number of trades within [-n days: +n days] superimposed on BTC_USDT_on_gateio",
-                                            "performance of account with given risk and tp when sl is technical",
-                                            "performance of account with given risk and tp when sl is calculated",
-                                            "max_profit_target_multiple_when_sl_technical",
-                                            "max_profit_target_multiple_when_sl_calculated",
-                                            "count of orders within the defined time window for each exchange"),
-                            vertical_spacing = 0.05,specs=[[{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
+
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                            subplot_titles=("Time in days spent in each trade When SL is Technical",
+                                            "Time in days spent in each trade When SL is Calculated"),
+                            vertical_spacing = 0.01,specs=[[{"secondary_y": True}],
                                                            [{"secondary_y": True}]])
 
-
-
-        for risk_percent_value in risk_percent_list:
-            fig.add_trace(go.Scatter(x=deposit_by_the_end_of_the_given_period_if_sl_is_technical_df.index,
-                                     y=deposit_by_the_end_of_the_given_period_if_sl_is_technical_df[
-                                         f"deposit_risk_{risk_percent_value}%_sl_is_technical"],
-                                     mode='lines+markers',
-                                     name=f"{risk_percent_value}% SL Technical"),
+        if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
+            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
+                                     name='Close Price of BTC'),
                           row=1, col=1)
-            fig.add_trace(go.Scatter(x=deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df.index,
-                                     y=deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df[
-                                         f"deposit_risk_{risk_percent_value}%_sl_is_calculated"],
-                                     mode='lines+markers',
-                                     name=f"{risk_percent_value}% SL Calculated"),
-                          row=2, col=1)
-        # Add line chart for close price in the third subplot
-        fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                 name='Close Price of BTC'),
-                      row=3, col=1)
 
-        for number_of_y_axis_minus_two, table_name1 in enumerate(dict_of_identical_queries_for_each_table):
-            query=dict_of_identical_queries_for_each_table[table_name1]
-            df_with_resulting_table_of_certain_models1 = \
-                return_df_from_postgres_sql_table(query, table_name1,
-                                                  engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-            df_with_resulting_table_of_certain_models1 = create_column_in_df_called_number_of_order_placement_within_next_and_prev_n_days(
-                df_with_resulting_table_of_certain_models1,
-                number_of_prev_and_next_days)
-            fig.add_trace(go.Scatter(x=df_with_resulting_table_of_certain_models1["human_datetime_of_order_placement_bar"],
-                                     y=df_with_resulting_table_of_certain_models1["number_of_order_placement_within_next_and_prev_n_days"],
-                                     mode='lines+markers',yaxis=f'y{number_of_y_axis_minus_two+2}',visible='legendonly',
-                                     name=f"for {table_name1.replace('''current_''','''''')} <br>number of order placement within next and prev {number_of_prev_and_next_days} days "  # Assign a name to the trace
+            st.write('''df_with_resulting_table_of_certain_models[
+                                     f"trade_duration_in_days_and_tp_3_to_one_sl_technical_tp_reached"]''')
+            st.write(df_with_resulting_table_of_certain_models[
+                                                 f"trade_duration_in_days_and_tp_3_to_one_sl_technical_tp_reached"])
 
-                                     ),secondary_y=True,
-                              row=3, col=1)
-
-        if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=4, col=1)
-
-        if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-
-
-
-            for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
-                for tp_value in range(3,51):
-
-                    # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-                    #     st.write(True)
-                    # else:
-                    #     st.write(False)
-                    fig.add_trace(
-                        go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                   y=df_with_resulting_table_of_certain_models[
-                                       f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_technical"],
-                                   mode='markers', yaxis='y2', visible='legendonly',marker=dict(size=3),
-                                   name=f"performance_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_technical"
-
-
-                                   ), secondary_y=True,
-                        row=4, col=1)
-
-                    if risk_percent_value==risk_percent_value_for_drawdown_calculation and tp_value==tp_value_for_drawdown_calculation:
-                        df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown = \
-                            calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_technical(
-                                df_with_resulting_table_of_certain_models,
-                                risk_percent_value,
-                                tp_value)
-                        fig.add_trace(
-                            go.Scatter(
-                                x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                y=df_with_resulting_table_of_certain_models[
-                                    f"percentage_drawdown"],
-                                mode='markers', yaxis='y2', marker=dict(size=3),
-                                name=f"percentage_drawdown_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_technical"
-
-                                ), secondary_y=True,
-                            row=4, col=1)
-
-
-
-        # if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-        #     fig.add_trace(
-        #         go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-        #                    y=df_with_resulting_table_of_certain_models[
-        #                        f"max_profit_target_multiple_when_sl_technical"],
-        #                    mode='markers', yaxis='y3', visible='legendonly',
-        #                    name=f"max_profit_target_multiple_when_sl_technical"
-        #
-        #                    ), secondary_y=True,
-        #         row=4, col=1)
-
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=5, col=1)
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-
-            # with st.form(key=str(uuid.uuid4())):
-            #     # Creating an expander
-            #     risk_percent_value1=1
-            #     with st.expander("Choose a Value"):
-            #         risk_percent_value1 = st.selectbox("Select risk_percent_value",
-            #                                       [5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1], index=9)
-            #     tp_value1=st.number_input("Select take profit N value (tp is N/1)", min_value=3, max_value=100, step=1)
-            #     form_submit_button_is_pressed1=st.form_submit_button("Calculate abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown ")
-            #
-            #     if form_submit_button_is_pressed1:
-            #         abs_max_drawdown,max_drawdown_percentage,drawdown_begin_date,drawdown_end_date,num_trades_in_drawdown=\
-            #             calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
-            #             df_with_resulting_table_of_certain_models,
-            #             risk_percent_value1,
-            #             tp_value1)
-            #         st.write("Absolute Maximum Drawdown:", abs_max_drawdown)
-            #         st.write("Percentage Maximum Drawdown:", max_drawdown_percentage)
-            #         st.write("Drawdown Begin Date:", drawdown_begin_date)
-            #         st.write("Drawdown End Date:", drawdown_end_date)
-            #         st.write("Number of Trades in the Drawdown:", num_trades_in_drawdown)
-
-
-
-            for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
-                for tp_value in range(3, 51):
-
-                    # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-                    #     st.write(True)
-                    # else:
-                    #     st.write(False)
-                    fig.add_trace(
-                        go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                   y=df_with_resulting_table_of_certain_models[
-                                       f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated"],
-                                   mode='lines', yaxis='y2', visible='legendonly',marker=dict(size=3),
-                                   name=f"performance_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
-
-                                   ), secondary_y=True,
-                        row=5, col=1)
-
-                    if risk_percent_value==risk_percent_value_for_drawdown_calculation and tp_value==tp_value_for_drawdown_calculation:
-                        df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown = \
-                            calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
-                                df_with_resulting_table_of_certain_models,
-                                risk_percent_value,
-                                tp_value)
-                        fig.add_trace(
-                            go.Scatter(
-                                x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                y=df_with_resulting_table_of_certain_models[
-                                    f"percentage_drawdown"],
-                                mode='markers', yaxis='y2', marker=dict(size=3),
-                                name=f"percentage_drawdown_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
-
-                                ), secondary_y=True,
-                            row=5, col=1)
-
-        # if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-        #     fig.add_trace(
-        #         go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-        #                    y=df_with_resulting_table_of_certain_models[
-        #                        f"max_profit_target_multiple_when_sl_calculated"],
-        #                    mode='markers', yaxis='y3', visible='legendonly',
-        #                    name=f"max_profit_target_multiple_when_sl_calculated"
-        #
-        #                    ), secondary_y=True,
-        #         row=5, col=1)
-
-        if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=6, col=1)
-
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=7, col=1)
-
-        for number_of_y_axis_minus_two, table_name2 in enumerate(dict_of_identical_queries_for_each_table):
-            query=dict_of_identical_queries_for_each_table[table_name2]
-            df_with_resulting_table_of_certain_models1 = \
-                return_df_from_postgres_sql_table(query, table_name2,
-                                                  engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-            df_with_resulting_table_of_certain_models1 = create_column_in_df_called_number_of_order_placement_within_next_and_prev_n_days(
-                df_with_resulting_table_of_certain_models1,
-                number_of_prev_and_next_days)
-            if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models1.columns:
-                # Count the occurrences for max_profit_target_multiple_when_sl_technical=0 and max_profit_target_multiple_when_sl_technical!=0
-                counts = df_with_resulting_table_of_certain_models1[
-                    'max_profit_target_multiple_when_sl_technical'].value_counts()
-
-                # Retrieve the counts for the values
-                count_of_zero = counts.get(0, 0)  # Get the count for max_profit_target_multiple_when_sl_technical=0
-                count_of_non_zero = counts.sum() - count_of_zero  # Get the count for max_profit_target_multiple_when_sl_technical!=0
-
-                fig.add_trace(go.Scatter(x=df_with_resulting_table_of_certain_models1["human_datetime_of_order_placement_bar"],
-                                         y=df_with_resulting_table_of_certain_models1["max_profit_target_multiple_when_sl_technical"],
-                                         mode='markers',yaxis=f'y{number_of_y_axis_minus_two+2}',visible='legendonly',
-                                         name=f"max_profit_target_multiple_when_sl_technical {count_of_non_zero}/{count_of_zero} for {table_name2.replace('''current_''','''''')}"  # Assign a name to the trace
-
-                                         ),secondary_y=True,
-                                  row=6, col=1)
-
-            if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models1.columns:
-                # Count the occurrences for max_profit_target_multiple_when_sl_calculated=0 and max_profit_target_multiple_when_sl_calculated!=0
-                counts = df_with_resulting_table_of_certain_models1[
-                    'max_profit_target_multiple_when_sl_calculated'].value_counts()
-
-                # Retrieve the counts for the values
-                count_of_zero = counts.get(0, 0)  # Get the count for max_profit_target_multiple_when_sl_calculated=0
-                count_of_non_zero = counts.sum() - count_of_zero  # Get the count for max_profit_target_multiple_when_sl_calculated!=0
-
-                fig.add_trace(
-                    go.Scatter(x=df_with_resulting_table_of_certain_models1["human_datetime_of_order_placement_bar"],
-                               y=df_with_resulting_table_of_certain_models1["max_profit_target_multiple_when_sl_calculated"],
-                               mode='markers', yaxis=f'y{number_of_y_axis_minus_two + 2}', visible='legendonly',
-                               name=f"max_profit_target_multiple_when_sl_calculated {count_of_non_zero}/{count_of_zero} for {table_name2.replace('''current_''', '''''')}"
-                               # Assign a name to the trace
-
-                               ), secondary_y=True,
-                    row=7, col=1)
-
-        list_of_exchanges_in_df=get_unique_exchanges(df_with_resulting_table_of_certain_models)
-
-
-        # Add order counts for each exchange
-
-        df_with_resulting_table_of_certain_models_and_with_order_counts = add_order_counts_by_exchange(df_with_resulting_table_of_certain_models,
-                                                            list_of_exchanges_in_df,
-                                                            number_of_days_before_and_after_to_count_exchanges_where_order_was_placed)
-
-        st.write("df_with_resulting_table_of_certain_models_and_with_order_counts")
-        st.dataframe(df_with_resulting_table_of_certain_models_and_with_order_counts)
-
-
-
-        fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=8, col=1)
-        for exchange_name in list_of_exchanges_in_df:
-
+            st.write('''df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"]''')
+            st.write(df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"])
+            st.write('''entire_ohlcv_df["open_time"]''')
+            st.write(entire_ohlcv_df["open_time"])
+            for tp_value in range(3,101):
+                fig.add_trace(go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+                                             y=df_with_resulting_table_of_certain_models[
+                                                 f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_technical_tp_reached"],
+                                             mode='markers', yaxis='y2', visible='legendonly',marker=dict(size=3),
+                                             name=f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_technical_tp_reached"), secondary_y=True,
+                                  row=1, col=1)
             fig.add_trace(
-                go.Scatter(x=df_with_resulting_table_of_certain_models_and_with_order_counts["human_datetime_of_order_placement_bar"],
-                           y=df_with_resulting_table_of_certain_models_and_with_order_counts[
-                               f'orders_{exchange_name}_{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}d_back_and_forth_window'],
-                           mode='markers', yaxis=f'y2', visible='legendonly',marker=dict(size=2),
-                           name=f"orders_{exchange_name}_{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}d_back_and_forth_window for {table_name.replace('''current_''', '''''')}"
-                           # Assign a name to the trace
+                go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+                           y=df_with_resulting_table_of_certain_models[
+                               f"trade_duration_in_days_and_tp_3_to_one_sl_technical_sl_reached"],
+                           mode='markers', yaxis='y2',
+                           # visible='legendonly',
+                           marker=dict(size=3),
+                           name=f"trade_duration_in_days_and_tp_3_to_one_sl_technical_sl_reached"), secondary_y=True,
+                row=1, col=1)
 
-                           ), secondary_y=True,
-                row=8, col=1)
+        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
+                                     name='Close Price of BTC'),
+                          row=2, col=1)
+            for tp_value in range(3, 101):
+                fig.add_trace(
+                    go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+                               y=df_with_resulting_table_of_certain_models[
+                                   f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_calculated_tp_reached"],
+                               mode='markers', yaxis='y2', visible='legendonly',marker=dict(size=3),
+                               name=f"trade_duration_in_days_and_tp_{tp_value}_to_one_sl_calculated_tp_reached"), secondary_y=True,
+                    row=2, col=1)
+            fig.add_trace(
+                go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+                           y=df_with_resulting_table_of_certain_models[
+                               f"trade_duration_in_days_and_tp_3_to_one_sl_calculated_sl_reached"],
+                           mode='markers', yaxis='y2',
+                           # visible='legendonly',
+                           marker=dict(size=3),
+                           name=f"trade_duration_in_days_and_tp_3_to_one_sl_calculated_sl_reached"), secondary_y=True,
+                row=2, col=1)
 
 
-        # # Update layout for each subplot, setting the legend position
-        # fig.update_layout(
-        #     legend=dict(
-        #         orientation="h",
-        #         x=0,
-        #         y=0,
-        #         xanchor="right",
-        #         yanchor="bottom"
-        #     ),
-        #     legend_title_text='Legend'
-        # )
 
         # Updating the layout to ensure the full on-hover text is displayed
         fig.update_layout(hoverlabel=dict(namelength=-1))
@@ -2459,8 +2191,8 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
         # # adding the second y axis
         #
 
-        fig.update_layout(height=height_of_line_chart * 8, width=width_of_line_chart,
-                          title="Deposit by end of given period")
+        fig.update_layout(height=height_of_line_chart * 2, width=width_of_line_chart,
+                          title="Time in days spent in each trade")
 
         # Narrow the gap between subplots
 
@@ -2481,11 +2213,6 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
 
 
 
-    # st.bar_chart(deposit_by_the_end_of_the_given_period_if_sl_is_technical_df,
-    #              x=deposit_by_the_end_of_the_given_period_if_sl_is_technical_df['take_profit_value_new'],
-    #               y=f"deposit_risk_0.2%_sl_is_technical")
-    # st.dataframe(deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df)
-    return deposit_by_the_end_of_the_given_period_if_sl_is_technical,deposit_by_the_end_of_the_given_period_if_sl_is_calculated
 
 def add_sidebar_and_return_tuple_of_trading_pairs_with_exchange(tuple_of_trading_pairs_with_exchange):
     plots_per_page = 10

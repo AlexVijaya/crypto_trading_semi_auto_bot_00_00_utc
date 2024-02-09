@@ -360,7 +360,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
         try:
             markets=exchange_object.load_markets ()
         except:
-            pass
+            traceback.print_exc()
         # print("markets___")
         # pprint.pprint(markets)
         # time.sleep(10000)

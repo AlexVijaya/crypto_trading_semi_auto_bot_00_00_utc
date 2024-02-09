@@ -27,6 +27,8 @@ protobuf = "==3.20"
 dash-bootstrap-components = "*"
 mypy = "*"
 streamlit-lightweight-charts = "*"
+gspread = "*"
+oauth2client = "*"
 
 [dev-packages]
 

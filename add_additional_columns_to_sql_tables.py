@@ -42,7 +42,7 @@ def add_min_volume_in_usd_over_n_days_to_column_in_bfr_tables():
         connection_to_ohlcv_data_for_stocks_normal_volume = \
         connect_to_postgres_db_without_deleting_it_first(database_with_ohlcv_with_normal_volume)
 
-    database_with_levels_formed_by_highs_and_lows_for_cryptos_0000_hist = "levels_formed_by_highs_and_lows_for_cryptos_0000_hist"
+    database_with_levels_formed_by_highs_and_lows_for_cryptos_0000_hist = "levels_formed_by_highs_and_lows_for_cryptos_0000"
     engine_for_levels_formed_by_highs_and_lows_for_cryptos_0000_hist, \
         connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist = \
         connect_to_postgres_db_without_deleting_it_first(database_with_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
@@ -59,7 +59,7 @@ def add_min_volume_in_usd_over_n_days_to_column_in_bfr_tables():
     # cursor_for_connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist = \
     #     connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist.cursor()
 
-    list_of_columns_to_add=["suppression_by_lows"]
+    list_of_columns_to_add=["include_last_day_in_bfr_model_assessment",]
 
 
     for table_name_in_bfr_database in list_of_tables_in_database_with_levels_formed_by_highs_and_lows_for_cryptos_0000_hist:
@@ -78,8 +78,14 @@ def add_min_volume_in_usd_over_n_days_to_column_in_bfr_tables():
 
             # if column_name_to_add not in list_of_columns_in_sql_table:
             #     # add additional column of type TEXT
-            #     sql = f"ALTER TABLE {table_name_in_bfr_database} ADD COLUMN {column_name_to_add} BOOL"
+            #     sql = f"ALTER TABLE {table_name_in_bfr_database} ADD COLUMN {column_name_to_add} BOOLEAN"
             #     connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist.execute(sql)
+
+            #  Renaming a column from 'old_column' to 'new_column' in the 'my_table' table
+            old_column_name="position_entry_time"
+            new_column_name="utc_position_entry_time"
+            sql = f"ALTER TABLE {table_name_in_bfr_database} RENAME COLUMN {old_column_name} TO {new_column_name}"
+            connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist.execute(sql)
 
             # if column_name_to_add in list_of_columns_in_sql_table:
             #     # change type of column to double precision
@@ -87,10 +93,10 @@ def add_min_volume_in_usd_over_n_days_to_column_in_bfr_tables():
             #           f"DOUBLE PRECISION USING {column_name_to_add}::DOUBLE PRECISION;"
             #     connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist.execute(sql)
 
-            if column_name_to_add in list_of_columns_in_sql_table:
-                # add 86400 to timestamp column
-                sql = f'''UPDATE {table_name_in_bfr_database} SET suppression_by_highs_or_lows = {column_name_to_add};'''
-                connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist.execute(sql)
+            # if column_name_to_add in list_of_columns_in_sql_table:
+            #     # add 86400 to timestamp column
+            #     sql = f'''UPDATE {table_name_in_bfr_database} SET take_profit_3_to_one_is_reached_sl_calculated = {column_name_to_add};'''
+            #     connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist.execute(sql)
 
 
     connection_to_levels_formed_by_highs_and_lows_for_cryptos_0000_hist.close()

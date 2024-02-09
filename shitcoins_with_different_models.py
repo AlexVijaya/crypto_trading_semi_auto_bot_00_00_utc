@@ -29,6 +29,40 @@ from dash import html
 import dash_tvlwc
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_base_of_trading_pair
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
+from get_info_from_load_markets import get_exchange_url
+from get_info_from_load_markets2 import get_exchange_object2_using_async_ccxt
+from datetime import timezone
+async def load_markets_async(exchange_object, exchange_id, exchange_market_data):
+    if exchange_id not in exchange_market_data:
+        try:
+            await exchange_object.load_markets()
+            exchange_market_data[exchange_id] = exchange_object.markets
+        except:
+            traceback.print_exc()
+        finally:
+            exchange_object.close()
+
+
+async def load_markets_async_main(list_of_exchange_ids_where_pair_is_traded_on):
+    exchange_market_data = {}  # Dictionary to cache exchange market data
+
+    # Create tasks for loading markets asynchronously
+    tasks = []
+    exchange_object=np.nan
+    try:
+        for exchange_id in list_of_exchange_ids_where_pair_is_traded_on:
+            exchange_object = get_exchange_object2_using_async_ccxt(exchange_id)
+            task = load_markets_async(exchange_object, exchange_id, exchange_market_data)
+            tasks.append(task)
+
+        # Run tasks concurrently and wait for them to complete
+        await asyncio.gather(*tasks)
+    except:
+        traceback.print_exc()
+    finally:
+        exchange_object.close()
+
+
 
 def return_list_of_options_for_today_that_are_available_and_not_all_possible_options(engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000):
     list_of_tables_in_db_with_bfr_models = get_list_of_tables_in_db(
@@ -656,7 +690,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                         phrase_2 = f"Technical stop loss will be {technical_stop_loss}"
                         st.markdown(phrase_1 + "  \n" + phrase_2)
 
-                        type_of_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("technical","calculated"),index=1)
+                        type_of_stop_loss=st.radio("Choose the STOP LOSS type that better suits your needs",("technical","calculated"),index=0)
 
                     elif "calculated_stop_loss" in df_with_resulting_table_of_certain_models.columns and \
                             "technical_stop_loss" not in df_with_resulting_table_of_certain_models.columns:
@@ -750,7 +784,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                         position_size_in_usd = \
                             st.number_input(
                                 label=f'Please enter position size in USD',
-                                value=0, min_value=0)
+                                value=1, min_value=0)
 
                     if "buy_order" in df_with_resulting_table_of_certain_models.columns:
                         underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
@@ -758,8 +792,18 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                         position_size_in_usd = \
                             st.number_input(
                                 label=f'Please enter position size in USD',
-                                value=0, min_value=0)
+                                value=1, min_value=0)
 
+                    # Get the current UTC time
+                    current_utc_time = datetime.datetime.now(timezone.utc)
+                    position_entry_time=st.time_input(label="I will enter the selected position at this UTC time", value=current_utc_time)
+                    position_entry_time=str(position_entry_time)
+
+                    include_last_day_in_bfr_model_assessment=st.checkbox("include_last_day_in_bfr_model_assessment", value=True)
+                    # st.write("utc_position_entry_time")
+                    # st.write(position_entry_time)
+                    # st.write("type(position_entry_time)")
+                    # st.write(type(position_entry_time))
 
                     # Every form must have a submit button.
                     submitted_form_for_precalculated_values = st.form_submit_button("Trace this trading pair and enter position when next bar opens ")
@@ -991,9 +1035,18 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
                         column_name = "ticker_will_be_traced_and_position_entered"
                         value = True
-
                         conn=set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                                crypto_ticker, table_name, column_name, value)
+
+                        column_name = "utc_position_entry_time"
+                        value = position_entry_time
+                        conn = set_value_in_sql_table_when_value_is_of_string_type(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "include_last_day_in_bfr_model_assessment"
+                        value = include_last_day_in_bfr_model_assessment
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
 
                         # column_name = "spot_without_margin"
                         # value = False
@@ -1016,7 +1069,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                         #                               crypto_ticker, table_name, column_name, value)
 
 
-                        st.write("on next bar print i will enter the position")
+                        st.write(f"on next bar print i will enter the position at {position_entry_time} UTC")
 
                         conn.close()
             with st.empty():
@@ -1062,12 +1115,22 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                     position_size_in_usd = \
                         st.number_input(
                             label=f'Please enter position size in USD',
-                            value=0, min_value=0)
+                            value=1, min_value=0)
 
                     position_price_input_manually = \
                         st.number_input(
                             label=f'Please enter position price in USD',
                             value=0.0, min_value=0.0,format="%.10f")
+
+                    position_entry_time = st.time_input(label="I will enter the selected position at this UTC time",
+                                                        value=current_utc_time)
+                    position_entry_time = str(position_entry_time)
+                    include_last_day_in_bfr_model_assessment = st.checkbox("include_last_day_in_bfr_model_assessment",
+                                                                            value=True)
+                    # st.write("utc_position_entry_time")
+                    # st.write(position_entry_time)
+                    # st.write("type(position_entry_time)")
+                    # st.write(type(position_entry_time))
 
                     submitted_form_for_manual_input_of_values = st.form_submit_button(
                         "Trace this trading pair and if all conditions are met enter this position")
@@ -1099,7 +1162,16 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
                         column_name = "ticker_will_be_traced_and_position_entered"
                         value = True
+                        conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
 
+                        column_name = "utc_position_entry_time"
+                        value = position_entry_time
+                        conn = set_value_in_sql_table_when_value_is_of_string_type(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                      crypto_ticker, table_name, column_name, value)
+
+                        column_name = "include_last_day_in_bfr_model_assessment"
+                        value = include_last_day_in_bfr_model_assessment
                         conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                                       crypto_ticker, table_name, column_name, value)
 
@@ -1253,7 +1325,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                 connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                 crypto_ticker, table_name, column_name, value)
 
-                        st.write("On next bar print I will enter the required position")
+                        st.write(f"On next bar print I will enter the required position at {position_entry_time} UTC")
 
             with st.empty():
                 # cancel tracing
@@ -1271,7 +1343,16 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
                     column_name = "ticker_will_be_traced_and_position_entered"
                     value = False
+                    conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
 
+                    column_name = "utc_position_entry_time"
+                    value = position_entry_time
+                    conn = set_value_in_sql_table_when_value_is_of_string_type(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
+                                                  crypto_ticker, table_name, column_name, value)
+
+                    column_name = "include_last_day_in_bfr_model_assessment"
+                    value = include_last_day_in_bfr_model_assessment
                     conn = set_value_in_sql_table(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                                                   crypto_ticker, table_name, column_name, value)
 
@@ -1439,6 +1520,31 @@ def set_value_in_sql_table(conn, crypto_ticker, table_name, column_name, value):
     # conn.commit()
     return conn
 
+def set_value_in_sql_table_when_value_is_of_string_type(conn, crypto_ticker, table_name, column_name, value):
+    # Create cursor to execute PostgreSQL queries
+    # cursor = conn.cursor()
+
+    # Set value in table
+    print("table_name")
+    print(table_name)
+    print("value")
+    print(value)
+    print("column_name")
+    print(column_name)
+    query=''
+    if value=="market" or value=="limit":
+        print(f"value_is_equal_to_{value}")
+        query = f'''UPDATE public."{table_name}" SET {column_name} = '{value}' WHERE ticker = '{crypto_ticker}'; '''
+    # value=False
+    else:
+        query = f'''UPDATE public."{table_name}" SET {column_name} = '{value}' WHERE ticker = '{crypto_ticker}'; '''
+    result = conn.execute(query)
+    print(f'Value set to {value} in {table_name} table.')
+
+    # Commit changes and close connection
+    # conn.commit()
+    return conn
+
 def initialize_connection_and_engine(db_where_ohlcv_data_for_stocks_is_stored_0000):
 
     engine_for_ohlcv_data_for_stocks_0000, \
@@ -1598,12 +1704,7 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
 
     trading_pair = trading_pair.replace("_", "/")
     exchange_name = exchange.iat[0]
-    st.write(exchange.iat[0])
-    st.write(trading_pair)
 
-    # link = f'Click this link if you want to go to {exchange_name} website to see {trading_pair}  [link]({url_of_trading_pair_on_particular_exchange})'
-    link = f'[Go to {exchange_name.upper()} website]({url_of_trading_pair_on_particular_exchange}) to see {trading_pair} '
-    st.markdown(link, unsafe_allow_html=True)
 
     string_of_exchanges_where_pair_is_traded = series_of_exchanges_where_pair_is_traded.iat[0]
     st.write(f"{trading_pair} as spot or perpetual swap is traded on the following cryptocurrency exchanges")
@@ -1614,34 +1715,16 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
         row_of_pair_ready_for_model, "exchange_names_string_where_trading_pair_is_traded"].iat[0]
     list_of_exchange_names_where_pair_is_traded_on = exchange_names_where_pair_is_traded.split("_")
 
-    st.write(exchanges_where_pair_is_traded)
 
-    # resulting_list_of_ohlcv_dataframes=\
-    #     asyncio.run(generate_tasks_in_async_fetch_entire_ohlcv(trading_pair,list_of_exchange_ids_where_pair_is_traded_on,asset_type))
+    st.write(list_of_exchange_names_where_pair_is_traded_on)
 
 
-
-    # st.write(f"Maybe {trading_pair} is available on the OKEX exchange."
-    #          f" Look at the Trading View chart to find out")
-    # html_of_trading_view_widget = generate_html_of_tv_widget_to_insert_into_streamlit(height=height,
-    #                                                                                   width=width,
-    #                                                                                   exchange_name="okx",
-    #                                                                                   trading_pair=trading_pair
-    #                                                                                   , asset_type=asset_type)
-    # components.html(html_of_trading_view_widget, height=height, width=width)
-    #
-    # st.write(f"Maybe {trading_pair} is available on the BITSTAMP exchange."
-    #          f" Look at the Trading View chart to find out")
-    # html_of_trading_view_widget = generate_html_of_tv_widget_to_insert_into_streamlit(height=height,
-    #                                                                                   width=width,
-    #                                                                                   exchange_name="bitstamp",
-    #                                                                                   trading_pair=trading_pair
-    #                                                                                   , asset_type=asset_type)
-    # components.html(html_of_trading_view_widget, height=height, width=width)
 
     list_of_tables_in_todays_pairs_db = get_list_of_tables_in_db(engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
     # st.write("list_of_tables_in_todays_pairs_db")
     # st.write(list_of_tables_in_todays_pairs_db)
+
+    # asyncio.run(load_markets_async_main(list_of_exchange_ids_where_pair_is_traded_on))
 
     for exchange_id in list_of_exchange_ids_where_pair_is_traded_on:
         key_for_placeholder = get_index_of_exchange_id(list_of_exchange_ids_where_pair_is_traded_on, exchange_id)
@@ -1651,6 +1734,13 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
             st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """,
                         unsafe_allow_html=True)
             st.subheader(f'{trading_pair_to_select.split("_on_")[0]} on {exchange_id} ')
+
+            # symbol=trading_pair.replace("_", "/")
+            # exchange_object = get_exchange_object2(exchange_id)
+            # exchange_object.load_markets()
+            # url_of_trading_pair=get_exchange_url(exchange_id, exchange_object, symbol)
+            # url_of_trading_pair_link = f'Click [{symbol}]({url_of_trading_pair})  if you want to go to {exchange_object.name} website and see the trading pair yourself'
+            # st.markdown(url_of_trading_pair_link, unsafe_allow_html=True)
 
             # if exchange_id=="btcex":
                 # st.write("If the exchange is BTCEX then there might be a ONE-MINUTE timeframe chart instead of DAILY."

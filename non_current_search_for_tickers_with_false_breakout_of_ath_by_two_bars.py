@@ -1338,7 +1338,10 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                     df_with_level_atr_bpu_bsu_etc.at[0, "final_take_profit_price_default_value"] = take_profit_when_stop_loss_is_technical_3_to_1
 
                     df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_when_bfr_was_found"] = int(time.time())
-                    df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
+                    df_with_level_atr_bpu_bsu_etc.at[0, "trade_status"] = "must_verify_if_bfr_conditions_are_fulfilled"
+                    df_with_level_atr_bpu_bsu_etc.at[0, "datetime_when_bfr_was_found"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    df_with_level_atr_bpu_bsu_etc.at[0, "utc_position_entry_time"] = ""
+                    df_with_level_atr_bpu_bsu_etc.at[0, "include_last_day_in_bfr_model_assessment"] = True
                 except:
                     traceback.print_exc()
 

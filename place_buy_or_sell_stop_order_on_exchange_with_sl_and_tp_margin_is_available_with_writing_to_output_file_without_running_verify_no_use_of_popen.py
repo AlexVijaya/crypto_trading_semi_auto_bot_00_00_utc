@@ -16,7 +16,19 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_bas
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import get_quote_of_trading_pair
 import numpy as np
 import toml
+from verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used import fetch_dataframe_from_google_spreadsheet
+from verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used import convert_column_to_boolean
 from pathlib import Path
+from before_entry_current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_current_price_of_asset
+import pandas as pd
+from place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen import get_order_status_from_list_of_dictionaries_with_all_orders
+from verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used import update_one_cell_in_google_spreadsheet_column_name_is_argument
+from verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used import fetch_dataframe_from_google_spreadsheet_with_converting_string_types_to_boolean_where_needed
+from place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen import check_if_exchange_allows_market_orders_for_this_trading_pair
+import datetime
+from datetime import timezone
+from place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen import get_origQty_from_list_of_dictionaries_with_all_orders
+from place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen import get_all_orders_on_spot_cross_or_isolated_margin
 def convert_back_from_string_args_to_necessary_types(price_of_sl,
                                                          amount_of_sl,
                                                          price_of_tp,
@@ -133,7 +145,7 @@ def calculate_total_amount_of_quote_currency(file, margin_mode, exchange_object_
         # Return the borrowed amount of quote currency
         return total_in_quote_currency
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
         return f"Error: {str(e)}"
 
 def calculate_total_amount_of_base_currency(file, margin_mode, exchange_object_where_api_is_required, trading_pair):
@@ -156,7 +168,7 @@ def calculate_total_amount_of_base_currency(file, margin_mode, exchange_object_w
         # Return the borrowed amount of quote currency
         return total_in_base_currency
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
         return f"Error: {str(e)}"
 def calculate_used_amount_of_quote_currency(file, margin_mode, exchange_object_where_api_is_required, trading_pair):
     try:
@@ -178,7 +190,7 @@ def calculate_used_amount_of_quote_currency(file, margin_mode, exchange_object_w
         # Return the borrowed amount of quote currency
         return used_in_quote_currency
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
         return f"Error: {str(e)}"
 
 def calculate_used_amount_of_base_currency(file, margin_mode, exchange_object_where_api_is_required, trading_pair):
@@ -201,7 +213,7 @@ def calculate_used_amount_of_base_currency(file, margin_mode, exchange_object_wh
         # Return the borrowed amount of quote currency
         return used_in_base_currency
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
         return f"Error: {str(e)}"
 def calculate_free_amount_of_quote_currency(file, margin_mode, exchange_object_where_api_is_required, trading_pair):
     try:
@@ -223,7 +235,7 @@ def calculate_free_amount_of_quote_currency(file, margin_mode, exchange_object_w
         # Return the borrowed amount of quote currency
         return free_in_quote_currency
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
         return f"Error: {str(e)}"
 
 def calculate_free_amount_of_base_currency(file, margin_mode, exchange_object_where_api_is_required, trading_pair):
@@ -246,7 +258,7 @@ def calculate_free_amount_of_base_currency(file, margin_mode, exchange_object_wh
         # Return the borrowed amount of quote currency
         return free_in_base_currency
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
         return f"Error: {str(e)}"
 def calculate_debt_amount_of_quote_currency(file, margin_mode, exchange_object_where_api_is_required, trading_pair):
     try:
@@ -356,7 +368,7 @@ def repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_
     file.write("\n"+"margin_loan_when_base_currency_is_borrowed has been repaid")
     file.write("\n"+str(repaid_margin_loan))
     return repaid_margin_loan
-def  get_order_status_from_list_of_dictionaries_with_all_orders(orders, order_id):
+def get_order_status_from_list_of_dictionaries_with_all_orders_old(orders, order_id):
     start_time = time.perf_counter()
     for order in orders:
         # print("order_id_inside_get_order_status_from_list_of_dictionaries_with_all_orders")
@@ -381,6 +393,14 @@ def  get_order_status_from_list_of_dictionaries_with_all_orders(orders, order_id
                 # print(
                 #     f"4The function get_order_status_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
                 return order['info']['status']
+        elif 'id' in order['info'].keys():
+            if order['info']['id'] == order_id:
+                end_time = time.perf_counter()
+                duration = end_time - start_time
+                # print(
+                #     f"4The function get_order_status_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
+                return order['status']
+
     # print("orders where 'is not in orders' may occur")
     # print(orders)
     end_time = time.perf_counter()
@@ -458,7 +478,7 @@ def get_exchange_object_where_api_is_required(exchange_id):
             # trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
             trading_password = secrets['secrets'][f"{exchange_id}_trading_password"]
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
 
     exchange_object_where_api_is_required = \
         get_exchange_object_with_api_key(exchange_name=exchange_id,
@@ -489,33 +509,53 @@ def get_price(exchange_object, trading_pair):
         ticker = exchange_object.fetch_ticker(trading_pair)
         return ticker['last']  # Return the last price of the asset
     except:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
 def get_order_id(order):
     order_id=order['id']
     return order_id
 
-def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_isolated_margin,exchange_object_where_api_is_required):
-    if spot_cross_or_isolated_margin=="spot":
-        all_orders_on_spot_account = exchange_object_where_api_is_required.fetch_orders(symbol=trading_pair,
-                                                                                        since=None, limit=None,
-                                                                                        params={})
-        return all_orders_on_spot_account
-    elif spot_cross_or_isolated_margin=="cross":
-        # sapi_get_margin_allorders works only for binance
-        all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
-            'symbol': remove_slash_from_trading_pair_name(trading_pair),
-            'isCross': 'TRUE',
-        })
-        return all_orders_on_cross_margin_account
-    elif spot_cross_or_isolated_margin=="isolated":
-        # sapi_get_margin_allorders works only for binance
-        all_orders_on_isolated_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
-            'symbol': remove_slash_from_trading_pair_name(trading_pair),
-            'isIsolated': 'TRUE'})
-        return all_orders_on_isolated_margin_account
-    else:
-        print(f"spot_cross_or_isolated_margin variable value problem")
-        return None
+# def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_isolated_margin,exchange_object_where_api_is_required):
+#     if spot_cross_or_isolated_margin=="spot":
+#         all_orders_on_spot_account= None
+#         try:
+#             all_orders_on_spot_account = exchange_object_where_api_is_required.fetch_orders(symbol=trading_pair,
+#                                                                                             since=None, limit=None,
+#                                                                                             params={})
+#         except:
+#             open_orders_on_spot = exchange_object_where_api_is_required.fetchOpenOrders(symbol=trading_pair, since=None,
+#                                                                                           limit=None, params={})
+#             closed_orders_on_spot = exchange_object_where_api_is_required.fetchClosedOrders(symbol=trading_pair, since=None,
+#                                                                                           limit=None, params={})
+#             # canceled_orders_on_spot = exchange_object_where_api_is_required.fetchCanceledOrders(symbol=trading_pair,
+#             #                                                                                   since=None,
+#             #                                                                                   limit=None, params={})
+#             print("open_orders_on_spot")
+#             print(open_orders_on_spot)
+#             print("closed_orders_on_spot")
+#             print(closed_orders_on_spot)
+#             all_orders_on_spot_account=closed_orders_on_spot + open_orders_on_spot
+#             # all_orders_on_spot_account.append(closed_orders_on_spot)
+#             # print("canceled_orders_on_spot")
+#             # print(canceled_orders_on_spot)
+#
+#
+#         return all_orders_on_spot_account
+#     elif spot_cross_or_isolated_margin=="cross":
+#         # sapi_get_margin_allorders works only for binance
+#         all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
+#             'symbol': remove_slash_from_trading_pair_name(trading_pair),
+#             'isCross': 'TRUE',
+#         })
+#         return all_orders_on_cross_margin_account
+#     elif spot_cross_or_isolated_margin=="isolated":
+#         # sapi_get_margin_allorders works only for binance
+#         all_orders_on_isolated_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
+#             'symbol': remove_slash_from_trading_pair_name(trading_pair),
+#             'isIsolated': 'TRUE'})
+#         return all_orders_on_isolated_margin_account
+#     else:
+#         print(f"spot_cross_or_isolated_margin variable value problem")
+#         return None
 
 
 def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account(exchange_id,
@@ -532,13 +572,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
     # uncomment this when in production and add tab after this line
     # with open(file_path, "a") as file:
     # Retrieve the arguments passed to the script
-    print(f"12began writing to {file.name} at {datetime.now()}\n")
+    print(f"12began writing to {file.name} at {datetime.datetime.now()}\n")
     try:
         print(str(exchange_id))
         print("\n")
         exchange_object_where_api_is_required = get_exchange_object_where_api_is_required(exchange_id)
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
     print("\n")
     print(str(exchange_object_where_api_is_required))
     exchange_object_without_api = get_exchange_object6(exchange_id)
@@ -569,12 +609,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-        try:
-            exchange_object_where_api_is_required.load_markets()
-        except ccxt.BadRequest:
-            file.write(str(traceback.format_exc()))
-        except Exception:
-            file.write(str(traceback.format_exc()))
+        exchange_object_where_api_is_required.load_markets()
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -583,18 +618,73 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         min_notional_value = None
         min_quantity = None
         try:
-            min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-            print("min_notional_value in USD")
-            print(min_notional_value)
+            if exchange_id == "lbank" or exchange_id == "lbank2":
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+            elif exchange_id == "binance":
+                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
 
-            # Calculate the minimum quantity based on the minimum notional value
-            min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-            print(
-                f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-            print(min_quantity)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "mexc3" or exchange_id == "mexc":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                min_quantity = min_notional_value / float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "okex" or exchange_id == "okex5":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                if not pd.isna(min_notional_value):
+                    min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                        price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                file.write("\n" +
+                           f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_in_usd))
+
+            else:
+                file.write("\n" + "symbol_details")
+                file.write("\n" + str(symbol_details))
+                min_notional_value = symbol_details['limits']['cost']['min']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                file.write("\n" +
+                           f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                min_quantity_raw = symbol_details['limits']['amount']['min']
+                file.write("\n" +
+                           f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity_raw))
+                min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                    price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
 
         #
         # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
@@ -616,13 +706,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # print(closed_orders_on_spot)
 
         # OpenOrder=exchange_object_where_api_is_required.fetchOpenOrder(id, symbol=None, params={})
-        #
-        # try:
-        #     exchange_object_where_api_is_required.load_markets()
-        # except ccxt.BadRequest:
-        #     file.write(str(traceback.format_exc()))
-        # except Exception:
-        #     file.write(str(traceback.format_exc()))
+        # exchange_object_where_api_is_required.load_markets()
 
         # closed_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_closedorders({
         #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
@@ -672,7 +756,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                price_of_stop_market_order,
                                                                                                params=params)
             except ccxt.InsufficientFunds:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
             except ccxt.InvalidOrder as e:
                 if "Filter failure: NOTIONAL" in str(e):
@@ -695,8 +779,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             all_orders_on_spot_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                          spot_cross_or_isolated_margin,
                                                                                          exchange_object_where_api_is_required)
-            print("all_orders_on_spot_account")
-            pprint.pprint(all_orders_on_spot_account)
+            # print("all_orders_on_spot_account")
+            # pprint.pprint(all_orders_on_spot_account)
 
             limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(
                 all_orders_on_spot_account, order_id)
@@ -715,11 +799,11 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 raise SystemExit
 
         except ccxt.InsufficientFunds:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
             raise SystemExit
 
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
             raise SystemExit
 
         # wait till order is filled (that is closed)
@@ -759,7 +843,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_spot_account, limit_sell_order_tp_order_id)
                     # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                     #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
-                    if limit_sell_order_tp_order_status == "FILLED":
+                    if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                         print(f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
                         # stop looking at the price to place stop loss because take profit has been filled
                         break
@@ -778,9 +862,23 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     if current_price_of_trading_pair >= price_of_tp:
 
                         if type_of_tp == "market":
-                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
-                                trading_pair, amount_of_tp, params=params)
-                            print("market_sell_order_tp has been placed")
+                            market_sell_order_tp = ""
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                bid = float(prices[trading_pair]['bid'])
+                                amount = amount_of_tp
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'sell', amount,
+                                    price=bid)
+                            else:
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                            file.write("\n" + "market_sell_order_tp has been placed")
+
                             break
                         elif type_of_tp == "stop":
                             stop_market_sell_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -804,8 +902,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
                             break
                         elif type_of_sl == "market":
-                            market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
-                                trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                bid = float(prices[trading_pair]['bid'])
+                                amount = amount_of_sl
+                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'sell', amount,
+                                    price=bid)
+                            else:
+                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_sl, params=params)
                             print("market_sell_order_sl has been placed")
                             if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
                                 exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
@@ -826,7 +935,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                     # neither sl nor tp has been reached
                     else:
-                        time.sleep(1)
+                        # time.sleep(1)
                         print("neither sl nor tp has been reached")
                         continue
 
@@ -842,7 +951,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 # keep waiting for the order to fill
                 print(
                     f"waiting for the order to fill because the status of {order_id} is still {limit_buy_order_status_on_spot}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
 
 
@@ -878,13 +987,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # __________________________
 
             # Load the valid trading symbols
-
-            try:
-                exchange_object_where_api_is_required.load_markets()
-            except ccxt.BadRequest:
-                file.write(str(traceback.format_exc()))
-            except Exception:
-                file.write(str(traceback.format_exc()))
+            exchange_object_where_api_is_required.load_markets()
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -898,18 +1001,73 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # Get the minimum notional value for the symbol
 
             try:
-                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-                print("min_notional_value in USD")
-                print(min_notional_value)
+                if exchange_id == "lbank" or exchange_id == "lbank2":
+                    min_quantity = symbol_details['limits']['amount']['min']
+                    min_notional_value = min_quantity * float(price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                    file.write("\n" + "min_notional_value in USD")
+                    file.write("\n" + str(min_notional_value))
+                elif exchange_id == "binance":
+                    min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                    file.write("\n" + "min_notional_value in USD")
+                    file.write("\n" + str(min_notional_value))
 
-                # Calculate the minimum quantity based on the minimum notional value
-                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                    # Calculate the minimum quantity based on the minimum notional value
+                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-                print(
-                    f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                print(min_quantity)
+                    file.write("\n" +
+                               f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                elif exchange_id == "mexc3" or exchange_id == "mexc":
+                    min_notional_value = symbol_details['limits']['cost']['min']
+                    min_quantity = min_notional_value / float(price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                elif exchange_id == "okex" or exchange_id == "okex5":
+                    min_notional_value = symbol_details['limits']['cost']['min']
+                    if not pd.isna(min_notional_value):
+                        min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                            price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                    min_quantity = symbol_details['limits']['amount']['min']
+                    min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                    file.write("\n" +
+                               f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_notional_value_in_usd))
+
+                else:
+                    file.write("\n" + "symbol_details")
+                    file.write("\n" + str(symbol_details))
+                    min_notional_value = symbol_details['limits']['cost']['min']
+                    file.write("\n" + "min_notional_value in USD")
+                    file.write("\n" + str(min_notional_value))
+
+                    # Calculate the minimum quantity based on the minimum notional value
+                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                    file.write("\n" +
+                               f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                    min_quantity_raw = symbol_details['limits']['amount']['min']
+                    file.write("\n" +
+                               f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity_raw))
+                    min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                        price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
             except:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
 
             # print(
             #     f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
@@ -994,7 +1152,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                  price_of_stop_market_order,
                                                                                                  params=params)
             except ccxt.InsufficientFunds:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
 
             print(f"placed sell limit order on {exchange_id}")
@@ -1030,7 +1188,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
             raise SystemExit
         # wait till order is filled (that is closed)
         while True:
@@ -1043,8 +1201,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             all_orders_on_spot_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                          spot_cross_or_isolated_margin,
                                                                                          exchange_object_where_api_is_required)
-            print("all_orders_on_spot_account")
-            pprint.pprint(all_orders_on_spot_account)
+            # print("all_orders_on_spot_account")
+            # pprint.pprint(all_orders_on_spot_account)
 
             limit_sell_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(
                 all_orders_on_spot_account, order_id)
@@ -1077,7 +1235,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_spot_account, limit_buy_order_tp_order_id)
                     # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                     #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
-                    if limit_buy_order_tp_order_status=="FILLED":
+                    if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                         print(f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
                         #stop looking at the price to place stop loss because take profit has been filled
                         break
@@ -1094,9 +1252,22 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
                         if type_of_tp == "market":
-                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
-                                trading_pair, amount_of_tp, params=params)
-                            print("market_buy_order_tp has been placed")
+                            market_buy_order_tp = ""
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                ask = float(prices[trading_pair]['ask'])
+                                amount = amount_of_tp
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'buy', amount,
+                                    price=ask)
+                            else:
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            file.write("\n" + f"market_buy_order_tp = {market_buy_order_tp}")
+                            file.write("\n" + "market_buy_order_tp has been placed")
                             break
                         elif type_of_tp == "stop":
                             stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -1119,8 +1290,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 print(f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
                             break
                         elif type_of_sl == "market":
-                            market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
-                                trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                ask = float(prices[trading_pair]['ask'])
+                                amount = amount_of_sl
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'buy', amount,
+                                    price=ask)
+                            else:
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_sl, params=params)
                             print("market_buy_order_sl has been placed")
                             if limit_buy_order_tp_order_status!= "CANCELED" and limit_buy_order_tp_order_status!= "CANCELLED":
                                 exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
@@ -1141,7 +1323,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                     # neither sl nor tp has been reached
                     else:
-                        time.sleep(1)
+                        # time.sleep(1)
                         print("neither sl nor tp has been reached")
                         continue
 
@@ -1156,7 +1338,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 # keep waiting for the order to fill
                 print(
                     f"waiting for the order to fill because the status of {order_id} is still {limit_sell_order_status_on_spot}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
 
 
@@ -1176,13 +1358,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
     # uncomment this when in production and add tab after this line
     # with open(file_path, "a") as file:
     # Retrieve the arguments passed to the script
-    print(f"12began writing to {file.name} at {datetime.now()}\n")
+    print(f"12began writing to {file.name} at {datetime.datetime.now()}\n")
     try:
         print(str(exchange_id))
         print("\n")
         exchange_object_where_api_is_required = get_exchange_object_where_api_is_required(exchange_id)
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
     print("\n")
     print(str(exchange_object_where_api_is_required))
     exchange_object_without_api = get_exchange_object6(exchange_id)
@@ -1215,13 +1397,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # # __________________________
 
         # Load the valid trading symbols
-
-        try:
-            exchange_object_where_api_is_required.load_markets()
-        except ccxt.BadRequest:
-            file.write(str(traceback.format_exc()))
-        except Exception:
-            file.write(str(traceback.format_exc()))
+        exchange_object_where_api_is_required.load_markets()
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1229,18 +1405,73 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # Get the minimum notional value for the symbol
         min_notional_value = None
         try:
-            min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-            print("min_notional_value in USD")
-            print(min_notional_value)
+            if exchange_id == "lbank" or exchange_id == "lbank2":
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+            elif exchange_id == "binance":
+                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
 
-            # Calculate the minimum quantity based on the minimum notional value
-            min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-            print(
-                f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-            print(min_quantity)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "mexc3" or exchange_id == "mexc":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                min_quantity = min_notional_value / float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "okex" or exchange_id == "okex5":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                if not pd.isna(min_notional_value):
+                    min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                        price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                file.write("\n" +
+                           f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_in_usd))
+
+            else:
+                file.write("\n" + "symbol_details")
+                file.write("\n" + str(symbol_details))
+                min_notional_value = symbol_details['limits']['cost']['min']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                file.write("\n" +
+                           f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                min_quantity_raw = symbol_details['limits']['amount']['min']
+                file.write("\n" +
+                           f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity_raw))
+                min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                    price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
 
         #
         # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
@@ -1314,7 +1545,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                price_of_stop_market_order,
                                                                                                params=params)
             except ccxt.InsufficientFunds:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
             except ccxt.InvalidOrder as e:
                 if "Filter failure: NOTIONAL" in str(e):
@@ -1353,7 +1584,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 raise SystemExit
 
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
             raise SystemExit
 
         # wait till order is filled (that is closed)
@@ -1397,7 +1628,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_cross_margin_account, limit_sell_order_tp_order_id)
                     # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                     #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
-                    if limit_sell_order_tp_order_status == "FILLED":
+                    if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                         print(f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
                         # stop looking at the price to place stop loss because take profit has been filled
                         break
@@ -1420,10 +1651,22 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         #     print("limit_sell_order_tp has been placed")
                         #     break
                         if type_of_tp == "market":
-                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
-                                trading_pair, amount_of_tp, params=params)
-                            print("market_sell_order_tp has been placed")
-
+                            market_sell_order_tp = ""
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                bid = float(prices[trading_pair]['bid'])
+                                amount = amount_of_tp
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'sell', amount,
+                                    price=bid)
+                            else:
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                            file.write("\n" + "market_sell_order_tp has been placed")
 
                             break
                         elif type_of_tp == "stop":
@@ -1449,8 +1692,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
                             break
                         elif type_of_sl == "market":
-                            market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
-                                trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                bid = float(prices[trading_pair]['bid'])
+                                amount = amount_of_sl
+                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'sell', amount,
+                                    price=bid)
+                            else:
+                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_sl, params=params)
                             print("market_sell_order_sl has been placed")
                             if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
                                 exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
@@ -1471,7 +1725,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                     # neither sl nor tp has been reached
                     else:
-                        time.sleep(1)
+                        # time.sleep(1)
                         print("neither sl nor tp has been reached")
                         continue
 
@@ -1487,7 +1741,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 # keep waiting for the order to fill
                 print(
                     f"waiting for the order to fill because the status of {order_id} is still {limit_buy_order_status_on_cross_margin}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
 
 
@@ -1524,31 +1778,78 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # # __________________________
 
             # Load the valid trading symbols
-
-            try:
-                exchange_object_where_api_is_required.load_markets()
-            except ccxt.BadRequest:
-                file.write(str(traceback.format_exc()))
-            except Exception:
-                file.write(str(traceback.format_exc()))
+            exchange_object_where_api_is_required.load_markets()
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
             try:
-                # Get the minimum notional value for the symbol
-                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                if exchange_id == "lbank" or exchange_id == "lbank2":
+                    min_quantity = symbol_details['limits']['amount']['min']
+                    min_notional_value = min_quantity * float(price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                    file.write("\n" + "min_notional_value in USD")
+                    file.write("\n" + str(min_notional_value))
+                elif exchange_id == "binance":
+                    min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                    file.write("\n" + "min_notional_value in USD")
+                    file.write("\n" + str(min_notional_value))
 
-                print("min_notional_value in USD")
-                print(min_notional_value)
+                    # Calculate the minimum quantity based on the minimum notional value
+                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-                # Calculate the minimum quantity based on the minimum notional value
-                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                elif exchange_id == "mexc3" or exchange_id == "mexc":
+                    min_notional_value = symbol_details['limits']['cost']['min']
+                    min_quantity = min_notional_value / float(price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                elif exchange_id == "okex" or exchange_id == "okex5":
+                    min_notional_value = symbol_details['limits']['cost']['min']
+                    if not pd.isna(min_notional_value):
+                        min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                            price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
 
-                print(
-                    f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                print(min_quantity)
+                    min_quantity = symbol_details['limits']['amount']['min']
+                    min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                    file.write("\n" +
+                               f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_notional_value_in_usd))
+
+                else:
+                    file.write("\n" + "symbol_details")
+                    file.write("\n" + str(symbol_details))
+                    min_notional_value = symbol_details['limits']['cost']['min']
+                    file.write("\n" + "min_notional_value in USD")
+                    file.write("\n" + str(min_notional_value))
+
+                    # Calculate the minimum quantity based on the minimum notional value
+                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                    file.write("\n" +
+                               f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity))
+                    min_quantity_raw = symbol_details['limits']['amount']['min']
+                    file.write("\n" +
+                               f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity_raw))
+                    min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                        price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
             except:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
 
             #
             # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
@@ -1634,7 +1935,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                  price_of_stop_market_order,
                                                                                                  params=params)
             except ccxt.InsufficientFunds:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
             except ccxt.InvalidOrder as e:
                 if "Filter failure: NOTIONAL" in str(e):
@@ -1676,7 +1977,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
             raise SystemExit
 
         # wait till order is filled (that is closed)
@@ -1721,7 +2022,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_cross_margin_account, limit_buy_order_tp_order_id)
                     # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                     #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
-                    if limit_buy_order_tp_order_status == "FILLED":
+                    if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                         print(f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
                         # stop looking at the price to place stop loss because take profit has been filled
                         break
@@ -1743,9 +2044,22 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         #     print("limit_buy_order_tp has been placed")
                         #     break
                         if type_of_tp == "market":
-                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
-                                trading_pair, amount_of_tp, params=params)
-                            print("market_buy_order_tp has been placed")
+                            market_buy_order_tp = ""
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                ask = float(prices[trading_pair]['ask'])
+                                amount = amount_of_tp
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'buy', amount,
+                                    price=ask)
+                            else:
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            file.write("\n" + f"market_buy_order_tp = {market_buy_order_tp}")
+                            file.write("\n" + "market_buy_order_tp has been placed")
                             break
                         elif type_of_tp == "stop":
                             stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -1767,8 +2081,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 print(f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
                             break
                         elif type_of_sl == "market":
-                            market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
-                                trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                ask = float(prices[trading_pair]['ask'])
+                                amount = amount_of_sl
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'buy', amount,
+                                    price=ask)
+                            else:
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_sl, params=params)
                             print("market_buy_order_sl has been placed")
                             if limit_buy_order_tp_order_status!= "CANCELED" and limit_buy_order_tp_order_status!= "CANCELLED":
                                 exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
@@ -1789,7 +2114,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                     # neither sl nor tp has been reached
                     else:
-                        time.sleep(1)
+                        # time.sleep(1)
                         print("neither sl nor tp has been reached")
                         continue
 
@@ -1804,7 +2129,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 # keep waiting for the order to fill
                 print(
                     f"waiting for the order to fill because the status of {order_id} is still {limit_sell_order_status_on_cross_margin}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
 
 
@@ -1825,13 +2150,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
     #uncomment this when in production and add tab after this line
     # with open(file_path, "a") as file:
     # Retrieve the arguments passed to the script
-    print(f"12began writing to {file.name} at {datetime.now()}\n")
+    print(f"12began writing to {file.name} at {datetime.datetime.now()}\n")
     try:
         print(str(exchange_id))
         print("\n")
         exchange_object_where_api_is_required = get_exchange_object_where_api_is_required(exchange_id)
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
     print("\n")
     print(str(exchange_object_where_api_is_required))
     exchange_object_without_api = get_exchange_object6(exchange_id)
@@ -1865,13 +2190,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # __________________________
 
         # Load the valid trading symbols
-
-        try:
-            exchange_object_where_api_is_required.load_markets()
-        except ccxt.BadRequest:
-            file.write(str(traceback.format_exc()))
-        except Exception:
-            file.write(str(traceback.format_exc()))
+        exchange_object_where_api_is_required.load_markets()
 
         # Get the symbol details
         symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -1879,18 +2198,73 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # Get the minimum notional value for the symbol
         min_notional_value=None
         try:
-            min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-            print("min_notional_value in USD")
-            print(min_notional_value)
+            if exchange_id == "lbank" or exchange_id == "lbank2":
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+            elif exchange_id == "binance":
+                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
 
-            # Calculate the minimum quantity based on the minimum notional value
-            min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-            print(
-                f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-            print(min_quantity)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "mexc3" or exchange_id == "mexc":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                min_quantity = min_notional_value / float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "okex" or exchange_id == "okex5":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                if not pd.isna(min_notional_value):
+                    min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                        price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                file.write("\n" +
+                           f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_in_usd))
+
+            else:
+                file.write("\n" + "symbol_details")
+                file.write("\n" + str(symbol_details))
+                min_notional_value = symbol_details['limits']['cost']['min']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                file.write("\n" +
+                           f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                min_quantity_raw = symbol_details['limits']['amount']['min']
+                file.write("\n" +
+                           f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity_raw))
+                min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                    price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
 
 
 
@@ -1967,7 +2341,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                              price_of_stop_market_order,
                                                                                              params=params)
             except ccxt.InsufficientFunds:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
 
             print(f"placed buy limit order on {exchange_id}")
@@ -1994,7 +2368,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 raise SystemExit
 
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
 
 
 
@@ -2059,7 +2433,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                     #neither sl nor tp has been reached
                     else:
-                        time.sleep(1)
+                        # time.sleep(1)
                         print("neither sl nor tp has been reached")
                         continue
 
@@ -2072,7 +2446,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             else:
                 #keep waiting for the order to fill
                 print(f"waiting for the order to fill because the status of {order_id} is still {limit_buy_order_status_on_isolated_margin}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
 
 
@@ -2108,13 +2482,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 #__________________________
 
             # Load the valid trading symbols
-
-            try:
-                exchange_object_where_api_is_required.load_markets()
-            except ccxt.BadRequest:
-                file.write(str(traceback.format_exc()))
-            except Exception:
-                file.write(str(traceback.format_exc()))
+            exchange_object_where_api_is_required.load_markets()
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2219,7 +2587,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                amount_of_asset_for_entry,
                                                                                                price_of_stop_market_order,params=params)
             except ccxt.InsufficientFunds:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
             except ccxt.InvalidOrder as e:
                 if "Filter failure: NOTIONAL" in str(e):
@@ -2254,7 +2622,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
         except:
-            print(str(traceback.format_exc()))
+            traceback.print_exc()
             raise SystemExit
 
 
@@ -2294,9 +2662,22 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             print("limit_buy_order_tp has been placed")
                             break
                         elif type_of_tp == "market":
-                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
-                                trading_pair, amount_of_tp, params=params)
-                            print("market_buy_order_tp has been placed")
+                            market_buy_order_tp = ""
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                ask = float(prices[trading_pair]['ask'])
+                                amount = amount_of_tp
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'buy', amount,
+                                    price=ask)
+                            else:
+                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_tp, params=params)
+                            file.write("\n" + f"market_buy_order_tp = {market_buy_order_tp}")
+                            file.write("\n" + "market_buy_order_tp has been placed")
                             break
                         elif type_of_tp == "stop":
                             stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -2316,8 +2697,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             print("limit_buy_order_sl has been placed")
                             break
                         elif type_of_sl == "market":
-                            market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
-                                trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_sl, params=params)
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                ask = float(prices[trading_pair]['ask'])
+                                amount = amount_of_sl
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'buy', amount,
+                                    price=ask)
+                            else:
+                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                    trading_pair, amount_of_sl, params=params)
                             print("market_buy_order_sl has been placed")
                             break
                         elif type_of_sl == "stop":
@@ -2330,7 +2722,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                     # neither sl nor tp has been reached
                     else:
-                        time.sleep(1)
+                        # time.sleep(1)
                         print("neither sl nor tp has been reached")
                         continue
 
@@ -2343,7 +2735,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             else:
                 # keep waiting for the order to fill
                 print(f"waiting for the order to fill because the status of {order_id} is still {limit_sell_order_status}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
 
 
@@ -2365,13 +2757,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
     # uncomment this when in production and add tab after this line
     # with open(file_path, "a") as file:
     # Retrieve the arguments passed to the script
-    print(f"12began writing to {file.name} at {datetime.now()}\n")
+    print(f"12began writing to {file.name} at {datetime.datetime.now()}\n")
     try:
         print(str(exchange_id))
         print("\n")
         exchange_object_where_api_is_required = get_exchange_object_where_api_is_required(exchange_id)
     except Exception as e:
-        print(str(traceback.format_exc()))
+        traceback.print_exc()
     print("\n")
     print(str(exchange_object_where_api_is_required))
     exchange_object_without_api = get_exchange_object6(exchange_id)
@@ -2407,13 +2799,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # # __________________________
 
             # Load the valid trading symbols
-
-            try:
-                exchange_object_where_api_is_required.load_markets()
-            except ccxt.BadRequest:
-                file.write(str(traceback.format_exc()))
-            except Exception:
-                file.write(str(traceback.format_exc()))
+            exchange_object_where_api_is_required.load_markets()
 
             # Get the symbol details
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -2432,7 +2818,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
                 print(min_quantity)
             except:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
 
             #
             # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
@@ -2535,7 +2921,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     print("created_limit_buy_order")
                 except ccxt.InsufficientFunds:
                     print(f"Account on {exchange_id} has insufficient balance for the requested action")
-                    print(str(traceback.format_exc()))
+                    traceback.print_exc()
 
                     repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
                                                                       exchange_object_without_api,
@@ -2562,7 +2948,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,exchange_object_without_api,
                                                                       amount_of_asset_for_entry,
                                                                       exchange_object_where_api_is_required, params)
-                    print(str(traceback.format_exc()))
+                    traceback.print_exc()
                     external_while_loop_break_flag = True
                     raise SystemExit
                 print(f"placed buy limit order on {exchange_id}")
@@ -2595,7 +2981,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     raise SystemExit
 
             except:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
 
             # wait till order is filled (that is closed)
@@ -2641,7 +3027,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             all_orders_on_cross_margin_account, limit_sell_order_tp_order_id)
                         # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
-                        if limit_sell_order_tp_order_status == "FILLED":
+                        if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                             print(f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
 
                             repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
@@ -2675,9 +3061,23 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             #     print("limit_sell_order_tp has been placed")
                             #     break
                             if type_of_tp == "market":
-                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
-                                    trading_pair, amount_of_tp, params=params)
-                                print("market_sell_order_tp has been placed")
+                                market_sell_order_tp = ""
+                                if exchange_id in ['binance', 'binanceus']:
+                                    market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                        trading_pair, amount_of_tp, params=params)
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    prices = exchange_object_where_api_is_required.fetch_tickers()
+                                    bid = float(prices[trading_pair]['bid'])
+                                    amount = amount_of_tp
+                                    market_sell_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                        trading_pair, 'sell', amount,
+                                        price=bid)
+                                else:
+                                    market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                        trading_pair, amount_of_tp, params=params)
+                                file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                                file.write("\n" + "market_sell_order_tp has been placed")
+
                                 break
                             elif type_of_tp == "stop":
                                 stop_market_sell_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -2737,8 +3137,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                            trading_pair, params=params)
                                         print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
 
-                                    market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
-                                        trading_pair, amount_of_sl, params=params)
+                                    if exchange_id in ['binance', 'binanceus']:
+                                        market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                            trading_pair, amount_of_sl, params=params)
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                        prices = exchange_object_where_api_is_required.fetch_tickers()
+                                        bid = float(prices[trading_pair]['bid'])
+                                        amount = amount_of_sl
+                                        market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                            trading_pair, 'sell', amount,
+                                            price=bid)
+                                    else:
+                                        market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                            trading_pair, amount_of_sl, params=params)
                                     # market_sell_order_sl=\
                                     #     exchange_object_where_api_is_required.create_order( symbol=trading_pair, type="market", side="sell", amount= amount_of_sl, params=params)
                                     print("market_sell_order_sl has been placed")
@@ -2751,9 +3162,9 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                       params)
 
                                 except ccxt.InsufficientFunds:
-                                    print(str(traceback.format_exc()))
+                                    traceback.print_exc()
                                 except Exception as e:
-                                    print(str(traceback.format_exc()))
+                                    traceback.print_exc()
 
                                 # # cancel tp because sl has been hit
                                 # if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
@@ -2804,7 +3215,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                         # neither sl nor tp has been reached
                         else:
-                            time.sleep(1)
+                            # time.sleep(1)
                             print("neither sl nor tp has been reached")
                             continue
 
@@ -2832,7 +3243,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     # keep waiting for the order to fill
                     print(
                         f"waiting for the order to fill because the status of {order_id} is still {limit_buy_order_status_on_cross_margin}")
-                    time.sleep(1)
+                    # time.sleep(1)
                     continue
 
 
@@ -2871,13 +3282,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # # __________________________
 
             # Load the valid trading symbols
-
-            try:
-                exchange_object_where_api_is_required.load_markets()
-            except ccxt.BadRequest:
-                file.write(str(traceback.format_exc()))
-            except Exception:
-                file.write(str(traceback.format_exc()))
+            exchange_object_where_api_is_required.load_markets()
             symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
             try:
@@ -2894,7 +3299,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
                 print(min_quantity)
             except:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
 
             #
             # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
@@ -2992,7 +3397,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                      params=params)
                 except ccxt.InsufficientFunds:
                     print(f"Account on {exchange_id} has insufficient balance for the requested action")
-                    print(str(traceback.format_exc()))
+                    traceback.print_exc()
 
                     repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
                                                                       exchange_object_without_api,
@@ -3021,7 +3426,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                       exchange_object_without_api,
                                                                       amount_of_asset_for_entry,
                                                                       exchange_object_where_api_is_required, params)
-                    print(str(traceback.format_exc()))
+                    traceback.print_exc()
                     external_while_loop_break_flag = True
                     raise SystemExit
                 print(f"placed sell limit order on {exchange_id}")
@@ -3057,7 +3462,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
             except Exception:
-                print(str(traceback.format_exc()))
+                traceback.print_exc()
                 raise SystemExit
 
             # wait till order is filled (that is closed)
@@ -3101,7 +3506,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             all_orders_on_cross_margin_account, limit_buy_order_tp_order_id)
                         # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
-                        if limit_buy_order_tp_order_status == "FILLED":
+                        if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                             print(f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
                             repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
                                                                               exchange_object_without_api,
@@ -3127,9 +3532,22 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             #     print("limit_buy_order_tp has been placed")
                             #     break
                             if type_of_tp == "market":
-                                market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
-                                    trading_pair, amount_of_tp, params=params)
-                                print("market_buy_order_tp has been placed")
+                                market_buy_order_tp = ""
+                                if exchange_id in ['binance', 'binanceus']:
+                                    market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                        trading_pair, amount_of_tp, params=params)
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    prices = exchange_object_where_api_is_required.fetch_tickers()
+                                    ask = float(prices[trading_pair]['ask'])
+                                    amount = amount_of_tp
+                                    market_buy_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                        trading_pair, 'buy', amount,
+                                        price=ask)
+                                else:
+                                    market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                        trading_pair, amount_of_tp, params=params)
+                                file.write("\n" + f"market_buy_order_tp = {market_buy_order_tp}")
+                                file.write("\n" + "market_buy_order_tp has been placed")
                                 break
                             elif type_of_tp == "stop":
                                 stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -3164,8 +3582,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                         exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                            trading_pair, params=params)
                                         print(f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
-                                    market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
-                                        trading_pair, amount_of_sl, params=params)
+                                    if exchange_id in ['binance', 'binanceus']:
+                                        market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                            trading_pair, amount_of_sl, params=params)
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                        prices = exchange_object_where_api_is_required.fetch_tickers()
+                                        ask = float(prices[trading_pair]['ask'])
+                                        amount = amount_of_sl
+                                        market_buy_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                            trading_pair, 'buy', amount,
+                                            price=ask)
+                                    else:
+                                        market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                            trading_pair, amount_of_sl, params=params)
                                     print("market_buy_order_sl has been placed")
 
                                     # repay margin loan when stop loss is achieved
@@ -3176,9 +3605,9 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                       params)
 
                                 except ccxt.InsufficientFunds:
-                                    print(str(traceback.format_exc()))
+                                    traceback.print_exc()
                                 except Exception as e:
-                                    print(str(traceback.format_exc()))
+                                    traceback.print_exc()
                                 break
                             elif type_of_sl == "stop":
                                 stop_market_buy_order_sl = exchange_object_where_api_is_required.create_stop_market_order(
@@ -3194,7 +3623,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                         # neither sl nor tp has been reached
                         else:
-                            time.sleep(1)
+                            # time.sleep(1)
                             print("neither sl nor tp has been reached")
                             continue
 
@@ -3214,7 +3643,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     # keep waiting for the order to fill
                     print(
                         f"waiting for the order to fill because the status of {order_id} is still {limit_sell_order_status_on_cross_margin}")
-                    time.sleep(1)
+                    # time.sleep(1)
                     continue
 
 
@@ -3224,7 +3653,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             print("external_while_loop_break_flag = True so while loop is breaking")
             break
 
-def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account1(file, exchange_id,
+def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account1(row_df, row_index,file, exchange_id,
                                                        trading_pair,
                                                        price_of_sl, type_of_sl, amount_of_sl,
                                                        price_of_tp, type_of_tp, amount_of_tp, post_only_for_limit_tp_bool,
@@ -3238,7 +3667,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
     # uncomment this when in production and add tab after this line
     # with open(file_path, "a") as file:
     # Retrieve the arguments passed to the script
-    file.write("\n"+f"12began writing to {file.name} at {datetime.now()}\n")
+    file.write("\n"+f"12began writing to {file.name} at {datetime.datetime.now()}\n")
     try:
         file.write("\n"+str(exchange_id))
         file.write("\n"+"\n")
@@ -3250,466 +3679,561 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
     exchange_object_without_api = get_exchange_object6(exchange_id)
 
     # print(side_of_stop_market_order)
-    external_while_loop_break_flag=False
-    while True:
-        current_price_of_trading_pair=get_price(exchange_object_without_api, trading_pair)
-        if side_of_stop_market_order == "buy":
-            if current_price_of_trading_pair<price_of_stop_market_order:
-                file.write("\n"+f"current price of {trading_pair} = {current_price_of_trading_pair} and it is < price_of_stop_market_order={price_of_stop_market_order}")
-                time.sleep(1)
-                continue
+    # external_while_loop_break_flag=False
+    amount_of_asset_for_entry = \
+        convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
+                                                        price_of_stop_market_order)
+    amount_of_tp = amount_of_asset_for_entry
+    amount_of_sl = amount_of_asset_for_entry
+    file.write("\n" + "amount_of_asset_for_entry_in_quote_currency=" + str(amount_of_asset_for_entry_in_quote_currency))
+    file.write("\n" + "amount_of_asset_for_entry=" + str(amount_of_asset_for_entry))
+    trade_status = row_df.loc[row_index, "trade_status"]
+
+    print("trade_status1")
+    print(trade_status)
+
+    stop_market_or_limit_order_to_use_for_entry=row_df.loc[row_index, "stop_market_or_limit_order_to_use_for_entry"]
+    print("stop_market_or_limit_order_to_use_for_entry")
+    print(stop_market_or_limit_order_to_use_for_entry)
+
+
+
+    # while True:
+    current_price_of_trading_pair=get_price(exchange_object_without_api, trading_pair)
+    print("current_price_of_trading_pair")
+    print(current_price_of_trading_pair)
+    if side_of_stop_market_order == "buy":
+        # if current_price_of_trading_pair<price_of_stop_market_order:
+        #     file.write("\n"+f"current price of {trading_pair} = {current_price_of_trading_pair} and it is < price_of_stop_market_order={price_of_stop_market_order}")
+        #     print(
+        #         "\n" + f"current price of {trading_pair} = {current_price_of_trading_pair} and it is < price_of_stop_market_order={price_of_stop_market_order}")
+        #     print(
+        #         "\n" + f"the price must be highter")
+        #     # # time.sleep(1)
+        #     return f"current price of {trading_pair} = {current_price_of_trading_pair} and it is < price_of_stop_market_order={price_of_stop_market_order}"
+
+        file.write("\n"+f"trying to place buy stop_market_order on {exchange_id}")
+
+        market_buy_order_status_on_spot_margin = ""
+
+
+        # we want to place a buy order with spot margin
+        params = {}
+
+
+
+        stop_market_buy_order = None
+        order_id = ""
+
+        if trade_status=="bfr_conditions_are_met" and current_price_of_trading_pair<price_of_stop_market_order:
+            trade_status="stop_market_order_will_be_used"
+            column_name = "trade_status"
+            cell_value = "stop_market_order_will_be_used"
+            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                          column_name, cell_value)
+            df_with_bfr[column_name].iat[row_index] = cell_value
+
+            stop_market_or_limit_order_to_use_for_entry = "stop_market_order"
+            column_name = "stop_market_or_limit_order_to_use_for_entry"
+            cell_value = stop_market_or_limit_order_to_use_for_entry
+            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                          column_name, cell_value)
+            df_with_bfr[column_name].iat[row_index] = cell_value
+
+
+
+
+
+        # ---------------------------------------------------------
+
+        # ---------------------------------------------------------
+        try:
+            spot_balance = exchange_object_where_api_is_required.fetch_balance()
+            file.write("\n" + "spot_balance")
+            file.write("\n" + str(spot_balance))
+        except:
+            file.write(str(traceback.format_exc()))
+            # Load the valid trading symbols
+            try:
+                exchange_object_where_api_is_required.load_markets()
+                print("markets_loaded")
+            except ccxt.BadRequest:
+                traceback.print_exc()
+                file.write(str(traceback.format_exc()))
+            except Exception:
+                traceback.print_exc()
+                file.write(str(traceback.format_exc()))
+        # Get the symbol details
+        symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
+
+        # Get the minimum notional value for the symbol
+        min_notional_value = None
+        min_quantity = None
+        try:
+            # file.write("\n" + "symbol_details")
+            # file.write("\n" + str(symbol_details))
+            # file.write("\n" + "symbol_details['info']")
+            # file.write("\n" + str(symbol_details['info']))
+            if exchange_id == "lbank" or exchange_id == "lbank2":
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+            elif exchange_id == "binance":
+                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "mexc3" or exchange_id == "mexc":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                min_quantity = min_notional_value / float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "okex" or exchange_id == "okex5":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                if not pd.isna(min_notional_value):
+                    min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                        price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                file.write("\n" +
+                           f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_in_usd))
+
             else:
-                file.write("\n"+f"placing buy stop_market_order on {exchange_id}")
+                file.write("\n" + "symbol_details")
+                file.write("\n" + str(symbol_details))
+                min_notional_value = symbol_details['limits']['cost']['min']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
 
-                market_buy_order_status_on_spot_margin = ""
-                order_id = ""
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-                # we want to place a buy order with spot margin
-                params = {}
+                file.write("\n" +
+                           f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                min_quantity_raw = symbol_details['limits']['amount']['min']
+                file.write("\n" +
+                           f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity_raw))
+                min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                    price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
+        except:
+            file.write("\n" + str(traceback.format_exc()))
+
+        margin_mode="spot"
+
+        # sys.exit(1)
+
+        # we need current timestamp to get borrow interest since that timestamp to add this interest to the repay ammount
+        # current_timestamp_in_milliseconds = get_current_timestamp_in_seconds()
+
+        # ---------------------------------------------------------
+
+        # amount_of_asset_for_entry=0
+        stop_market_buy_order = ""
+        try:
+
+            # #borrow margin before creating an order. Borrow exactly how much your position is
+            # margin_loan_when_quote_currency_is_borrowed=borrow_margin_loan_when_quote_currency_is_borrowed(file, trading_pair,
+            #                                                    exchange_object_without_api,
+            #                                                    amount_of_asset_for_entry,
+            #                                                    exchange_object_where_api_is_required, params)
+            file.write("\n"+"margin_loan_when_quote_currency_is not borrowed because it is spot")
+            # print(margin_loan_when_quote_currency_is_borrowed)
+
+            # if borrowed_margin_loan['info']['code'] == 200:
+            #     print("borrowed_margin_loan['info']['code'] == 200")
+            #     print(borrowed_margin_loan['info']['code'] == 200)
+
+            # amount_of_asset_for_entry = \
+            #     convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
+            #                                                     price_of_stop_market_order)
+
+            file.write("\n"+"amount_of_asset_for_entry")
+            file.write("\n"+str(amount_of_asset_for_entry))
+            try:
 
 
 
-                stop_market_buy_order = None
-                order_id = ""
 
-                # ---------------------------------------------------------
-
-
-                # Load the valid trading symbols
-
-                try:
-                    exchange_object_where_api_is_required.load_markets()
-                except ccxt.BadRequest:
-                    file.write(str(traceback.format_exc()))
-                except Exception:
-                    file.write(str(traceback.format_exc()))
-
-                # Get the symbol details
-                symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
-
-                # Get the minimum notional value for the symbol
-                min_notional_value = None
-                try:
-
-                    file.write("symbol_details['info']")
-                    file.write("\n"+str(symbol_details['info']))
-                    if exchange_id=="binance":
-                        min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-                    elif exchange_id=="gate" or exchange_id=="gateio":
-                        min_notional_value = symbol_details['info']['min_quote_amount']
-                    else:
-                        file.write(f"{exchange_id} is not in list to find min notional value of quote")
-
-
-                    file.write("\n"+"min_notional_value in USD")
-                    file.write("\n"+str(min_notional_value))
-
-                    # Calculate the minimum quantity based on the minimum notional value
-                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
-
-                    file.write("\n"+
-                        f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                    file.write("\n"+str(min_quantity))
-                except:
-                    file.write("\n"+str(traceback.format_exc()))
-
-                #
-                # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
-                # print("future_balance")
-                # print(future_balance)
-
-                # canceled_orders = exchange_object_where_api_is_required.fetch_canceled_orders(symbol=trading_pair, since=None,
-                #                                                                            limit=None, params={})
-                # print("canceled_orders")
-                # print(canceled_orders)
-
-                # ------------------------closed orders
-
-                # ClosedOrder=exchange_object_where_api_is_required.fetchClosedOrder(id, symbol=None, params={})
-                # ClosedOrders=exchange_object_where_api_is_required.fetchClosedOrders(symbol=trading_pair, since=None, limit=None, params={})
-
-                # closed_orders_on_spot=exchange_object_where_api_is_required.fetchClosedOrders(symbol=trading_pair, since=None, limit=None, params={})
-                # print("closed_orders_on_spot")
-                # print(closed_orders_on_spot)
-
-                # OpenOrder=exchange_object_where_api_is_required.fetchOpenOrder(id, symbol=None, params={})
-                # exchange_object_where_api_is_required.load_markets()
-
-                # closed_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_closedorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE',
-                # })
-                # print("closed_orders_on_cross_margin_account")
-                # print(closed_orders_on_cross_margin_account)
-
-                # print("dir(exchange_object_where_api_is_required)")
-                # print(dir(exchange_object_where_api_is_required))
-
-                # Fetch closed orders from the margin account
-                # somehow here symbol must be without slash so we use remove_slash_from_trading_pair_name()
-                # closed_orders = exchange_object_where_api_is_required.sapi_get_margin_allorders(
-                #     {'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #      'isCross': 'TRUE'})
-                # print("closed_orders_on_cross")
-                # pprint.pprint(closed_orders)
-
-                # sapi_get_margin_allorders works only for binance
-                # all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE'})
-                # print("all_orders_on_cross_margin_account")
-                # pprint.pprint(all_orders_on_cross_margin_account)
-
-                # all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE',
-                # })
-                # print("all_orders_on_cross_margin_account")
-                # pprint.pprint(all_orders_on_cross_margin_account)
-
-                # --------------------------open_orders
-                # open_orders_on_spot=exchange_object_where_api_is_required.fetch_open_orders(symbol=trading_pair, since=None, limit=None, params={})
-                # open_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_openorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isICross': 'TRUE',
-                # })
-
-                # print("open_orders_on_cross_margin_account")
-                # pprint.pprint(open_orders_on_cross_margin_account)
-                # print("dir(exchange_object_where_api_is_required)")
-                # print(dir(exchange_object_where_api_is_required))
-                # # Use describe() to get the method details
-                # method_details = exchange_object_where_api_is_required.describe()
-                # print(method_details)
-
-                # print(dir(exchange_object_where_api_is_required))
-                margin_mode="spot"
-
-                # sys.exit(1)
-
-                # we need current timestamp to get borrow interest since that timestamp to add this interest to the repay ammount
-                # current_timestamp_in_milliseconds = get_current_timestamp_in_seconds()
-
-                # ---------------------------------------------------------
-
-                amount_of_asset_for_entry=0
-                try:
-
-                    # #borrow margin before creating an order. Borrow exactly how much your position is
-                    # margin_loan_when_quote_currency_is_borrowed=borrow_margin_loan_when_quote_currency_is_borrowed(file, trading_pair,
-                    #                                                    exchange_object_without_api,
-                    #                                                    amount_of_asset_for_entry,
-                    #                                                    exchange_object_where_api_is_required, params)
-                    file.write("\n"+"margin_loan_when_quote_currency_is not borrowed because it is spot")
-                    # print(margin_loan_when_quote_currency_is_borrowed)
-
-                    # if borrowed_margin_loan['info']['code'] == 200:
-                    #     print("borrowed_margin_loan['info']['code'] == 200")
-                    #     print(borrowed_margin_loan['info']['code'] == 200)
-
-                    amount_of_asset_for_entry = \
-                        convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
-                                                                        price_of_stop_market_order)
-                    file.write("\n"+"amount_of_asset_for_entry")
-                    file.write("\n"+str(amount_of_asset_for_entry))
-                    try:
-                        file.write("\n" + "trying to place stop_market_buy_order")
+                if trade_status=="stop_market_order_will_be_used" \
+                        and current_price_of_trading_pair>=price_of_stop_market_order \
+                        and stop_market_or_limit_order_to_use_for_entry == "stop_market_order":
+                    file.write("\n" + "trying to place stop_market_buy_order")
+                    print("\n" + "trying to place stop_market_buy_order")
+                    if exchange_id in ['binance', 'binanceus']:
                         stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(trading_pair,
                                                                                                        amount_of_asset_for_entry,
-                                                                                                       # price_of_stop_market_order,
-                                                                                                       params=params)
-                        file.write("\n"+"created_stop_market_buy_order")
-                    except ccxt.InsufficientFunds:
-                        file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
-                        file.write("\n"+str(traceback.format_exc()))
+                                                                                                   # price_of_stop_market_order,
+                                                                                                   params=params)
+                        column_name = "trade_status"
+                        cell_value = "placed_market_order_waiting_for_it_to_get_filled"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name, cell_value)
+                        df_with_bfr[column_name].iat[row_index] = cell_value
+                        print("df_with_bfr.to_string()")
+                        print(df_with_bfr.to_string())
+                        trade_status = cell_value
 
-                        # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                        #                                                   exchange_object_without_api,
-                        #                                                   amount_of_asset_for_entry,
-                        #                                                   exchange_object_where_api_is_required, params)
-                        external_while_loop_break_flag = True
-                        raise SystemExit
-                    except ccxt.InvalidOrder as e:
-                        if "Filter failure: NOTIONAL" in str(e):
-                            file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
-                            file.write("\n"+
-                                f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
-                                f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
-                                f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
+                        ###############################################
+                        column_name = "entry_order_id"
+                        cell_value = stop_market_buy_order['id']
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name,
+                                                                                      cell_value)
+                        #########################################
 
-                            # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                            #                                               exchange_object_without_api,
-                            #                                                   amount_of_asset_for_entry,
-                            #                                                   exchange_object_where_api_is_required, params)
-                            external_while_loop_break_flag = True
-                            raise SystemExit
-                    except Exception as e:
+                    elif exchange_id in ['mexc3', 'huobi', 'huobipro','kucoin']:
+                        prices = exchange_object_where_api_is_required.fetch_tickers()
+                        ask = float(prices[trading_pair]['ask'])
+                        amount = amount_of_asset_for_entry
+                        file.write("\n" + "amount")
+                        file.write("\n" + str(amount))
+                        file.write("\n" + "ask")
+                        file.write("\n" + str(ask))
+                        print("amount1=",amount)
 
-                        # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,exchange_object_without_api,
-                        #                                                   amount_of_asset_for_entry,
-                        #                                                   exchange_object_where_api_is_required, params)
-                        file.write("\n"+str(traceback.format_exc()))
-                        external_while_loop_break_flag = True
-                        raise SystemExit
-                    file.write("\n"+f"placed buy stop market order on {exchange_id}")
-                    file.write("\n"+"stop_market_buy_order")
-                    file.write("\n"+str(stop_market_buy_order))
 
+                        ###################################
+                        ###################################
+                        ###################################
+
+                        # uncomment the following if you encounter market or "BadRequest mexc3 {"msg":"api market order is disabled","code":30019}"
+
+
+                        # market_orders_are_allowed_on_exchange = \
+                        #     check_if_exchange_allows_market_orders_for_this_trading_pair(exchange_id,
+                        #                                                                  trading_pair, file)
+                        # if market_orders_are_allowed_on_exchange == False:
+                        #
+                        #     # imitation of market order buy placing a limit order
+                        #     percantage_distance_between_ask_price_and_imitation_limit_order=0.05 # 0.05 means 5%
+                        #     # plus should be minus if the limit is sell order
+                        #     stop_market_buy_order = exchange_object_where_api_is_required.create_limit_buy_order(
+                        #         trading_pair, amount, ask+percantage_distance_between_ask_price_and_imitation_limit_order*ask, params=params)
+                        #     file.write("\n" + "imitation limit_buy_order has been placed to imitate stop_market_buy_order")
+                        #     stop_market_buy_order_order_id = get_order_id(stop_market_buy_order)
+                        # elif market_orders_are_allowed_on_exchange == True:
+                        #     stop_market_buy_order = exchange_object_where_api_is_required.create_market_order(
+                        #     trading_pair, 'buy', amount,
+                        #     price=ask)
+                        # else:
+                        #     file.write("\n" + "market_orders_are_allowed_on_exchange=" + f"{market_orders_are_allowed_on_exchange}")
+
+                        ###################################
+                        ###################################
+                        ###################################
+
+                        stop_market_buy_order = exchange_object_where_api_is_required.create_market_order(
+                            trading_pair, 'buy', amount,
+                            price=ask)
+
+                        column_name = "trade_status"
+                        cell_value = "placed_market_order_waiting_for_it_to_get_filled"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name, cell_value)
+                        df_with_bfr[column_name].iat[row_index] = cell_value
+                        print("df_with_bfr.to_string()")
+                        print(df_with_bfr.to_string())
+                        trade_status = cell_value
+
+                        # file.write("\n" + "stop_market_buy_order12")
+                        # file.write("\n" + str(stop_market_buy_order))
+                        ###############################################
+                        column_name = "entry_order_id"
+                        cell_value = stop_market_buy_order['id']
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name,
+                                                                                      cell_value)
+                        #########################################
+
+
+                    else:
+                        stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(
+                            trading_pair,
+                            amount_of_asset_for_entry,
+                            # price_of_stop_market_order,
+                            params=params)
+
+                        column_name = "trade_status"
+                        cell_value = "placed_market_order_waiting_for_it_to_get_filled"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name, cell_value)
+                        df_with_bfr[column_name].iat[row_index] = cell_value
+                        print("df_with_bfr.to_string()")
+                        print(df_with_bfr.to_string())
+                        trade_status = cell_value
+
+                        ###############################################
+                        column_name = "entry_order_id"
+                        cell_value = stop_market_buy_order['id']
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name,
+                                                                                      cell_value)
+                        #########################################
+
+                    # print("\n" + "stop_market_buy_order")
+                    # print("\n" + stop_market_buy_order)
+                    # file.write("\n" + "stop_market_buy_order")
+                    # file.write("\n" + stop_market_buy_order)
+                    file.write("\n"+"created_stop_market_buy_order")
+
+                # else:
+                #     print('trade_status=="stop_market_order_will_be_used" \
+                #         and current_price_of_trading_pair>=price_of_stop_market_order \
+                #         and stop_market_or_limit_order_to_use_for_entry == "stop_market_order" this condition is not fulfilled')
+                #     return "three conditions are not satisfied"
+
+                if trade_status=="must_verify_if_bfr_conditions_are_fulfilled":
+                    return "must_verify_if_bfr_conditions_are_fulfilled"
+
+                list_of_possible_trade_status=["bfr_conditions_are_met","stop_market_order_will_be_used",
+                                               "placed_market_order_waiting_for_it_to_get_filled",
+                                               "must_verify_if_bfr_conditions_are_fulfilled",
+                                               "placed_limit_buy_order_waiting_for_it_to_get_filled",
+                                               "market_take_profit_has_been_filled",
+                                               "waiting_for_price_to_reach_either_tp_or_sl",
+                                               "limit_take_profit_has_been_filled",
+                                               "limit_take_profit_has_been_placed",
+                                               "market_take_profit_has_been_filled",
+                                               "market_take_profit_has_been_placed",
+                                               "stop_market_take_profit_has_been_filled",
+                                               "limit_stop_loss_is_placed",
+                                               "limit_stop_loss_is_filled",
+                                               "market_stop_loss_is_placed",
+                                               "market_stop_loss_is_filled",
+                                               "stop_market_stop_loss_is_placed",
+                                               "neither_sl_nor_tp_has_been_reached",
+                                               "limit_order_has_been_cancelled","limit_buy_order_is_filled","limit_sell_order_is_filled"]
+                if trade_status not in list_of_possible_trade_status:
+                    print(f"{trade_status} not in list")
+                    return f"{trade_status} not in list"
+            except ccxt.InsufficientFunds:
+                file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
+                file.write("\n"+str(traceback.format_exc()))
+
+                # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
+                #                                                   exchange_object_without_api,
+                #                                                   amount_of_asset_for_entry,
+                #                                                   exchange_object_where_api_is_required, params)
+                # external_while_loop_break_flag = True
+                raise SystemExit
+            except ccxt.InvalidOrder as e:
+                if "Filter failure: NOTIONAL" in str(e):
+                    file.write("\n" + "Invalid order: Filter failure: NOTIONAL")
+                    file.write("\n" +
+                               f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
+                               f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
+                               f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
+                    raise SystemExit
+                else:
+                    file.write("\n" + str(traceback.format_exc()))
+                    raise SystemExit
+            except Exception as e:
+
+
+                file.write("\n"+str(traceback.format_exc()))
+                print("\n"+str(traceback.format_exc()))
+                # external_while_loop_break_flag = True
+                # raise SystemExit
+            file.write("\n"+f"placed buy stop market order on {exchange_id}")
+            file.write("\n"+"stop_market_buy_order")
+            file.write("\n"+str(stop_market_buy_order))
+
+            # print("type(stop_market_buy_order)")
+            # print(type(stop_market_buy_order))
+            # order_id = stop_market_buy_order['id']
+            # if pd.isna(stop_market_buy_order):
+            #     order_id=df_with_bfr.loc[row_index,"entry_order_id"]
+            #     print("order_id2")
+            #     print(order_id)
+            # else:
+            #     order_id = stop_market_buy_order['id']
+            #     print("order_id3")
+            #     print(order_id)
+
+            try:
+                order_id = df_with_bfr.loc[row_index, "entry_order_id"]
+                print("order_id2")
+                print(order_id)
+            except KeyError:
+                try:
                     order_id = stop_market_buy_order['id']
-                    file.write("\n"+"order_id4")
-                    file.write("\n"+str(order_id))
+                    print("order_id3")
+                    print(order_id)
+                except KeyError:
+                    raise SystemExit
+                    # import sys
+                    # sys.exit("Exiting due to error in retrieving order ID")
 
+            # order_id = stop_market_buy_order['id']
+            # print("order_id3")
+            # print(order_id)
+
+            spot_cross_or_isolated_margin = "spot"
+            all_orders_on_spot_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
+                                                                                         spot_cross_or_isolated_margin,
+                                                                                         exchange_object_where_api_is_required)
+            if exchange_id in ["mexc3","mexc"]:
+                orig_quantity = get_origQty_from_list_of_dictionaries_with_all_orders(all_orders_on_spot_account, order_id)
+                amount_of_tp = orig_quantity
+                amount_of_sl = orig_quantity
+            else:
+                orig_quantity = get_origQty_from_list_of_dictionaries_with_all_orders(all_orders_on_spot_account, order_id)
+                # orig_quantity = stop_market_buy_order['info']['origQty']
+                amount_of_tp = orig_quantity
+                amount_of_sl = orig_quantity
+            # file.write("\n"+"order_id4")
+            # file.write("\n"+str(order_id))
+            # file.write("\n" + "orig_quantity")
+            # file.write("\n" + str(orig_quantity))
+
+            spot_cross_or_isolated_margin = "spot"
+            all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
+                                                                                         spot_cross_or_isolated_margin,
+                                                                                         exchange_object_where_api_is_required)
+            stop_market_buy_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
+                all_orders_on_spot_margin_account, order_id)
+            file.write("\n"+"stop_market_buy_order_status_on_spot_margin1")
+            file.write("\n"+str(stop_market_buy_order_status_on_spot_margin))
+            # file.write("\n"+"stop_markett_buy_order['status']")
+            # file.write("\n"+str(stop_market_buy_order['status']))
+
+        except ccxt.InvalidOrder as e:
+            if "Filter failure: NOTIONAL" in str(e):
+                file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
+                file.write("\n"+
+                    f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
+                    f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
+                    f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
+                # external_while_loop_break_flag = True
+                raise SystemExit
+
+        except:
+            file.write("\n"+str(traceback.format_exc()))
+            raise SystemExit
+
+        counter_for_how_many_times_string_to_be_written_to_file_that_the_status_of_market_order_is_still_NEW_is_written_to_file = 0
+
+        # wait till order is filled (that is closed)
+        # while True:
+        file.write("\n"+"waiting for the buy order to get filled")
+        # sapi_get_margin_allorders works only for binance
+        spot_cross_or_isolated_margin = "spot"
+        all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
+                                                                                             spot_cross_or_isolated_margin,
+                                                                                             exchange_object_where_api_is_required)
+        # print("all_orders_on_spot_margin_account1")
+        # pprint.pprint(all_orders_on_spot_margin_account)
+
+        stop_market_buy_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
+            all_orders_on_spot_margin_account, order_id)
+        file.write("\n"+"stop_market_buy_order_status_on_spot")
+        file.write("\n"+str(stop_market_buy_order_status_on_spot_margin))
+        if stop_market_buy_order_status_on_spot_margin == "closed" or\
+                stop_market_buy_order_status_on_spot_margin == "closed".upper() or\
+                stop_market_buy_order_status_on_spot_margin == "FILLED":
+
+            # place take profit right away as soon as stop_market order has been fulfilled
+            limit_sell_order_tp_order_id = np.nan
+            if trade_status != "market_order_is_filled_and_limit_tp_is_placed" \
+                    and trade_status!="market_stop_loss_is_placed":
+                if trade_status != "neither_sl_nor_tp_has_been_reached":
+                    file.write("\n" + "i will try to place limit_sell_order_tp right now")
+                    file.write("\n" + "type_of_tp=" + f"{type_of_tp}")
+                    if type_of_tp == "limit":
+                        print("\n" + "amount_of_tp=" + f"{amount_of_tp}")
+                        limit_sell_order_tp = exchange_object_where_api_is_required.create_limit_sell_order(
+                            trading_pair, amount_of_tp, price_of_tp, params=params)
+                        file.write("\n"+"limit_sell_order_tp has been placed")
+                        # limit_sell_order_tp_order_id = get_order_id(limit_sell_order_tp)
+
+                        limit_sell_order_tp_order_id = get_order_id(limit_sell_order_tp)
+                        if pd.isna(limit_sell_order_tp):
+                            limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                            print("limit_sell_order_tp_order_id123")
+                            print(limit_sell_order_tp_order_id)
+                        else:
+                            limit_sell_order_tp_order_id = get_order_id(limit_sell_order_tp)
+                            print("limit_sell_order_tp_order_id1234")
+                            print(limit_sell_order_tp_order_id)
+
+                        column_name = "trade_status"
+                        cell_value = "market_order_is_filled_and_limit_tp_is_placed"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index, column_name,
+                                                                                      cell_value)
+                        df_with_bfr.at[row_index, column_name] = cell_value
+                        trade_status = "market_order_is_filled_and_limit_tp_is_placed"
+
+                        ##############################################################
+                        ##############################################################
+                        column_name = "tp_order_id"
+                        cell_value = limit_sell_order_tp_order_id
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index, column_name,
+                                                                                      cell_value)
+                        df_with_bfr.at[row_index, column_name] = cell_value
+                    ####################################
+
+
+            # keep looking at the price and wait till either sl or tp has been reached
+            # while True:
+
+                if trade_status == "market_take_profit_has_been_filled":
+                    return "market_take_profit_has_been_filled"
+                if trade_status != "market_order_is_filled_and_limit_tp_is_placed" \
+                        and trade_status != "neither_sl_nor_tp_has_been_reached":
+                    return "limit_order_is_not_yet_filled"
+                current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
+                print("current_price_of_trading_pair1")
+                print(current_price_of_trading_pair)
+
+                try:
+                    # keep looking if limit take profit has been filled
                     spot_cross_or_isolated_margin = "spot"
                     all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                                  spot_cross_or_isolated_margin,
                                                                                                  exchange_object_where_api_is_required)
-                    stop_market_buy_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
-                        all_orders_on_spot_margin_account, order_id)
-                    file.write("\n"+"stop_market_buy_order_status_on_spot_margin1")
-                    file.write("\n"+str(stop_market_buy_order_status_on_spot_margin))
-                    file.write("\n"+"stop_markett_buy_order['status']")
-                    file.write("\n"+str(stop_market_buy_order['status']))
 
-                except ccxt.InvalidOrder as e:
-                    if "Filter failure: NOTIONAL" in str(e):
-                        file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
-                        file.write("\n"+
-                            f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
-                            f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
-                            f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
-                        external_while_loop_break_flag = True
-                        raise SystemExit
+                    current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
+                    print("current_price_of_trading_pair1")
+                    print(current_price_of_trading_pair)
 
-                except:
-                    file.write("\n"+str(traceback.format_exc()))
-                    raise SystemExit
+                    limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(
+                        all_orders_on_spot_margin_account, limit_sell_order_tp_order_id)
+                    # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
+                    #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
 
-                # wait till order is filled (that is closed)
-                while True:
-                    file.write("\n"+"waiting for the buy order to get filled")
-                    # sapi_get_margin_allorders works only for binance
-                    spot_cross_or_isolated_margin = "spot"
-                    all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
-                                                                                                         spot_cross_or_isolated_margin,
-                                                                                                         exchange_object_where_api_is_required)
-                    # print("all_orders_on_spot_margin_account1")
-                    # pprint.pprint(all_orders_on_spot_margin_account)
+                    current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
+                    print("current_price_of_trading_pair2")
+                    print(current_price_of_trading_pair)
 
-                    stop_market_buy_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
-                        all_orders_on_spot_margin_account, order_id)
-                    file.write("\n"+"stop_market_buy_order_status_on_spot_margin")
-                    file.write("\n"+str(stop_market_buy_order_status_on_spot_margin))
-                    if stop_market_buy_order_status_on_spot_margin == "closed" or\
-                            stop_market_buy_order_status_on_spot_margin == "closed".upper() or\
-                            stop_market_buy_order_status_on_spot_margin == "FILLED":
+                    if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
+                        file.write("\n"+f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
 
-                        # place take profit right away as soon as stop_market order has been fulfilled
-                        limit_sell_order_tp_order_id = ""
-                        if type_of_tp == "limit":
-                            limit_sell_order_tp = exchange_object_where_api_is_required.create_limit_sell_order(
-                                trading_pair, amount_of_tp, price_of_tp, params=params)
-                            file.write("\n"+"limit_sell_order_tp has been placed")
-                            limit_sell_order_tp_order_id = get_order_id(limit_sell_order_tp)
-
-
-
-
-                        # keep looking at the price and wait till either sl or tp has been reached
-                        while True:
-
-                            try:
-                                # keep looking if limit take profit has been filled
-                                spot_cross_or_isolated_margin = "spot"
-                                all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
-                                                                                                             spot_cross_or_isolated_margin,
-                                                                                                             exchange_object_where_api_is_required)
-
-                                limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(
-                                    all_orders_on_spot_margin_account, limit_sell_order_tp_order_id)
-                                # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
-                                #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
-                                if limit_sell_order_tp_order_status == "FILLED":
-                                    file.write("\n"+f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
-
-                                    # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                                    #                                           exchange_object_without_api,
-                                    #                                                   amount_of_asset_for_entry,
-                                    #                                                   exchange_object_where_api_is_required, params)
-
-                                    # if repaid_margin_loan['info']['code'] == 200:
-                                    #     print("repaid_margin_loan['info']['code'] == 200")
-                                    #     print(repaid_margin_loan['info']['code'] == 200)
-
-
-                                    # stop looking at the price to place stop loss because take profit has been filled
-                                    external_while_loop_break_flag = True
-                                    break
-                                else:
-                                    file.write("\n"+f"take profit order with id = {limit_sell_order_tp_order_id} has "
-                                          f"status {limit_sell_order_tp_order_status} and not yet filled. I'll keep waiting")
-
-                                current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
-                                file.write("\n"+f"waiting for the price to reach either tp={price_of_tp} or sl={price_of_sl}")
-                                file.write("\n"+f"current_price_of_trading_pair {trading_pair} is {current_price_of_trading_pair}")
-
-                                # take profit has been reached
-                                if current_price_of_trading_pair >= price_of_tp:
-                                    # if type_of_tp == "limit":
-                                    #     limit_sell_order_tp = exchange_object_where_api_is_required.create_limit_sell_order(
-                                    #         trading_pair, amount_of_tp, price_of_tp, params=params)
-                                    #     print("limit_sell_order_tp has been placed")
-                                    external_while_loop_break_flag = True
-                                    #     break
-                                    if type_of_tp == "market":
-                                        market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
-                                            trading_pair, amount_of_tp, params=params)
-                                        file.write("\n"+"market_sell_order_tp has been placed")
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_tp == "stop":
-                                        stop_market_sell_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
-                                            trading_pair, "sell", amount_of_tp, price_of_tp, params=params)
-                                        file.write("\n"+"stop_market_sell_order_tp has been placed")
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_tp == "limit":
-                                        file.write("\n"+"price of limit tp has been reached")
-                                    else:
-                                        file.write("\n"+f"there is no order called {type_of_tp}")
-
-                                # stop loss has been reached
-                                elif current_price_of_trading_pair <= price_of_sl:
-                                    if type_of_sl == "limit":
-                                        limit_sell_order_sl = exchange_object_where_api_is_required.create_limit_sell_order(
-                                            trading_pair, amount_of_sl, price_of_sl, params=params)
-                                        file.write("\n"+"limit_sell_order_sl has been placed")
-
-                                        # cancel tp because sl has been hit
-
-                                        if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
-                                            exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
-                                                                                               trading_pair, params=params)
-                                            file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
-
-                                            # # repay margin loan when stop loss is achieved
-                                            # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                                            #                                       exchange_object_without_api,
-                                            #                                                   amount_of_asset_for_entry,
-                                            #                                                   exchange_object_where_api_is_required,
-                                            #                                                   params)
-
-                                            # if repaid_margin_loan['info']['code'] == 200:
-                                            #     print("repaid_margin_loan['info']['code'] == 200")
-                                            #     print(repaid_margin_loan['info']['code'] == 200)
-
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_sl == "market":
-                                        try:
-                                            # market_sell_order_sl=\
-                                                # exchange_object_where_api_is_required.sapiPostMarginOrder(remove_slash_from_trading_pair_name(trading_pair),
-                                                #                                                           side = "sell",
-                                                #                                                           type ="market",
-                                                #                                                           quantity = amount_of_sl, isIsolated= True)
-                                            # exchange_object_where_api_is_required.sapiPostMarginOrder({"symbol":remove_slash_from_trading_pair_name(trading_pair),"side":'sell',"type":'market',"quantity":amount_of_sl, "isIsolted":True})
-                                            # print("1amount_of_sl")
-                                            # print(amount_of_sl)
-                                            # print("1params")
-                                            # print(params)
-
-                                            # we need to cancel tp first otherwise we will have insufficient funds to sell with sl.
-                                            # borrowed amount already locked in tp order
-                                            if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
-                                                exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
-                                                                                                   trading_pair, params=params)
-                                                file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
-
-                                            market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
-                                                trading_pair, amount_of_sl, params=params)
-                                            # market_sell_order_sl=\
-                                            #     exchange_object_where_api_is_required.create_order( symbol=trading_pair, type="market", side="sell", amount= amount_of_sl, params=params)
-                                            file.write("\n"+"market_sell_order_sl has been placed")
-
-                                            # # repay margin loan when stop loss is achieved
-                                            # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                                            #                                                   exchange_object_without_api,
-                                            #                                                   amount_of_asset_for_entry,
-                                            #                                                   exchange_object_where_api_is_required,
-                                            #                                                   params)
-
-                                        except ccxt.InsufficientFunds:
-                                            file.write("\n"+str(traceback.format_exc()))
-                                        except Exception as e:
-                                            file.write("\n"+str(traceback.format_exc()))
-
-                                        # # cancel tp because sl has been hit
-                                        # if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
-                                        #     print("4limit_sell_order_tp_order_status")
-                                        #     print(limit_sell_order_tp_order_status)
-                                        #     print("limit_sell_order_tp_order_id")
-                                        #     print(limit_sell_order_tp_order_id)
-                                        #     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
-                                        #                                                        trading_pair, params=params)
-                                        #     print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
-                                        #
-                                        #     # repay margin loan when stop loss is achieved
-                                        #     repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                                        #                                           exchange_object_without_api,
-                                        #                                                       amount_of_asset_for_entry,
-                                        #                                                       exchange_object_where_api_is_required,
-                                        #                                                       params)
-
-                                            # if repaid_margin_loan['info']['code'] == 200:
-                                            #     print("repaid_margin_loan['info']['code'] == 200")
-                                            #     print(repaid_margin_loan['info']['code'] == 200)
-
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_sl == "stop":
-                                        stop_market_order_sl = exchange_object_where_api_is_required.create_stop_market_order(
-                                            trading_pair, "sell", amount_of_sl, price_of_sl, params=params)
-                                        file.write("\n"+"stop_market_sell_order_sl has been placed")
-                                        if limit_sell_order_tp_order_status!="CANCELED" and limit_sell_order_tp_order_status!="CANCELLED":
-                                            exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
-                                                                                               trading_pair, params=params)
-                                            file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
-
-                                            # # repay margin loan when stop loss is achieved
-                                            # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                                            #                                       exchange_object_without_api,
-                                            #                                                   amount_of_asset_for_entry,
-                                            #                                                   exchange_object_where_api_is_required,
-                                            #                                                   params)
-
-                                            # if repaid_margin_loan['info']['code'] == 200:
-                                            #     print("repaid_margin_loan['info']['code'] == 200")
-                                            #     print(repaid_margin_loan['info']['code'] == 200)
-                                        external_while_loop_break_flag = True
-                                        break
-                                    else:
-                                        file.write("\n"+f"there is no order called {type_of_sl}")
-
-                                # neither sl nor tp has been reached
-                                else:
-                                    time.sleep(1)
-                                    file.write("\n"+"neither sl nor tp has been reached")
-                                    continue
-                            except ccxt.RequestTimeout:
-                                file.write("\n"+str(traceback.format_exc()))
-                                continue
-
-                        # stop waiting for the order to be filled because it has been already filled
-                        external_while_loop_break_flag = True
-                        break
-
-                    elif stop_market_buy_order_status_on_spot_margin in ["canceled", "cancelled", "canceled".upper(),
-                                                                       "cancelled".upper()]:
-                        file.write("\n"+
-                            f"{order_id} order has been {stop_market_buy_order_status_on_spot_margin} so i will no longer wait for tp or sp to be achieved")
-
-                        # # repay margin loan because the initial stop_market buy order has been cancelled
                         # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
-                        #                                                   exchange_object_without_api,
+                        #                                           exchange_object_without_api,
                         #                                                   amount_of_asset_for_entry,
                         #                                                   exchange_object_where_api_is_required, params)
 
@@ -3717,439 +4241,852 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                         #     print("repaid_margin_loan['info']['code'] == 200")
                         #     print(repaid_margin_loan['info']['code'] == 200)
 
-                        external_while_loop_break_flag = True
-                        break
+                        column_name = "trade_status"
+                        cell_value = "limit_take_profit_has_been_filled"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name, cell_value)
+                        df_with_bfr.at[row_index, column_name] = cell_value
+                        trade_status = "limit_take_profit_has_been_filled"
+
+                        return "limit_take_profit_has_been_filled"
                     else:
-                        # keep waiting for the order to fill
-                        file.write("\n"+
-                            f"waiting for the order to fill because the status of {order_id} is still {stop_market_buy_order_status_on_spot_margin}")
-                        time.sleep(1)
-                        continue
+                        current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
+                        print("current_price_of_trading_pair3")
+                        print(current_price_of_trading_pair)
+                        file.write("\n" + f"take profit order with id = {limit_sell_order_tp_order_id} has "
+                                          f"status {limit_sell_order_tp_order_status} and not yet filled. I'll keep waiting")
+
+                    current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
+                    file.write("\n"+f"waiting for the price to reach either tp={price_of_tp} or sl={price_of_sl}")
+                    file.write("\n"+f"current_price_of_trading_pair {trading_pair} is {current_price_of_trading_pair}")
+
+                    current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
+                    print("current_price_of_trading_pair4")
+                    print(current_price_of_trading_pair)
+                    file.write("\n" + f"waiting for the price to reach either tp={price_of_tp} or sl={price_of_sl}")
+                    file.write(
+                        "\n" + f"current_price_of_trading_pair {trading_pair} is {current_price_of_trading_pair}")
+
+                    trade_status = "neither_sl_nor_tp_has_been_reached"
+                    column_name = "trade_status"
+                    cell_value = trade_status
+                    update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index, column_name,
+                                                                                  cell_value)
+                    df_with_bfr.at[row_index, column_name] = cell_value
+
+                    # take profit has been reached
+                    if current_price_of_trading_pair >= price_of_tp:
+                        # if type_of_tp == "limit":
+                        #     limit_sell_order_tp = exchange_object_where_api_is_required.create_limit_sell_order(
+                        #         trading_pair, amount_of_tp, price_of_tp, params=params)
+                        #     print("limit_sell_order_tp has been placed")
+                        # external_while_loop_break_flag = True
+                        #     break
+                        if type_of_tp == "market":
+                            market_sell_order_tp = ""
+                            if exchange_id in ['binance', 'binanceus']:
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_tp, params=params)
+                                column_name = "trade_status"
+                                cell_value = "market_take_profit_has_been_filled"
+                                update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                              column_name, cell_value)
+                                df_with_bfr.at[row_index, column_name] = cell_value
+                                trade_status = "market_take_profit_has_been_filled"
+                                file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                                file.write("\n" + "market_sell_order_tp has been placed")
+                                return "market_take_profit_has_been_filled"
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                bid = float(prices[trading_pair]['bid'])
+                                amount = amount_of_tp
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                    trading_pair, 'sell', amount,
+                                    price=bid)
+                                column_name = "trade_status"
+                                cell_value = "market_take_profit_has_been_filled"
+                                update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                              column_name, cell_value)
+                                df_with_bfr.at[row_index, column_name] = cell_value
+                                trade_status = "market_take_profit_has_been_filled"
+                                file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                                file.write("\n" + "market_sell_order_tp has been placed")
+                                return "market_take_profit_has_been_filled"
+                            else:
+                                market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                    trading_pair, amount_of_tp, params=params)
+                                column_name = "trade_status"
+                                cell_value = "market_take_profit_has_been_filled"
+                                update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                              column_name, cell_value)
+                                df_with_bfr.at[row_index, column_name] = cell_value
+                                trade_status = "market_take_profit_has_been_filled"
+                                file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                                file.write("\n" + "market_sell_order_tp has been placed")
+                                return "market_take_profit_has_been_filled"
+                            # file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                            # file.write("\n" + "market_sell_order_tp has been placed")
 
 
+                        elif type_of_tp == "stop":
+                            stop_market_sell_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
+                                trading_pair, "sell", amount_of_tp, price_of_tp, params=params)
+                            file.write("\n"+"stop_market_sell_order_tp has been placed")
+                            file.write("\n" + "stop_market_sell_order_tp has been placed")
+                            column_name = "trade_status"
+                            cell_value = "stop_market_take_profit_has_been_filled"
+                            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                          column_name, cell_value)
+                            df_with_bfr.at[row_index, column_name] = cell_value
+                            trade_status = "stop_market_take_profit_has_been_filled"
+                            return "stop_market_take_profit_has_been_filled"
+                        elif type_of_tp == "limit":
+                            file.write("\n"+"price of limit tp has been reached")
+                        else:
+                            file.write("\n"+f"there is no order called {type_of_tp}")
 
-        elif side_of_stop_market_order == "sell":
-            if current_price_of_trading_pair>price_of_stop_market_order:
-                file.write("\n"+
-                    f"current price of {trading_pair} = {current_price_of_trading_pair} and it is > price_of_stop_market_order={price_of_stop_market_order}")
-                time.sleep(1)
-                continue
-            else:
+                    # stop loss has been reached
+                    if trade_status == "stop_market_take_profit_has_been_filled" \
+                            and trade_status == "market_take_profit_has_been_filled" \
+                            and trade_status == "limit_take_profit_has_been_filled":
+                        return "tp_is_filled"
 
-                file.write("\n"+f"placing sell stop_market_order on {exchange_id}")
-                stop_market_sell_order = None
-                stop_market_sell_order_status_on_spot_margin = ""
-                order_id = ""
-                params = {}
-                min_quantity = None
-                min_notional_value=None
-                # Get the symbol details
+                    print("current_price_of_trading_pair5")
+                    print(current_price_of_trading_pair)
+                    print("price_of_sl")
+                    print(price_of_sl)
 
+                    if current_price_of_trading_pair <= price_of_sl:
+                        print("current_price_of_trading_pair <= price_of_sl")
+                        if type_of_sl == "limit":
+                            limit_sell_order_sl = exchange_object_where_api_is_required.create_limit_sell_order(
+                                trading_pair, amount_of_sl, price_of_sl, params=params)
+                            file.write("\n"+"limit_sell_order_sl has been placed")
 
-                file.write("\n"+f"exchange_object_where_api_is_required={exchange_object_where_api_is_required}")
+                            # cancel tp because sl has been hit
 
+                            if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                                exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
+                                                                                   trading_pair, params=params)
+                                file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
 
-                # exchange_object_where_api_is_required.load_markets()
-                # __________________________________
-                # # show balance on spot
-                # print("exchange_object_where_api_is_required.fetch_balance()")
-                # print(exchange_object_where_api_is_required.fetch_balance())
+                                # # repay margin loan when stop loss is achieved
+                                # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
+                                #                                       exchange_object_without_api,
+                                #                                                   amount_of_asset_for_entry,
+                                #                                                   exchange_object_where_api_is_required,
+                                #                                                   params)
 
-                # show balance on cross margin
-                # cross_margin_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'margin'})
-                # print("cross_margin_balance")
-                # print(cross_margin_balance)
+                                # if repaid_margin_loan['info']['code'] == 200:
+                                #     print("repaid_margin_loan['info']['code'] == 200")
+                                #     print(repaid_margin_loan['info']['code'] == 200)
 
-                # # show balance on spot margin
-                # isolated_margin_balance = exchange_object_where_api_is_required.sapi_get_margin_isolated_account()  # not uniform, see dir(exchange)
-                # print("isolated_margin_balance")
-                # print(isolated_margin_balance)
-                # # __________________________
+                            column_name = "trade_status"
+                            cell_value = "limit_stop_loss_is_placed"
+                            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                          column_name, cell_value)
+                            df_with_bfr.at[row_index, column_name] = cell_value
+                            trade_status = "limit_stop_loss_is_placed"
+                            return "limit_stop_loss_is_placed"
+                        elif type_of_sl == "market":
+                            file.write("\n" + "market_sell_order_sl is going to be placed")
+                            try:
+                                # market_sell_order_sl=\
+                                    # exchange_object_where_api_is_required.sapiPostMarginOrder(remove_slash_from_trading_pair_name(trading_pair),
+                                    #                                                           side = "sell",
+                                    #                                                           type ="market",
+                                    #                                                           quantity = amount_of_sl, isIsolated= True)
+                                # exchange_object_where_api_is_required.sapiPostMarginOrder({"symbol":remove_slash_from_trading_pair_name(trading_pair),"side":'sell',"type":'market',"quantity":amount_of_sl, "isIsolted":True})
+                                # print("1amount_of_sl")
+                                # print(amount_of_sl)
+                                # print("1params")
+                                # print(params)
 
-                # Load the valid trading symbols
-                file.write("\n"+"going to load markets")
-                try:
-                    exchange_object_where_api_is_required.load_markets()
-                except ccxt.BadRequest:
-                    file.write(str(traceback.format_exc()))
-                except Exception:
-                    file.write(str(traceback.format_exc()))
-                file.write("\n"+"markets loaded")
-                symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
-                file.write("\n"+"symbol_details")
-                file.write("\n"+str(symbol_details))
-                try:
-                    file.write("\n"+"symbol_details['info']")
-                    file.write("\n"+str(symbol_details['info']))
-                    if exchange_id=="binance":
-                        # Get the minimum notional value for the symbol
-                        min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-                    elif exchange_id=="gateio" or exchange_id=="gate":
-                        min_notional_value = symbol_details['info']['min_quote_amount']
-                    elif exchange_id=="mexc" or exchange_id=="mexc3":
-                        min_notional_value = symbol_details['limits']['cost']['min']
+                                # we need to cancel tp first otherwise we will have insufficient funds to sell with sl.
+                                # borrowed amount already locked in tp order
+                                if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
+                                    limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                                    exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
+                                                                                       trading_pair, params=params)
+
+                                    file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
+
+                                market_sell_order_sl = ""
+                                if exchange_id in ['binance', 'binanceus']:
+                                    market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                        trading_pair, amount_of_sl, params=params)
+                                    column_name = "trade_status"
+                                    cell_value = "market_stop_loss_is_placed"
+                                    update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr,
+                                                                                                  row_index,
+                                                                                                  column_name,
+                                                                                                  cell_value)
+                                    df_with_bfr.at[row_index, column_name] = cell_value
+                                    trade_status = "market_stop_loss_is_placed"
+                                    return "market_stop_loss_is_placed"
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    prices = exchange_object_where_api_is_required.fetch_tickers()
+                                    bid = float(prices[trading_pair]['bid'])
+                                    amount = amount_of_sl
+                                    market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                        trading_pair, 'sell', amount,
+                                        price=bid)
+                                    column_name = "trade_status"
+                                    cell_value = "market_stop_loss_is_placed"
+                                    update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr,
+                                                                                                  row_index,
+                                                                                                  column_name,
+                                                                                                  cell_value)
+                                    df_with_bfr.at[row_index, column_name] = cell_value
+                                    trade_status = "market_stop_loss_is_placed"
+                                    return "market_stop_loss_is_placed"
+                                else:
+                                    market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                        trading_pair, amount_of_sl, params=params)
+                                    column_name = "trade_status"
+                                    cell_value = "market_stop_loss_is_placed"
+                                    update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr,
+                                                                                                  row_index,
+                                                                                                  column_name,
+                                                                                                  cell_value)
+                                    df_with_bfr.at[row_index, column_name] = cell_value
+                                    trade_status = "market_stop_loss_is_placed"
+                                    return "market_stop_loss_is_placed"
+                                # market_sell_order_sl=\
+                                #     exchange_object_where_api_is_required.create_order( symbol=trading_pair, type="market", side="sell", amount= amount_of_sl, params=params)
+                                file.write("\n"+"market_sell_order_sl has been placed")
+
+                                # # repay margin loan when stop loss is achieved
+                                # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
+                                #                                                   exchange_object_without_api,
+                                #                                                   amount_of_asset_for_entry,
+                                #                                                   exchange_object_where_api_is_required,
+                                #                                                   params)
+
+                            except ccxt.InsufficientFunds:
+                                file.write("\n"+str(traceback.format_exc()))
+                            except Exception as e:
+                                file.write("\n"+str(traceback.format_exc()))
+
+                            # # cancel tp because sl has been hit
+                            # if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
+                            #     print("4limit_sell_order_tp_order_status")
+                            #     print(limit_sell_order_tp_order_status)
+                            #     print("limit_sell_order_tp_order_id")
+                            #     print(limit_sell_order_tp_order_id)
+                            #     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
+                            #                                                        trading_pair, params=params)
+                            #     print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
+                            #
+                            #     # repay margin loan when stop loss is achieved
+                            #     repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
+                            #                                           exchange_object_without_api,
+                            #                                                       amount_of_asset_for_entry,
+                            #                                                       exchange_object_where_api_is_required,
+                            #                                                       params)
+
+                                # if repaid_margin_loan['info']['code'] == 200:
+                                #     print("repaid_margin_loan['info']['code'] == 200")
+                                #     print(repaid_margin_loan['info']['code'] == 200)
+
+                            # external_while_loop_break_flag = True
+                            # break
+                        elif type_of_sl == "stop":
+
+                            if limit_sell_order_tp_order_status!="CANCELED" and limit_sell_order_tp_order_status!="CANCELLED":
+                                exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
+                                                                                   trading_pair, params=params)
+                                file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
+                            stop_market_order_sl = exchange_object_where_api_is_required.create_stop_market_order(
+                                trading_pair, "sell", amount_of_sl, price_of_sl, params=params)
+                            file.write("\n" + "stop_market_sell_order_sl has been placed")
+
+                            file.write("\n" + "stop_market_sell_order_sl has been placed")
+                            column_name = "trade_status"
+                            cell_value = "stop_market_stop_loss_is_placed"
+                            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                          column_name, cell_value)
+                            df_with_bfr.at[row_index, column_name] = cell_value
+                            trade_status = "stop_market_stop_loss_is_placed"
+                            return "stop_market_stop_loss_is_placed"
+
+                                # # repay margin loan when stop loss is achieved
+                                # repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
+                                #                                       exchange_object_without_api,
+                                #                                                   amount_of_asset_for_entry,
+                                #                                                   exchange_object_where_api_is_required,
+                                #                                                   params)
+
+                                # if repaid_margin_loan['info']['code'] == 200:
+                                #     print("repaid_margin_loan['info']['code'] == 200")
+                                #     print(repaid_margin_loan['info']['code'] == 200)
+                            # external_while_loop_break_flag = True
+                            # break
+                        else:
+                            file.write("\n"+f"there is no order called {type_of_sl}")
+
+                    # neither sl nor tp has been reached
                     else:
-                        file.write(f"min_notional_value={min_notional_value}. Something is wrong")
-
-                    file.write("\n"+"min_notional_value in USD")
-                    file.write("\n"+str(min_notional_value))
-
-                    # Calculate the minimum quantity based on the minimum notional value
-                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
-
-                    file.write("\n"+
-                        f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                    file.write("\n"+str(min_quantity))
-                except:
+                        file.write("\n" + "neither sl nor tp has been reached")
+                        column_name = "trade_status"
+                        cell_value = "neither_sl_nor_tp_has_been_reached"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name, cell_value)
+                        df_with_bfr.at[row_index, column_name] = cell_value
+                        trade_status = "neither_sl_nor_tp_has_been_reached"
+                        return "neither_sl_nor_tp_has_been_reached"
+                except ccxt.RequestTimeout:
                     file.write("\n"+str(traceback.format_exc()))
+                    # continue
 
-                #
-                # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
-                # print("future_balance")
-                # print(future_balance)
+            # stop waiting for the order to be filled because it has been already filled
+            # external_while_loop_break_flag = True
+            # break
 
-                # canceled_orders = exchange_object_where_api_is_required.fetch_canceled_orders(symbol=trading_pair, since=None,
-                #                                                                            limit=None, params={})
-                # print("canceled_orders")
-                # print(canceled_orders)
-
-                # ------------------------closed orders
-
-                # ClosedOrder=exchange_object_where_api_is_required.fetchClosedOrder(id, symbol=None, params={})
-                # ClosedOrders=exchange_object_where_api_is_required.fetchClosedOrders(symbol=trading_pair, since=None, limit=None, params={})
-
-                # closed_orders_on_spot=exchange_object_where_api_is_required.fetchClosedOrders(symbol=trading_pair, since=None, limit=None, params={})
-                # print("closed_orders_on_spot")
-                # print(closed_orders_on_spot)
-
-                # OpenOrder=exchange_object_where_api_is_required.fetchOpenOrder(id, symbol=None, params={})
-                # exchange_object_where_api_is_required.load_markets()
-
-                # closed_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_closedorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE',
-                # })
-                # print("closed_orders_on_cross_margin_account")
-                # print(closed_orders_on_cross_margin_account)
-
-                # print("dir(exchange_object_where_api_is_required)")
-                # print(dir(exchange_object_where_api_is_required))
-
-                # Fetch closed orders from the margin account
-                # somehow here symbol must be without slash so we use remove_slash_from_trading_pair_name()
-                # closed_orders = exchange_object_where_api_is_required.sapi_get_margin_allorders(
-                #     {'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #      'isCross': 'TRUE'})
-                # print("closed_orders_on_cross")
-                # pprint.pprint(closed_orders)
-
-                # # sapi_get_margin_allorders works only for binance
-                # all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE'})
-                # print("all_orders_on_cross_margin_account")
-                # pprint.pprint(all_orders_on_cross_margin_account)
-
-                # all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE',
-                # })
-                # print("all_orders_on_cross_margin_account")
-                # pprint.pprint(all_orders_on_cross_margin_account)
-
-                # --------------------------open_orders
-                # # open_orders_on_spot=exchange_object_where_api_is_required.fetch_open_orders(symbol=trading_pair, since=None, limit=None, params={})
-                # open_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_openorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE',
-                # })
-
-                # print("open_orders_on_cross_margin_account")
-                # pprint.pprint(open_orders_on_cross_margin_account)
-
-                # open_orders_on_cross_margin_account=exchange_object_where_api_is_required.sapi_get_margin_openorders({
-                #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
-                #     'isCross': 'TRUE',
-                # })
-
-                # print("trading_pair")
-                # print(trading_pair)
-                # print("open_orders")
-                # print(open_orders_on_cross_margin_account)
-                # Order=exchange_object_where_api_is_required.fetchOrder(id, symbol=None, params={})
-                # Orders=exchange_object_where_api_is_required.fetchOrders(symbol=trading_pair, since=None, limit=None, params={})
-                # print("Orders")
-                # print(Orders)
+        elif stop_market_buy_order_status_on_spot_margin in ["canceled", "cancelled", "canceled".upper(),
+                                                           "cancelled".upper()]:
+            file.write("\n" +
+                       f"{order_id} order has been {stop_market_buy_order_status_on_spot_margin} so i will no longer wait for tp or sp to be achieved")
+            column_name = "trade_status"
+            cell_value = " stop_market_buy_order_has_been_cancelled"
+            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index, column_name,
+                                                                          cell_value)
+            df_with_bfr.at[row_index, column_name] = cell_value
+            trade_status = "stop_market_buy_order_has_been_cancelled"
+            return "stop_market_buy_order_has_been_cancelled"
+        else:
+            # keep waiting for the order to fill
+            if counter_for_how_many_times_string_to_be_written_to_file_that_the_status_of_market_order_is_still_NEW_is_written_to_file == 0 or \
+                    counter_for_how_many_times_string_to_be_written_to_file_that_the_status_of_market_order_is_still_NEW_is_written_to_file % 10 == 0:
+                counter_for_how_many_times_string_to_be_written_to_file_that_the_status_of_market_order_is_still_NEW_is_written_to_file = \
+                    counter_for_how_many_times_string_to_be_written_to_file_that_the_status_of_market_order_is_still_NEW_is_written_to_file + 1
+                # keep waiting for the order to fill
+                string_to_be_written_to_file_that_the_status_of_limit_order_is_still_NEW = \
+                    "\n" + f"waiting for the order to fill because the status of {order_id} is still {stop_market_buy_order_status_on_spot_margin}"
+                file.write(string_to_be_written_to_file_that_the_status_of_limit_order_is_still_NEW)
 
 
-                margin_mode = "spot"
-                amount_of_asset_for_entry = 0
-                try:
-                    # # borrow margin before creating an order. Borrow exactly how much your position is
-                    # margin_loan_when_base_currency_is_borrowed = borrow_margin_loan_when_base_currency_is_borrowed(
-                    #     trading_pair,
-                    #     exchange_object_without_api,
-                    #     amount_of_asset_for_entry,
-                    #     exchange_object_where_api_is_required, params)
-                    file.write("\n"+"margin_loan_when_base_currency_is not _borrowed because it is spot")
-                    # print(margin_loan_when_base_currency_is_borrowed)
-                    amount_of_asset_for_entry = \
-                        convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
-                                                                        price_of_stop_market_order)
 
+    elif side_of_stop_market_order == "sell":
+        # if current_price_of_trading_pair>price_of_stop_market_order:
+        #     file.write("\n"+
+        #         f"current price of {trading_pair} = {current_price_of_trading_pair} and it is > price_of_stop_market_order={price_of_stop_market_order}")
+        #     # time.sleep(1)
+        #     continue
+        # else:
+
+        file.write("\n"+f"placing sell stop_market_order on {exchange_id}")
+        stop_market_sell_order = None
+        stop_market_sell_order_status_on_spot_margin = ""
+        order_id = ""
+        params = {}
+        min_quantity = None
+        min_notional_value=None
+        # Get the symbol details
+
+
+        file.write("\n"+f"exchange_object_where_api_is_required={exchange_object_where_api_is_required}")
+
+
+        # exchange_object_where_api_is_required.load_markets()
+        # __________________________________
+        # # show balance on spot
+        # print("exchange_object_where_api_is_required.fetch_balance()")
+        # print(exchange_object_where_api_is_required.fetch_balance())
+
+        # show balance on cross margin
+        # cross_margin_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'margin'})
+        # print("cross_margin_balance")
+        # print(cross_margin_balance)
+
+        # # show balance on spot margin
+        # isolated_margin_balance = exchange_object_where_api_is_required.sapi_get_margin_isolated_account()  # not uniform, see dir(exchange)
+        # print("isolated_margin_balance")
+        # print(isolated_margin_balance)
+        # # __________________________
+
+        # Load the valid trading symbols
+        file.write("going to load markets")
+        exchange_object_where_api_is_required.load_markets()
+        file.write("markets loaded")
+        symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
+        file.write("symbol_details")
+        file.write(str(symbol_details))
+        try:
+            # file.write("\n" + "symbol_details")
+            # file.write("\n" + str(symbol_details))
+            # file.write("\n" + "symbol_details['info']")
+            # file.write("\n" + str(symbol_details['info']))
+            if exchange_id == "lbank" or exchange_id == "lbank2":
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+            elif exchange_id == "binance":
+                min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "mexc3" or exchange_id == "mexc":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                min_quantity = min_notional_value / float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+            elif exchange_id == "okex" or exchange_id == "okex5":
+                min_notional_value = symbol_details['limits']['cost']['min']
+                if not pd.isna(min_notional_value):
+                    min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                        price_of_stop_market_order)
+                    file.write("\n" +
+                               f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                    file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                min_quantity = symbol_details['limits']['amount']['min']
+                min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                file.write("\n" +
+                           f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_in_usd))
+
+            else:
+                file.write("\n" + "symbol_details")
+                file.write("\n" + str(symbol_details))
+                min_notional_value = symbol_details['limits']['cost']['min']
+                file.write("\n" + "min_notional_value in USD")
+                file.write("\n" + str(min_notional_value))
+
+                # Calculate the minimum quantity based on the minimum notional value
+                min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                file.write("\n" +
+                           f"min_quantity found by division of min_notional_value by price_of_limit_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity))
+                min_quantity_raw = symbol_details['limits']['amount']['min']
+                file.write("\n" +
+                           f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_quantity_raw))
+                min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                    price_of_stop_market_order)
+                file.write("\n" +
+                           f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
+        except:
+            file.write("\n" + str(traceback.format_exc()))
+
+        #
+        # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
+        # print("future_balance")
+        # print(future_balance)
+
+        # canceled_orders = exchange_object_where_api_is_required.fetch_canceled_orders(symbol=trading_pair, since=None,
+        #                                                                            limit=None, params={})
+        # print("canceled_orders")
+        # print(canceled_orders)
+
+        # ------------------------closed orders
+
+        # ClosedOrder=exchange_object_where_api_is_required.fetchClosedOrder(id, symbol=None, params={})
+        # ClosedOrders=exchange_object_where_api_is_required.fetchClosedOrders(symbol=trading_pair, since=None, limit=None, params={})
+
+        # closed_orders_on_spot=exchange_object_where_api_is_required.fetchClosedOrders(symbol=trading_pair, since=None, limit=None, params={})
+        # print("closed_orders_on_spot")
+        # print(closed_orders_on_spot)
+
+        # OpenOrder=exchange_object_where_api_is_required.fetchOpenOrder(id, symbol=None, params={})
+        # exchange_object_where_api_is_required.load_markets()
+
+        # closed_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_closedorders({
+        #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
+        #     'isCross': 'TRUE',
+        # })
+        # print("closed_orders_on_cross_margin_account")
+        # print(closed_orders_on_cross_margin_account)
+
+        # print("dir(exchange_object_where_api_is_required)")
+        # print(dir(exchange_object_where_api_is_required))
+
+        # Fetch closed orders from the margin account
+        # somehow here symbol must be without slash so we use remove_slash_from_trading_pair_name()
+        # closed_orders = exchange_object_where_api_is_required.sapi_get_margin_allorders(
+        #     {'symbol': remove_slash_from_trading_pair_name(trading_pair),
+        #      'isCross': 'TRUE'})
+        # print("closed_orders_on_cross")
+        # pprint.pprint(closed_orders)
+
+        # # sapi_get_margin_allorders works only for binance
+        # all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
+        #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
+        #     'isCross': 'TRUE'})
+        # print("all_orders_on_cross_margin_account")
+        # pprint.pprint(all_orders_on_cross_margin_account)
+
+        # all_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_allorders({
+        #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
+        #     'isCross': 'TRUE',
+        # })
+        # print("all_orders_on_cross_margin_account")
+        # pprint.pprint(all_orders_on_cross_margin_account)
+
+        # --------------------------open_orders
+        # # open_orders_on_spot=exchange_object_where_api_is_required.fetch_open_orders(symbol=trading_pair, since=None, limit=None, params={})
+        # open_orders_on_cross_margin_account = exchange_object_where_api_is_required.sapi_get_margin_openorders({
+        #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
+        #     'isCross': 'TRUE',
+        # })
+
+        # print("open_orders_on_cross_margin_account")
+        # pprint.pprint(open_orders_on_cross_margin_account)
+
+        # open_orders_on_cross_margin_account=exchange_object_where_api_is_required.sapi_get_margin_openorders({
+        #     'symbol': remove_slash_from_trading_pair_name(trading_pair),
+        #     'isCross': 'TRUE',
+        # })
+
+        # print("trading_pair")
+        # print(trading_pair)
+        # print("open_orders")
+        # print(open_orders_on_cross_margin_account)
+        # Order=exchange_object_where_api_is_required.fetchOrder(id, symbol=None, params={})
+        # Orders=exchange_object_where_api_is_required.fetchOrders(symbol=trading_pair, since=None, limit=None, params={})
+        # print("Orders")
+        # print(Orders)
+
+
+        margin_mode = "spot"
+        amount_of_asset_for_entry = 0
+        try:
+            # # borrow margin before creating an order. Borrow exactly how much your position is
+            # margin_loan_when_base_currency_is_borrowed = borrow_margin_loan_when_base_currency_is_borrowed(
+            #     trading_pair,
+            #     exchange_object_without_api,
+            #     amount_of_asset_for_entry,
+            #     exchange_object_where_api_is_required, params)
+            file.write("\n"+"margin_loan_when_base_currency_is not _borrowed because it is spot")
+            # print(margin_loan_when_base_currency_is_borrowed)
+            amount_of_asset_for_entry = \
+                convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
+                                                                price_of_stop_market_order)
+
+            try:
+                # stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(trading_pair,
+                #                                                                                  amount_of_asset_for_entry,
+                #                                                                                  # price_of_stop_market_order,
+                #                                                                                  params=params)
+                if exchange_id in ['binance', 'binanceus']:
+                    stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(trading_pair,
+                                                                                                   amount_of_asset_for_entry,
+                                                                                               # price_of_stop_market_order,
+                                                                                               params=params)
+                elif exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                    prices = exchange_object_where_api_is_required.fetch_tickers()
+                    bid = float(prices[trading_pair]['bid'])
+                    amount = amount_of_asset_for_entry
+                    file.write("\n" + "amount")
+                    file.write("\n" + str(amount))
+                    file.write("\n" + "bid")
+                    file.write("\n" + str(bid))
+                    stop_market_sell_order = exchange_object_where_api_is_required.create_market_order(
+                        trading_pair, 'sell', amount,
+                        price=bid)
+                    # file.write("\n" + "stop_market_sell_order12")
+                    # file.write("\n" + str(stop_market_sell_order))
+                else:
+                    stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(
+                        trading_pair,
+                        amount_of_asset_for_entry,
+                        # price_of_stop_market_order,
+                        params=params)
+            except ccxt.InsufficientFunds:
+                file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
+                file.write("\n"+str(traceback.format_exc()))
+
+                # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
+                #                                                   exchange_object_without_api,
+                #                                                   amount_of_asset_for_entry,
+                #                                                   exchange_object_where_api_is_required, params)
+                external_while_loop_break_flag = True
+                raise SystemExit
+
+            except ccxt.InvalidOrder as e:
+                if "Filter failure: NOTIONAL" in str(e):
+                    file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
+                    file.write("\n"+
+                        f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
+                        f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
+                        f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
+
+                    # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
+                    #                                                   exchange_object_without_api,
+                    #                                                   amount_of_asset_for_entry,
+                    #                                                   exchange_object_where_api_is_required, params)
+                    external_while_loop_break_flag = True
+                    raise SystemExit
+            except Exception as e:
+
+                # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
+                #                                                   exchange_object_without_api,
+                #                                                   amount_of_asset_for_entry,
+                #                                                   exchange_object_where_api_is_required, params)
+                file.write("\n"+str(traceback.format_exc()))
+                external_while_loop_break_flag = True
+                raise SystemExit
+            file.write("\n"+f"placed sell stop_market order on {exchange_id}")
+            file.write("\n"+"stop_market_sell_order")
+            file.write("\n"+str(stop_market_sell_order))
+
+            order_id = stop_market_sell_order['id']
+            if exchange_id in ["mexc3", "mexc"]:
+                orig_quantity = stop_market_sell_order['info']['origQty']
+                amount_of_tp = orig_quantity
+                amount_of_sl = orig_quantity
+            else:
+                orig_quantity = stop_market_sell_order['info']['origQty']
+                amount_of_tp = orig_quantity
+                amount_of_sl = orig_quantity
+            file.write("\n"+"order_id5")
+            file.write("\n"+str(order_id))
+
+            spot_cross_or_isolated_margin = "spot"
+            all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
+                                                                                         spot_cross_or_isolated_margin,
+                                                                                         exchange_object_where_api_is_required)
+
+
+            stop_market_sell_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
+                all_orders_on_spot_margin_account, order_id)
+            file.write("\n"+"stop_market_sell_order_status_on_spot_margin1")
+            file.write("\n"+str(stop_market_sell_order_status_on_spot_margin))
+            file.write("\n"+"stop_market_sell_order['status']")
+            file.write("\n"+str(stop_market_sell_order['status']))
+
+        except ccxt.InvalidOrder as e:
+            if "Filter failure: NOTIONAL" in str(e):
+                file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
+                file.write("\n"+
+                    f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
+                    f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
+                    f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
+                external_while_loop_break_flag = True
+                raise SystemExit
+
+
+        except Exception:
+            file.write("\n"+str(traceback.format_exc()))
+            raise SystemExit
+
+        # wait till order is filled (that is closed)
+        while True:
+            file.write("\n"+"waiting for the sell order to get filled")
+            # print("order_id2")
+            # print(order_id)
+            #
+            # sapi_get_margin_allorders works only for binance
+            spot_cross_or_isolated_margin = "spot"
+            all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
+                                                                                         spot_cross_or_isolated_margin,
+                                                                                         exchange_object_where_api_is_required)
+            # print("all_orders_on_spot_margin_account1")
+            # pprint.pprint(all_orders_on_spot_margin_account)
+
+            stop_market_sell_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
+                all_orders_on_spot_margin_account, order_id)
+
+            file.write("\n"+"stop_market_sell_order_status_on_spot_margin3")
+            file.write("\n"+str(stop_market_sell_order_status_on_spot_margin))
+
+            if stop_market_sell_order_status_on_spot_margin == "closed" or\
+                    stop_market_sell_order_status_on_spot_margin == "closed".upper() or stop_market_sell_order_status_on_spot_margin == "FILLED":
+                # place take profit right away as soon as stop_market order has been fulfilled
+                limit_buy_order_tp_order_id = ""
+                if type_of_tp == "limit":
+                    limit_buy_order_tp = exchange_object_where_api_is_required.create_limit_buy_order(
+                        trading_pair, amount_of_tp, price_of_tp, params=params)
+                    file.write("\n"+"limit_buy_order_tp has been placed but not yet filled")
+                    limit_buy_order_tp_order_id = get_order_id(limit_buy_order_tp)
+
+
+                # keep looking at the price and wait till either sl or tp has been reached
+                while True:
                     try:
-                        stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(trading_pair,
-                                                                                                         amount_of_asset_for_entry,
-                                                                                                         # price_of_stop_market_order,
-                                                                                                         params=params)
-                    except ccxt.InsufficientFunds:
-                        file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
-                        file.write("\n"+str(traceback.format_exc()))
-
-                        # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
-                        #                                                   exchange_object_without_api,
-                        #                                                   amount_of_asset_for_entry,
-                        #                                                   exchange_object_where_api_is_required, params)
-                        external_while_loop_break_flag = True
-                        raise SystemExit
-
-                    except ccxt.InvalidOrder as e:
-                        if "Filter failure: NOTIONAL" in str(e):
-                            file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
-                            file.write("\n"+
-                                f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
-                                f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
-                                f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
-
+                        # keep looking if limit take profit has been filled
+                        spot_cross_or_isolated_margin = "spot"
+                        all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
+                                                                                                     spot_cross_or_isolated_margin,
+                                                                                                     exchange_object_where_api_is_required)
+                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(
+                            all_orders_on_spot_margin_account, limit_buy_order_tp_order_id)
+                        # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
+                        #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
+                        if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
+                            file.write("\n"+f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
                             # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
                             #                                                   exchange_object_without_api,
                             #                                                   amount_of_asset_for_entry,
                             #                                                   exchange_object_where_api_is_required, params)
+                            # stop looking at the price to place stop loss because take profit has been filled
                             external_while_loop_break_flag = True
-                            raise SystemExit
-                    except Exception as e:
-
-                        # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
-                        #                                                   exchange_object_without_api,
-                        #                                                   amount_of_asset_for_entry,
-                        #                                                   exchange_object_where_api_is_required, params)
-                        file.write("\n"+str(traceback.format_exc()))
-                        external_while_loop_break_flag = True
-                        raise SystemExit
-                    file.write("\n"+f"placed sell stop_market order on {exchange_id}")
-                    file.write("\n"+"stop_market_sell_order")
-                    file.write("\n"+str(stop_market_sell_order))
-
-                    order_id = stop_market_sell_order['id']
-                    file.write("\n"+"order_id5")
-                    file.write("\n"+str(order_id))
-
-                    spot_cross_or_isolated_margin = "spot"
-                    all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
-                                                                                                 spot_cross_or_isolated_margin,
-                                                                                                 exchange_object_where_api_is_required)
+                            break
+                        else:
+                            file.write("\n"+f"take profit order with id = {limit_buy_order_tp_order_id} has "
+                                  f"status {limit_buy_order_tp_order_status} and not yet filled. I'll keep waiting")
 
 
-                    stop_market_sell_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
-                        all_orders_on_spot_margin_account, order_id)
-                    file.write("\n"+"stop_market_sell_order_status_on_spot_margin1")
-                    file.write("\n"+str(stop_market_sell_order_status_on_spot_margin))
-                    file.write("\n"+"stop_market_sell_order['status']")
-                    file.write("\n"+str(stop_market_sell_order['status']))
-
-                except ccxt.InvalidOrder as e:
-                    if "Filter failure: NOTIONAL" in str(e):
-                        file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
-                        file.write("\n"+
-                            f"{amount_of_asset_for_entry} {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)} "
-                            f"or {amount_of_asset_for_entry * get_price(exchange_object_without_api, trading_pair)} "
-                            f"USD amount of your order is too small for entry. The amount should be > {min_notional_value} USD")
-                        external_while_loop_break_flag = True
-                        raise SystemExit
 
 
-                except Exception:
-                    file.write("\n"+str(traceback.format_exc()))
-                    raise SystemExit
+                        current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
+                        file.write("\n"+f"waiting for the price to reach either tp={price_of_tp} or sl={price_of_sl}")
+                        file.write("\n"+f"current_price_of_trading_pair {trading_pair} is {current_price_of_trading_pair}")
+                        # take profit has been reached
+                        if current_price_of_trading_pair <= price_of_tp:
+                            # if type_of_tp == "limit":
+                            #     limit_buy_order_tp = exchange_object_where_api_is_required.create_limit_buy_order(
+                            #         trading_pair, amount_of_tp, price_of_tp, params=params)
+                            #     print("limit_buy_order_tp has been placed")
 
-                # wait till order is filled (that is closed)
-                while True:
-                    file.write("\n"+"waiting for the sell order to get filled")
-                    # print("order_id2")
-                    # print(order_id)
-                    #
-                    # sapi_get_margin_allorders works only for binance
-                    spot_cross_or_isolated_margin = "spot"
-                    all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
-                                                                                                 spot_cross_or_isolated_margin,
-                                                                                                 exchange_object_where_api_is_required)
-                    # print("all_orders_on_spot_margin_account1")
-                    # pprint.pprint(all_orders_on_spot_margin_account)
+                            #     break
+                            if type_of_tp == "market":
+                                market_buy_order_tp = ""
+                                if exchange_id in ['binance', 'binanceus']:
+                                    market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                        trading_pair, amount_of_tp, params=params)
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    prices = exchange_object_where_api_is_required.fetch_tickers()
+                                    ask = float(prices[trading_pair]['ask'])
+                                    amount = amount_of_tp
+                                    market_buy_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                        trading_pair, 'buy', amount,
+                                        price=ask)
+                                else:
+                                    market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                        trading_pair, amount_of_tp, params=params)
+                                file.write("\n" + f"market_buy_order_tp = {market_buy_order_tp}")
+                                file.write("\n" + "market_buy_order_tp has been placed")
+                                break
+                            elif type_of_tp == "stop":
+                                stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
+                                    trading_pair, "buy", amount_of_tp, price_of_tp, params=params)
+                                file.write("\n"+"stop_market_buy_order_tp has been placed")
+                                external_while_loop_break_flag = True
+                                break
+                            elif type_of_tp == "limit":
+                                file.write("\n"+"price of limit tp has been reached")
+                            else:
+                                file.write("\n"+f"there is no order called {type_of_tp}")
 
-                    stop_market_sell_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(
-                        all_orders_on_spot_margin_account, order_id)
-
-                    file.write("\n"+"stop_market_sell_order_status_on_spot_margin3")
-                    file.write("\n"+str(stop_market_sell_order_status_on_spot_margin))
-
-                    if stop_market_sell_order_status_on_spot_margin == "closed" or\
-                            stop_market_sell_order_status_on_spot_margin == "closed".upper() or stop_market_sell_order_status_on_spot_margin == "FILLED":
-                        # place take profit right away as soon as stop_market order has been fulfilled
-                        limit_buy_order_tp_order_id = ""
-                        if type_of_tp == "limit":
-                            limit_buy_order_tp = exchange_object_where_api_is_required.create_limit_buy_order(
-                                trading_pair, amount_of_tp, price_of_tp, params=params)
-                            file.write("\n"+"limit_buy_order_tp has been placed but not yet filled")
-                            limit_buy_order_tp_order_id = get_order_id(limit_buy_order_tp)
-
-
-                        # keep looking at the price and wait till either sl or tp has been reached
-                        while True:
-                            try:
-                                # keep looking if limit take profit has been filled
-                                spot_cross_or_isolated_margin = "spot"
-                                all_orders_on_spot_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
-                                                                                                             spot_cross_or_isolated_margin,
-                                                                                                             exchange_object_where_api_is_required)
-                                limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(
-                                    all_orders_on_spot_margin_account, limit_buy_order_tp_order_id)
-                                # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
-                                #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
-                                if limit_buy_order_tp_order_status == "FILLED":
-                                    file.write("\n"+f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
+                        # stop loss has been reached
+                        elif current_price_of_trading_pair >= price_of_sl:
+                            if type_of_sl == "limit":
+                                limit_buy_order_sl = exchange_object_where_api_is_required.create_limit_buy_order(
+                                    trading_pair, amount_of_sl, price_of_sl, params=params)
+                                file.write("\n"+"limit_buy_order_sl has been placed")
+                                if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                    exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
+                                                                                       trading_pair, params=params)
+                                    file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
+                                    # repay margin loan when stop loss is achieved
                                     # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
                                     #                                                   exchange_object_without_api,
                                     #                                                   amount_of_asset_for_entry,
-                                    #                                                   exchange_object_where_api_is_required, params)
-                                    # stop looking at the price to place stop loss because take profit has been filled
-                                    external_while_loop_break_flag = True
-                                    break
-                                else:
-                                    file.write("\n"+f"take profit order with id = {limit_buy_order_tp_order_id} has "
-                                          f"status {limit_buy_order_tp_order_status} and not yet filled. I'll keep waiting")
-
-
-
-
-                                current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
-                                file.write("\n"+f"waiting for the price to reach either tp={price_of_tp} or sl={price_of_sl}")
-                                file.write("\n"+f"current_price_of_trading_pair {trading_pair} is {current_price_of_trading_pair}")
-                                # take profit has been reached
-                                if current_price_of_trading_pair <= price_of_tp:
-                                    # if type_of_tp == "limit":
-                                    #     limit_buy_order_tp = exchange_object_where_api_is_required.create_limit_buy_order(
-                                    #         trading_pair, amount_of_tp, price_of_tp, params=params)
-                                    #     print("limit_buy_order_tp has been placed")
-
-                                    #     break
-                                    if type_of_tp == "market":
-                                        market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
-                                            trading_pair, amount_of_tp, params=params)
-                                        file.write("\n"+"market_buy_order_tp has been placed")
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_tp == "stop":
-                                        stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
-                                            trading_pair, "buy", amount_of_tp, price_of_tp, params=params)
-                                        file.write("\n"+"stop_market_buy_order_tp has been placed")
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_tp == "limit":
-                                        file.write("\n"+"price of limit tp has been reached")
+                                    #                                                   exchange_object_where_api_is_required,
+                                    #                                                   params)
+                                external_while_loop_break_flag = True
+                                break
+                            elif type_of_sl == "market":
+                                try:
+                                    if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                        exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
+                                                                                           trading_pair, params=params)
+                                        file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
+                                    if exchange_id in ['binance', 'binanceus']:
+                                        market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                            trading_pair, amount_of_sl, params=params)
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                        prices = exchange_object_where_api_is_required.fetch_tickers()
+                                        ask = float(prices[trading_pair]['ask'])
+                                        amount = amount_of_sl
+                                        market_buy_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                            trading_pair, 'buy', amount,
+                                            price=ask)
                                     else:
-                                        file.write("\n"+f"there is no order called {type_of_tp}")
+                                        market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                            trading_pair, amount_of_sl, params=params)
+                                    file.write("\n"+"market_buy_order_sl has been placed")
 
-                                # stop loss has been reached
-                                elif current_price_of_trading_pair >= price_of_sl:
-                                    if type_of_sl == "limit":
-                                        limit_buy_order_sl = exchange_object_where_api_is_required.create_limit_buy_order(
-                                            trading_pair, amount_of_sl, price_of_sl, params=params)
-                                        file.write("\n"+"limit_buy_order_sl has been placed")
-                                        if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
-                                            exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
-                                                                                               trading_pair, params=params)
-                                            file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
-                                            # repay margin loan when stop loss is achieved
-                                            # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
-                                            #                                                   exchange_object_without_api,
-                                            #                                                   amount_of_asset_for_entry,
-                                            #                                                   exchange_object_where_api_is_required,
-                                            #                                                   params)
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_sl == "market":
-                                        try:
-                                            if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
-                                                exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
-                                                                                                   trading_pair, params=params)
-                                                file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
-                                            market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
-                                                trading_pair, amount_of_sl, params=params)
-                                            file.write("\n"+"market_buy_order_sl has been placed")
+                                    # repay margin loan when stop loss is achieved
+                                    # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
+                                    #                                                   exchange_object_without_api,
+                                    #                                                   amount_of_asset_for_entry,
+                                    #                                                   exchange_object_where_api_is_required,
+                                    #                                                   params)
 
-                                            # repay margin loan when stop loss is achieved
-                                            # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
-                                            #                                                   exchange_object_without_api,
-                                            #                                                   amount_of_asset_for_entry,
-                                            #                                                   exchange_object_where_api_is_required,
-                                            #                                                   params)
+                                except ccxt.InsufficientFunds:
+                                    file.write("\n"+str(traceback.format_exc()))
+                                except Exception as e:
+                                    file.write("\n"+str(traceback.format_exc()))
+                                external_while_loop_break_flag = True
+                                break
+                            elif type_of_sl == "stop":
+                                stop_market_buy_order_sl = exchange_object_where_api_is_required.create_stop_market_order(
+                                    trading_pair, "buy", amount_of_sl, price_of_sl, params=params)
+                                file.write("\n"+"stop_market_buy_order_sl has been placed")
+                                if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                    exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
+                                                                                       trading_pair, params=params)
+                                    file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
+                                external_while_loop_break_flag = True
+                                break
+                            else:
+                                file.write("\n"+f"there is no order called {type_of_sl}")
 
-                                        except ccxt.InsufficientFunds:
-                                            file.write("\n"+str(traceback.format_exc()))
-                                        except Exception as e:
-                                            file.write("\n"+str(traceback.format_exc()))
-                                        external_while_loop_break_flag = True
-                                        break
-                                    elif type_of_sl == "stop":
-                                        stop_market_buy_order_sl = exchange_object_where_api_is_required.create_stop_market_order(
-                                            trading_pair, "buy", amount_of_sl, price_of_sl, params=params)
-                                        file.write("\n"+"stop_market_buy_order_sl has been placed")
-                                        if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
-                                            exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
-                                                                                               trading_pair, params=params)
-                                            file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
-                                        external_while_loop_break_flag = True
-                                        break
-                                    else:
-                                        file.write("\n"+f"there is no order called {type_of_sl}")
-
-                                # neither sl nor tp has been reached
-                                else:
-                                    time.sleep(1)
-                                    file.write("\n"+"neither sl nor tp has been reached")
-                                    continue
-                            except ccxt.RequestTimeout:
-                                file.write("\n"+str(traceback.format_exc()))
-                                continue
-                        # stop waiting for the order to be filled because it has been already filled
-                        external_while_loop_break_flag = True
-                        break
-
-                    elif stop_market_sell_order_status_on_spot_margin in ["canceled", "cancelled", "canceled".upper(), "cancelled".upper()]:
-                        file.write("\n"+
-                            f"{order_id} order has been {stop_market_sell_order_status_on_spot_margin} so i will no longer wait for tp or sp to be achieved")
-
-                        # # repay margin loan because the initial stop_market buy order has been cancelled
-                        # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
-                        #                                                   exchange_object_without_api,
-                        #                                                   amount_of_asset_for_entry,
-                        #                                                   exchange_object_where_api_is_required, params)
-                        external_while_loop_break_flag = True
-                        break
-                    else:
-                        # keep waiting for the order to fill
-                        file.write("\n"+
-                            f"waiting for the order to fill because the status of {order_id} is still {stop_market_sell_order_status_on_spot_margin}")
-                        time.sleep(1)
+                        # neither sl nor tp has been reached
+                        else:
+                            # # time.sleep(1)
+                            file.write("\n"+"neither sl nor tp has been reached")
+                            continue
+                    except ccxt.RequestTimeout:
+                        file.write("\n"+str(traceback.format_exc()))
                         continue
+                # stop waiting for the order to be filled because it has been already filled
+                external_while_loop_break_flag = True
+                break
+
+            elif stop_market_sell_order_status_on_spot_margin in ["canceled", "cancelled", "canceled".upper(), "cancelled".upper()]:
+                file.write("\n"+
+                    f"{order_id} order has been {stop_market_sell_order_status_on_spot_margin} so i will no longer wait for tp or sp to be achieved")
+
+                # # repay margin loan because the initial stop_market buy order has been cancelled
+                # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
+                #                                                   exchange_object_without_api,
+                #                                                   amount_of_asset_for_entry,
+                #                                                   exchange_object_where_api_is_required, params)
+                external_while_loop_break_flag = True
+                break
+            else:
+                # keep waiting for the order to fill
+                file.write("\n"+
+                    f"waiting for the order to fill because the status of {order_id} is still {stop_market_sell_order_status_on_spot_margin}")
+                # # time.sleep(1)
+                continue
 
 
-        else:
-            file.write("\n"+f"unknown {side_of_stop_market_order} value")
-        if external_while_loop_break_flag == True:
-            file.write("\n"+"external_while_loop_break_flag = True so while loop is breaking")
-            break
-def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_cross_margin_account1(file, exchange_id,
+    else:
+        file.write("\n"+f"unknown {side_of_stop_market_order} value")
+    # if external_while_loop_break_flag == True:
+    #     file.write("\n"+"external_while_loop_break_flag = True so while loop is breaking")
+
+def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_cross_margin_account1(row_df, row_index,file, exchange_id,
                                                        trading_pair,
                                                        price_of_sl, type_of_sl, amount_of_sl,
                                                        price_of_tp, type_of_tp, amount_of_tp, post_only_for_limit_tp_bool,
@@ -4163,7 +5100,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
     # uncomment this when in production and add tab after this line
     # with open(file_path, "a") as file:
     # Retrieve the arguments passed to the script
-    file.write("\n"+f"began writing to {file.name} at {datetime.now()}\n")
+    file.write("\n"+f"began writing to {file.name} at {datetime.datetime.now()}\n")
     try:
         file.write("\n"+str(exchange_id))
 
@@ -4176,12 +5113,15 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
     # print(side_of_stop_market_order)
     external_while_loop_break_flag=False
+
+    trade_status = row_df.loc[row_index, "trade_status"]
+
     while True:
         current_price_of_trading_pair=get_price(exchange_object_without_api, trading_pair)
         if side_of_stop_market_order == "buy":
             if current_price_of_trading_pair<price_of_stop_market_order:
                 file.write("\n"+f"current price of {trading_pair} = {current_price_of_trading_pair} and it is < price_of_stop_market_order={price_of_stop_market_order}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
             else:
                 file.write("\n"+f"placing buy stop_market_order on {exchange_id}")
@@ -4209,12 +5149,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-                try:
-                    exchange_object_where_api_is_required.load_markets()
-                except ccxt.BadRequest:
-                    file.write(str(traceback.format_exc()))
-                except Exception:
-                    file.write(str(traceback.format_exc()))
+                exchange_object_where_api_is_required.load_markets()
 
                 # Get the symbol details
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
@@ -4222,18 +5157,77 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # Get the minimum notional value for the symbol
                 min_notional_value = None
                 try:
-                    min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-                    file.write("\n"+"min_notional_value in USD")
-                    file.write("\n"+str(min_notional_value))
+                    # file.write("\n" + "symbol_details")
+                    # file.write("\n" + str(symbol_details))
+                    # file.write("\n" + "symbol_details['info']")
+                    # file.write("\n" + str(symbol_details['info']))
+                    if exchange_id == "lbank" or exchange_id == "lbank2":
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+                    elif exchange_id == "binance":
+                        min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
 
-                    # Calculate the minimum quantity based on the minimum notional value
-                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-                    file.write("\n"+
-                        f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                    file.write("\n"+str(min_quantity))
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "mexc3" or exchange_id == "mexc":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        min_quantity = min_notional_value / float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "okex" or exchange_id == "okex5":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        if not pd.isna(min_notional_value):
+                            min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                                price_of_stop_market_order)
+                            file.write("\n" +
+                                       f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                            file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                        file.write("\n" +
+                                   f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_in_usd))
+
+                    else:
+                        file.write("\n" + "symbol_details")
+                        file.write("\n" + str(symbol_details))
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                        file.write("\n" +
+                                   f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        min_quantity_raw = symbol_details['limits']['amount']['min']
+                        file.write("\n" +
+                                   f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity_raw))
+                        min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                            price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
                 except:
-                    file.write("\n"+str(traceback.format_exc()))
+                    file.write("\n" + str(traceback.format_exc()))
 
                 #
                 # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
@@ -4311,6 +5305,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 amount_of_asset_for_entry = \
                     convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
                                                                     price_of_stop_market_order)
+                amount_of_tp = amount_of_asset_for_entry
+                amount_of_sl = amount_of_asset_for_entry
                 # we need current timestamp to get borrow interest since that timestamp to add this interest to the repay ammount
                 # current_timestamp_in_milliseconds = get_current_timestamp_in_seconds()
 
@@ -4331,11 +5327,41 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
 
                     try:
-                        stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(trading_pair,
-                                                                                                       amount_of_asset_for_entry,
-                                                                                                       # price_of_stop_market_order,
-                                                                                                       params=params)
-                        file.write("\n"+"created_stop_market_buy_order")
+
+
+                        if exchange_id in ['binance', 'binanceus']:
+                            stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
+                        elif exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                            ask = float(prices[trading_pair]['ask'])
+                            amount = amount_of_asset_for_entry
+                            file.write("\n" + "amount")
+                            file.write("\n" + str(amount))
+                            file.write("\n" + "ask")
+                            file.write("\n" + str(ask))
+                            stop_market_buy_order = exchange_object_where_api_is_required.create_market_order(
+                                trading_pair, 'buy', amount,
+                                price=ask)
+                            # file.write("\n" + "stop_market_buy_order12")
+                            # file.write("\n" + str(stop_market_buy_order))
+                        else:
+
+                            file.write("\n" + "trying to place stop_market_buy_order")
+                            print("\n" + "trying to place stop_market_buy_order")
+                            stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
+                        # print("\n" + "stop_market_buy_order")
+                        # print("\n" + stop_market_buy_order)
+                        # file.write("\n" + "stop_market_buy_order")
+                        # file.write("\n" + stop_market_buy_order)
+                        file.write("\n" + "created_stop_market_buy_order")
                     except ccxt.InsufficientFunds:
                         file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
                         file.write("\n"+str(traceback.format_exc()))
@@ -4373,6 +5399,14 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                     file.write("\n"+str(stop_market_buy_order))
 
                     order_id = stop_market_buy_order['id']
+                    if exchange_id in ["mexc3", "mexc"]:
+                        orig_quantity = stop_market_buy_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
+                    else:
+                        orig_quantity = stop_market_buy_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
                     file.write("\n"+"order_id4")
                     file.write("\n"+str(order_id))
 
@@ -4445,7 +5479,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     all_orders_on_cross_margin_account, limit_sell_order_tp_order_id)
                                 # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                                 #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
-                                if limit_sell_order_tp_order_status == "FILLED":
+                                if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                                     file.write("\n"+f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
 
                                     repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
@@ -4478,10 +5512,23 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     external_while_loop_break_flag = True
                                     #     break
                                     if type_of_tp == "market":
-                                        market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
-                                            trading_pair, amount_of_tp, params=params)
-                                        file.write("\n"+"market_sell_order_tp has been placed")
-                                        external_while_loop_break_flag = True
+                                        market_sell_order_tp = ""
+                                        if exchange_id in ['binance', 'binanceus']:
+                                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                                            bid = float(prices[trading_pair]['bid'])
+                                            amount = amount_of_tp
+                                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                                trading_pair, 'sell', amount,
+                                                price=bid)
+                                        else:
+                                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                                        file.write("\n" + "market_sell_order_tp has been placed")
+
                                         break
                                     elif type_of_tp == "stop":
                                         stop_market_sell_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -4541,8 +5588,19 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                                                                    trading_pair, params=params)
                                                 file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
 
-                                            market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
-                                                trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['binance', 'binanceus']:
+                                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                                    trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                                bid = float(prices[trading_pair]['bid'])
+                                                amount = amount_of_sl
+                                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                                    trading_pair, 'sell', amount,
+                                                    price=bid)
+                                            else:
+                                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                                    trading_pair, amount_of_sl, params=params)
                                             # market_sell_order_sl=\
                                             #     exchange_object_where_api_is_required.create_order( symbol=trading_pair, type="market", side="sell", amount= amount_of_sl, params=params)
                                             file.write("\n"+"market_sell_order_sl has been placed")
@@ -4608,7 +5666,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                                 # neither sl nor tp has been reached
                                 else:
-                                    time.sleep(1)
+                                    # time.sleep(1)
                                     file.write("\n"+"neither sl nor tp has been reached")
                                     continue
                             except ccxt.RequestTimeout:
@@ -4640,7 +5698,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                         # keep waiting for the order to fill
                         file.write("\n"+
                             f"waiting for the order to fill because the status of {order_id} is still {stop_market_buy_order_status_on_cross_margin}")
-                        time.sleep(1)
+                        # time.sleep(1)
                         continue
 
 
@@ -4649,7 +5707,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
             if current_price_of_trading_pair>price_of_stop_market_order:
                 file.write("\n"+
                     f"current price of {trading_pair} = {current_price_of_trading_pair} and it is > price_of_stop_market_order={price_of_stop_market_order}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
             else:
 
@@ -4686,28 +5744,79 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-
                 try:
                     exchange_object_where_api_is_required.load_markets()
                 except ccxt.BadRequest:
-                    file.write(str(traceback.format_exc()))
-                except Exception:
-                    file.write(str(traceback.format_exc()))
+                    print("ccxt.base.errors.BadRequest")
+                    pass
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
                 try:
-                    # Get the minimum notional value for the symbol
-                    min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                    if exchange_id == "lbank" or exchange_id == "lbank2":
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+                    elif exchange_id == "binance":
+                        min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
 
-                    file.write("\n"+"min_notional_value in USD")
-                    file.write("\n"+str(min_notional_value))
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-                    # Calculate the minimum quantity based on the minimum notional value
-                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "mexc3" or exchange_id == "mexc":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        min_quantity = min_notional_value / float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "okex" or exchange_id == "okex5":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        if not pd.isna(min_notional_value):
+                            min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                                price_of_stop_market_order)
+                            file.write("\n" +
+                                       f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                            file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
 
-                    file.write("\n"+
-                        f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                    file.write("\n"+str(min_quantity))
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                        file.write("\n" +
+                                   f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_in_usd))
+
+                    else:
+                        file.write("\n" + "symbol_details")
+                        file.write("\n" + str(symbol_details))
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                        file.write("\n" +
+                                   f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        min_quantity_raw = symbol_details['limits']['amount']['min']
+                        file.write("\n" +
+                                   f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity_raw))
+                        min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                            price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
                 except:
                     file.write("\n"+str(traceback.format_exc()))
 
@@ -4791,7 +5900,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 amount_of_asset_for_entry = \
                     convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
                                                                     price_of_stop_market_order)
-
+                amount_of_tp = amount_of_asset_for_entry
+                amount_of_sl = amount_of_asset_for_entry
                 margin_mode = "cross"
                 try:
                     # borrow margin before creating an order. Borrow exactly how much your position is
@@ -4805,10 +5915,31 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
 
                     try:
-                        stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(trading_pair,
-                                                                                                         amount_of_asset_for_entry,
-                                                                                                         # price_of_stop_market_order,
-                                                                                                         params=params)
+                        if exchange_id in ['binance', 'binanceus']:
+                            stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
+                        elif exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                            bid = float(prices[trading_pair]['bid'])
+                            amount = amount_of_asset_for_entry
+                            file.write("\n" + "amount")
+                            file.write("\n" + str(amount))
+                            file.write("\n" + "bid")
+                            file.write("\n" + str(bid))
+                            stop_market_sell_order = exchange_object_where_api_is_required.create_market_order(
+                                trading_pair, 'sell', amount,
+                                price=bid)
+                            # file.write("\n" + "stop_market_sell_order12")
+                            # file.write("\n" + str(stop_market_sell_order))
+                        else:
+                            stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
                     except ccxt.InsufficientFunds:
                         file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
                         file.write("\n"+str(traceback.format_exc()))
@@ -4848,6 +5979,14 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                     file.write("\n"+str(stop_market_sell_order))
 
                     order_id = stop_market_sell_order['id']
+                    if exchange_id in ["mexc3","mexc"]:
+                        orig_quantity = stop_market_sell_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
+                    else:
+                        orig_quantity = stop_market_sell_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
                     file.write("\n"+"order_id5")
                     file.write("\n"+str(order_id))
 
@@ -4922,7 +6061,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     all_orders_on_cross_margin_account, limit_buy_order_tp_order_id)
                                 # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                                 #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
-                                if limit_buy_order_tp_order_status == "FILLED":
+                                if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                                     file.write("\n"+f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
                                     repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
                                                                                       exchange_object_without_api,
@@ -4950,10 +6089,22 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                                     #     break
                                     if type_of_tp == "market":
-                                        market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
-                                            trading_pair, amount_of_tp, params=params)
-                                        file.write("\n"+"market_buy_order_tp has been placed")
-                                        external_while_loop_break_flag = True
+                                        market_buy_order_tp = ""
+                                        if exchange_id in ['binance', 'binanceus']:
+                                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                                            ask = float(prices[trading_pair]['ask'])
+                                            amount = amount_of_tp
+                                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                                trading_pair, 'buy', amount,
+                                                price=ask)
+                                        else:
+                                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        file.write("\n" + f"market_buy_order_tp = {market_buy_order_tp}")
+                                        file.write("\n" + "market_buy_order_tp has been placed")
                                         break
                                     elif type_of_tp == "stop":
                                         stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -4990,8 +6141,19 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                 exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                                    trading_pair, params=params)
                                                 file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
-                                            market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
-                                                trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['binance', 'binanceus']:
+                                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                                    trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                                ask = float(prices[trading_pair]['ask'])
+                                                amount = amount_of_sl
+                                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                                    trading_pair, 'buy', amount,
+                                                    price=ask)
+                                            else:
+                                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                                    trading_pair, amount_of_sl, params=params)
                                             file.write("\n"+"market_buy_order_sl has been placed")
 
                                             # repay margin loan when stop loss is achieved
@@ -5022,7 +6184,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                                 # neither sl nor tp has been reached
                                 else:
-                                    time.sleep(1)
+                                    # time.sleep(1)
                                     file.write("\n"+"neither sl nor tp has been reached")
                                     continue
                             except ccxt.RequestTimeout:
@@ -5046,7 +6208,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                         # keep waiting for the order to fill
                         file.write("\n"+
                             f"waiting for the order to fill because the status of {order_id} is still {stop_market_sell_order_status_on_cross_margin}")
-                        time.sleep(1)
+                        # time.sleep(1)
                         continue
 
 
@@ -5055,7 +6217,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
         if external_while_loop_break_flag == True:
             file.write("\n"+"external_while_loop_break_flag = True so while loop is breaking")
             break
-def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_isolated_margin_account1(file, exchange_id,
+def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_isolated_margin_account1(row_df, row_index,file, exchange_id,
                                                        trading_pair,
                                                        price_of_sl, type_of_sl, amount_of_sl,
                                                        price_of_tp, type_of_tp, amount_of_tp, post_only_for_limit_tp_bool,
@@ -5069,7 +6231,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
     # uncomment this when in production and add tab after this line
     # with open(file_path, "a") as file:
     # Retrieve the arguments passed to the script
-    file.write("\n"+f"began writing to {file.name} at {datetime.now()}\n")
+    file.write("\n"+f"began writing to {file.name} at {datetime.datetime.now()}\n")
     try:
         file.write("\n"+str(exchange_id))
         file.write("\n"+"\n")
@@ -5082,12 +6244,16 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
     file.write("\n"+"\n")
     # print(side_of_stop_market_order)
     external_while_loop_break_flag=False
+
+    trade_status = row_df.loc[row_index, "trade_status"]
+
+
     while True:
         current_price_of_trading_pair=get_price(exchange_object_without_api, trading_pair)
         if side_of_stop_market_order == "buy":
             if current_price_of_trading_pair<price_of_stop_market_order:
                 file.write("\n"+f"current price of {trading_pair} = {current_price_of_trading_pair} and it is < price_of_stop_market_order={price_of_stop_market_order}")
-                time.sleep(1)
+                # time.sleep(1)
                 continue
             else:
                 file.write("\n"+f"placing buy stop_market_order on {exchange_id}")
@@ -5115,32 +6281,86 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-
-                try:
-                    exchange_object_where_api_is_required.load_markets()
-                except ccxt.BadRequest:
-                    file.write(str(traceback.format_exc()))
-                except Exception:
-                    file.write(str(traceback.format_exc()))
+                exchange_object_where_api_is_required.load_markets()
 
                 # Get the symbol details
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
                 # Get the minimum notional value for the symbol
                 min_notional_value = None
+                min_quantity = None
                 try:
-                    min_notional_value = symbol_details['info']['filters'][6]['minNotional']
-                    file.write("\n"+"min_notional_value in USD")
-                    file.write("\n"+str(min_notional_value))
+                    # file.write("\n" + "symbol_details")
+                    # file.write("\n" + str(symbol_details))
+                    # file.write("\n" + "symbol_details['info']")
+                    # file.write("\n" + str(symbol_details['info']))
+                    if exchange_id == "lbank" or exchange_id == "lbank2":
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+                    elif exchange_id == "binance":
+                        min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
 
-                    # Calculate the minimum quantity based on the minimum notional value
-                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-                    file.write("\n"+
-                        f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                    file.write("\n"+str(min_quantity))
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "mexc3" or exchange_id == "mexc":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        min_quantity = min_notional_value / float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "okex" or exchange_id == "okex5":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        if not pd.isna(min_notional_value):
+                            min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                                price_of_stop_market_order)
+                            file.write("\n" +
+                                       f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                            file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
+
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                        file.write("\n" +
+                                   f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_in_usd))
+
+                    else:
+                        file.write("\n" + "symbol_details")
+                        file.write("\n" + str(symbol_details))
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                        file.write("\n" +
+                                   f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        min_quantity_raw = symbol_details['limits']['amount']['min']
+                        file.write("\n" +
+                                   f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity_raw))
+                        min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                            price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
                 except:
-                    file.write("\n"+str(traceback.format_exc()))
+                    file.write("\n" + str(traceback.format_exc()))
 
                 #
                 # future_balance = exchange_object_where_api_is_required.fetch_balance({'type': 'future'})
@@ -5218,6 +6438,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 amount_of_asset_for_entry = \
                     convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
                                                                     price_of_stop_market_order)
+                amount_of_tp = amount_of_asset_for_entry
+                amount_of_sl = amount_of_asset_for_entry
                 # we need current timestamp to get borrow interest since that timestamp to add this interest to the repay ammount
                 # current_timestamp_in_milliseconds = get_current_timestamp_in_seconds()
 
@@ -5238,11 +6460,39 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
 
                     try:
-                        stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(trading_pair,
-                                                                                                       amount_of_asset_for_entry,
-                                                                                                       # price_of_stop_market_order,
-                                                                                                       params=params)
-                        file.write("\n"+"created_stop_market_buy_order")
+                        file.write("\n" + "trying to place stop_market_buy_order")
+                        print("\n" + "trying to place stop_market_buy_order")
+
+                        if exchange_id in ['binance', 'binanceus']:
+                            stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
+                        elif exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                            ask = float(prices[trading_pair]['ask'])
+                            amount = amount_of_asset_for_entry
+                            file.write("\n" + "amount")
+                            file.write("\n" + str(amount))
+                            file.write("\n" + "ask")
+                            file.write("\n" + str(ask))
+                            stop_market_buy_order = exchange_object_where_api_is_required.create_market_order(
+                                trading_pair, 'buy', amount,
+                                price=ask)
+                            # file.write("\n" + "stop_market_buy_order12")
+                            # file.write("\n" + str(stop_market_buy_order))
+                        else:
+                            stop_market_buy_order = exchange_object_where_api_is_required.create_market_buy_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
+                        # print("\n" + "stop_market_buy_order")
+                        # print("\n" + stop_market_buy_order)
+                        # file.write("\n" + "stop_market_buy_order")
+                        # file.write("\n" + stop_market_buy_order)
+                        file.write("\n" + "created_stop_market_buy_order")
                     except ccxt.InsufficientFunds:
                         file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
                         file.write("\n"+str(traceback.format_exc()))
@@ -5280,6 +6530,14 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                     file.write("\n"+str(stop_market_buy_order))
 
                     order_id = stop_market_buy_order['id']
+                    if exchange_id in ["mexc3","mexc"]:
+                        orig_quantity = stop_market_buy_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
+                    else:
+                        orig_quantity = stop_market_buy_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
                     file.write("\n"+"order_id4")
                     file.write("\n"+str(order_id))
 
@@ -5352,7 +6610,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     all_orders_on_isolated_margin_account, limit_sell_order_tp_order_id)
                                 # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                                 #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
-                                if limit_sell_order_tp_order_status == "FILLED":
+                                if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                                     file.write("\n"+f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
 
                                     repay_margin_loan_when_quote_currency_is_borrowed(file, margin_mode, trading_pair,
@@ -5385,10 +6643,23 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     external_while_loop_break_flag = True
                                     #     break
                                     if type_of_tp == "market":
-                                        market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
-                                            trading_pair, amount_of_tp, params=params)
-                                        file.write("\n"+"market_sell_order_tp has been placed")
-                                        external_while_loop_break_flag = True
+                                        market_sell_order_tp = ""
+                                        if exchange_id in ['binance', 'binanceus']:
+                                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                                            bid = float(prices[trading_pair]['bid'])
+                                            amount = amount_of_tp
+                                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                                trading_pair, 'sell', amount,
+                                                price=bid)
+                                        else:
+                                            market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
+                                        file.write("\n" + "market_sell_order_tp has been placed")
+
                                         break
                                     elif type_of_tp == "stop":
                                         stop_market_sell_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -5448,8 +6719,19 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                                                                    trading_pair, params=params)
                                                 file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
 
-                                            market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
-                                                trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['binance', 'binanceus']:
+                                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                                    trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                                bid = float(prices[trading_pair]['bid'])
+                                                amount = amount_of_sl
+                                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                                    trading_pair, 'sell', amount,
+                                                    price=bid)
+                                            else:
+                                                market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
+                                                    trading_pair, amount_of_sl, params=params)
                                             # market_sell_order_sl=\
                                             #     exchange_object_where_api_is_required.create_order( symbol=trading_pair, type="market", side="sell", amount= amount_of_sl, params=params)
                                             file.write("\n"+"market_sell_order_sl has been placed")
@@ -5515,7 +6797,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                                 # neither sl nor tp has been reached
                                 else:
-                                    time.sleep(1)
+                                    # time.sleep(1)
                                     file.write("\n"+"neither sl nor tp has been reached")
                                     continue
                             except ccxt.RequestTimeout:
@@ -5547,7 +6829,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                         # keep waiting for the order to fill
                         file.write("\n"+
                             f"waiting for the order to fill because the status of {order_id} is still {stop_market_buy_order_status_on_isolated_margin}")
-                        time.sleep(1)
+                        # # time.sleep(1)
                         continue
 
 
@@ -5556,7 +6838,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
             if current_price_of_trading_pair>price_of_stop_market_order:
                 file.write("\n"+
                     f"current price of {trading_pair} = {current_price_of_trading_pair} and it is > price_of_stop_market_order={price_of_stop_market_order}")
-                time.sleep(1)
+                # # time.sleep(1)
                 continue
             else:
 
@@ -5593,28 +6875,75 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # # __________________________
 
                 # Load the valid trading symbols
-
-                try:
-                    exchange_object_where_api_is_required.load_markets()
-                except ccxt.BadRequest:
-                    file.write(str(traceback.format_exc()))
-                except Exception:
-                    file.write(str(traceback.format_exc()))
+                exchange_object_where_api_is_required.load_markets()
                 symbol_details = exchange_object_where_api_is_required.markets[trading_pair]
 
                 try:
-                    # Get the minimum notional value for the symbol
-                    min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                    if exchange_id == "lbank" or exchange_id == "lbank2":
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+                    elif exchange_id == "binance":
+                        min_notional_value = symbol_details['info']['filters'][6]['minNotional']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
 
-                    file.write("\n"+"min_notional_value in USD")
-                    file.write("\n"+str(min_notional_value))
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
 
-                    # Calculate the minimum quantity based on the minimum notional value
-                    min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "mexc3" or exchange_id == "mexc":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        min_quantity = min_notional_value / float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                    elif exchange_id == "okex" or exchange_id == "okex5":
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        if not pd.isna(min_notional_value):
+                            min_quantity_calculated_from_min_notional_value = min_notional_value / float(
+                                price_of_stop_market_order)
+                            file.write("\n" +
+                                       f"min_quantity_calculated_from_min_notional_value of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                            file.write("\n" + str(min_quantity_calculated_from_min_notional_value))
 
-                    file.write("\n"+
-                        f"min_quantity of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
-                    file.write("\n"+str(min_quantity))
+                        min_quantity = symbol_details['limits']['amount']['min']
+                        min_notional_value_in_usd = min_quantity * float(price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_quantity in asset of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+
+                        file.write("\n" +
+                                   f"min_notional_value_in_usd of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_in_usd))
+
+                    else:
+                        file.write("\n" + "symbol_details")
+                        file.write("\n" + str(symbol_details))
+                        min_notional_value = symbol_details['limits']['cost']['min']
+                        file.write("\n" + "min_notional_value in USD")
+                        file.write("\n" + str(min_notional_value))
+
+                        # Calculate the minimum quantity based on the minimum notional value
+                        min_quantity = float(min_notional_value) / float(price_of_stop_market_order)
+
+                        file.write("\n" +
+                                   f"min_quantity found by division of min_notional_value by price_of_stop_market_order of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity))
+                        min_quantity_raw = symbol_details['limits']['amount']['min']
+                        file.write("\n" +
+                                   f"min_quantity taken directly from symbol_details dict of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_quantity_raw))
+                        min_notional_value_calculated_from_min_quantity_raw = min_quantity_raw * float(
+                            price_of_stop_market_order)
+                        file.write("\n" +
+                                   f"min_notional_value_calculated_from_min_quantity_raw of {get_base_of_trading_pair_base_slash_quote_without_exchange_are_argument(trading_pair)}")
+                        file.write("\n" + str(min_notional_value_calculated_from_min_quantity_raw))
                 except:
                     file.write("\n"+str(traceback.format_exc()))
 
@@ -5699,6 +7028,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 amount_of_asset_for_entry = \
                     convert_price_in_base_asset_into_quote_currency(amount_of_asset_for_entry_in_quote_currency,
                                                                     price_of_stop_market_order)
+                amount_of_tp = amount_of_asset_for_entry
+                amount_of_sl = amount_of_asset_for_entry
                 try:
                     # borrow margin before creating an order. Borrow exactly how much your position is
                     margin_loan_when_base_currency_is_borrowed = borrow_margin_loan_when_base_currency_is_borrowed(
@@ -5711,10 +7042,31 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
 
                     try:
-                        stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(trading_pair,
-                                                                                                         amount_of_asset_for_entry,
-                                                                                                         # price_of_stop_market_order,
-                                                                                                         params=params)
+                        if exchange_id in ['binance', 'binanceus']:
+                            stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
+                        elif exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                            bid = float(prices[trading_pair]['bid'])
+                            amount = amount_of_asset_for_entry
+                            file.write("\n" + "amount")
+                            file.write("\n" + str(amount))
+                            file.write("\n" + "bid")
+                            file.write("\n" + str(bid))
+                            stop_market_sell_order = exchange_object_where_api_is_required.create_market_order(
+                                trading_pair, 'sell', amount,
+                                price=bid)
+                            # file.write("\n" + "stop_market_sell_order12")
+                            # file.write("\n" + str(stop_market_sell_order))
+                        else:
+                            stop_market_sell_order = exchange_object_where_api_is_required.create_market_sell_order(
+                                trading_pair,
+                                amount_of_asset_for_entry,
+                                # price_of_stop_market_order,
+                                params=params)
                     except ccxt.InsufficientFunds:
                         file.write("\n"+f"Account on {exchange_id} has insufficient balance for the requested action")
                         file.write("\n"+str(traceback.format_exc()))
@@ -5754,6 +7106,14 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                     file.write("\n"+str(stop_market_sell_order))
 
                     order_id = stop_market_sell_order['id']
+                    if exchange_id in ["mexc3", "mexc"]:
+                        orig_quantity = stop_market_sell_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
+                    else:
+                        orig_quantity = stop_market_sell_order['info']['origQty']
+                        amount_of_tp = orig_quantity
+                        amount_of_sl = orig_quantity
                     file.write("\n"+"order_id5")
                     file.write("\n"+str(order_id))
 
@@ -5828,7 +7188,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     all_orders_on_isolated_margin_account, limit_buy_order_tp_order_id)
                                 # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                                 #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
-                                if limit_buy_order_tp_order_status == "FILLED":
+                                if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                                     file.write("\n"+f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
                                     repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
                                                                                       exchange_object_without_api,
@@ -5856,10 +7216,22 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                                     #     break
                                     if type_of_tp == "market":
-                                        market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
-                                            trading_pair, amount_of_tp, params=params)
-                                        file.write("\n"+"market_buy_order_tp has been placed")
-                                        external_while_loop_break_flag = True
+                                        market_buy_order_tp = ""
+                                        if exchange_id in ['binance', 'binanceus']:
+                                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                            prices = exchange_object_where_api_is_required.fetch_tickers()
+                                            ask = float(prices[trading_pair]['ask'])
+                                            amount = amount_of_tp
+                                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_order(
+                                                trading_pair, 'buy', amount,
+                                                price=ask)
+                                        else:
+                                            market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
+                                                trading_pair, amount_of_tp, params=params)
+                                        file.write("\n" + f"market_buy_order_tp = {market_buy_order_tp}")
+                                        file.write("\n" + "market_buy_order_tp has been placed")
                                         break
                                     elif type_of_tp == "stop":
                                         stop_market_buy_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -5896,8 +7268,19 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                 exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                                    trading_pair, params=params)
                                                 file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
-                                            market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
-                                                trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['binance', 'binanceus']:
+                                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                                    trading_pair, amount_of_sl, params=params)
+                                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                                prices = exchange_object_where_api_is_required.fetch_tickers()
+                                                ask = float(prices[trading_pair]['ask'])
+                                                amount = amount_of_sl
+                                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_order(
+                                                    trading_pair, 'buy', amount,
+                                                    price=ask)
+                                            else:
+                                                market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
+                                                    trading_pair, amount_of_sl, params=params)
                                             file.write("\n"+"market_buy_order_sl has been placed")
 
                                             # repay margin loan when stop loss is achieved
@@ -5928,7 +7311,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                                 # neither sl nor tp has been reached
                                 else:
-                                    time.sleep(1)
+                                    # time.sleep(1)
                                     file.write("\n"+"neither sl nor tp has been reached")
                                     continue
                             except ccxt.RequestTimeout:
@@ -5952,7 +7335,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                         # keep waiting for the order to fill
                         file.write("\n"+
                             f"waiting for the order to fill because the status of {order_id} is still {stop_market_sell_order_status_on_isolated_margin}")
-                        time.sleep(1)
+                        # time.sleep(1)
                         continue
 
 
@@ -5964,128 +7347,212 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
 
 if __name__=="__main__":
-    exchange_id = sys.argv[1]
-    trading_pair = sys.argv[2]
-    trading_pair_with_underscore = trading_pair.replace("/", "_")
-    output_file=f"output_for_place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_{trading_pair_with_underscore}_on_{exchange_id}.txt"
-    # print(f"\nbegan writing to {file.name} at {datetime.now()}\n")
+    # exchange_id = sys.argv[1]
+    # trading_pair = sys.argv[2]
+    # trading_pair_with_underscore = trading_pair.replace("/", "_")
+    output_file = f"output_for_place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file.txt"
+    # print(f"\nbegan writing to {file.name} at {datetime.datetime.now()}\n")
     file_path = os.path.join(os.getcwd(), "output_text_files_stop_order", output_file)
     dirpath = os.path.join(os.getcwd(), "output_text_files_stop_order")
     Path(dirpath).mkdir(parents=True, exist_ok=True)
+    # spread_sheet_title = 'streamlit_app_google_sheet'
+    # df_with_bfr = fetch_dataframe_from_google_spreadsheet(spread_sheet_title)
+    # # if columns in the bfr dataframe are str we convert them to bool
+    # column_name_list_which_must_be_converted_from_str_to_bool = \
+    #     ["stop_loss_is_technical", "stop_loss_is_calculated", "spot_without_margin", "margin",
+    #      "cross_margin", "isolated_margin", "include_last_day_in_bfr_model_assessment",
+    #      "trading_pair_is_traded_with_margin", "spot_asset_also_available_as_swap_contract_on_same_exchange",
+    #      "suppression_by_closes", "suppression_by_lows"]
+    # for column_name in column_name_list_which_must_be_converted_from_str_to_bool:
+    #     try:
+    #         df_with_bfr = convert_column_to_boolean(df_with_bfr, column_name)
+    #     except:
+    #         traceback.print_exc()
     with open(file_path, "w") as file:
-        # Retrieve the arguments passed to the script
-        print(f"\nbegan writing to {file.name} at {datetime.now()}\n")
+        # watch forever dataframe from spread sheet
+        spread_sheet_title = 'streamlit_app_google_sheet'
+        df_with_bfr = fetch_dataframe_from_google_spreadsheet_with_converting_string_types_to_boolean_where_needed(
+            spread_sheet_title)
+        last_df_with_bfr_was_fetched_at = datetime.datetime.now()
+        while True:
+            try:
+                # Retrieve the arguments passed to the script
+                print(f"\nbegan writing to {file.name} at {datetime.datetime.now()}\n")
+                current_timestamp = datetime.datetime.now()
+                difference_between_current_timestamp_and_when_df_was_last_fetched = current_timestamp - last_df_with_bfr_was_fetched_at
+                print("difference_between_current_timestamp_and_when_df_was_last_fetched")
+                print(difference_between_current_timestamp_and_when_df_was_last_fetched)
+                if difference_between_current_timestamp_and_when_df_was_last_fetched.total_seconds() >= 10:
+                    spread_sheet_title = 'streamlit_app_google_sheet'
+                    df_with_bfr = fetch_dataframe_from_google_spreadsheet_with_converting_string_types_to_boolean_where_needed(
+                        spread_sheet_title)
+                    last_df_with_bfr_was_fetched_at = datetime.datetime.now()
+                for row_index, row in df_with_bfr.iterrows():
+                    row_df = pd.DataFrame(row).T
 
-        # for arg in sys.argv[1:] :
-        #     print(arg+"\n")
+                    try:
+                        trade_status = row_df.loc[row_index, "trade_status"]
+                        if trade_status == "must_verify_if_bfr_conditions_are_fulfilled":
+                            continue
 
-        # print(sys.argv[1])
-        args = sys.argv[1:]  # Exclude the first argument, which is the script filename
-        # print(sys.argv)
-        # Print the arguments
-        # print("Arguments:", args)
+                        utc_position_entry_time_list = list(df_with_bfr["utc_position_entry_time"])
+                        # Remove seconds and keep only hours and minutes
+                        utc_position_entry_time_list_without_seconds = [time_str.rsplit(':', 1)[0] for time_str in
+                                                                        utc_position_entry_time_list]
+                        print("utc_position_entry_time_list")
+                        print(utc_position_entry_time_list)
 
-        exchange_id = sys.argv[1]
-        file.write(exchange_id)
+                        current_utc_time = datetime.datetime.now(timezone.utc).strftime('%H:%M')
+                        current_utc_time_without_leading_zero = datetime.datetime.now(timezone.utc).strftime('%-H:%M')
+                        print("current_utc_time")
+                        print(current_utc_time)
+                        print("utc_position_entry_time_list_without_seconds")
+                        print(utc_position_entry_time_list_without_seconds)
 
-        trading_pair = sys.argv[2]
-        price_of_sl = sys.argv[3]
-        type_of_sl = sys.argv[4]
-        amount_of_sl = sys.argv[5]
-        price_of_tp = sys.argv[6]
-        type_of_tp = sys.argv[7]
-        amount_of_tp = sys.argv[8]
-        post_only_for_limit_tp_bool = sys.argv[9]
-        price_of_stop_market_order = sys.argv[10]
-        amount_of_asset_for_entry_in_quote_currency = sys.argv[11]
-        side_of_stop_market_order = sys.argv[12]
-        spot_cross_or_isolated_margin = sys.argv[13]
+                        stock_name_with_underscore_between_base_and_quote_and_exchange = \
+                            row_df.loc[row_index, "ticker"]
+                        print("stock_name_with_underscore_between_base_and_quote_and_exchange")
+                        print(stock_name_with_underscore_between_base_and_quote_and_exchange)
+                        # if current_utc_time not in utc_position_entry_time_list_without_seconds and \
+                        #         current_utc_time_without_leading_zero not in utc_position_entry_time_list_without_seconds:
+                        #     print(f"for {stock_name_with_underscore_between_base_and_quote_and_exchange} "
+                        #           f"current_utc_time not in utc_position_entry_time_list_without_seconds and \
+                        #                             current_utc_time_without_leading_zero not in utc_position_entry_time_list_without_seconds")
+                        #     continue
 
-        price_of_sl, amount_of_sl, price_of_tp, amount_of_tp, post_only_for_limit_tp_bool, \
-            price_of_stop_market_order, amount_of_asset_for_entry=\
-            convert_back_from_string_args_to_necessary_types(price_of_sl,
-                                                         amount_of_sl,
-                                                         price_of_tp,
-                                                         amount_of_tp,
-                                                         post_only_for_limit_tp_bool,
-                                                         price_of_stop_market_order,
-                                                         amount_of_asset_for_entry_in_quote_currency)
-        # exchange_id = "binance"
-        # file.write("\n" + exchange_id)
-        #
-        # trading_pair = "ADA/USDT"
-        # price_of_sl = 0.2446
-        # type_of_sl = "market"
-        #
-        # price_of_tp = 0.2440
-        # type_of_tp = "limit"
-        #
-        # post_only_for_limit_tp_bool = False
-        # price_of_stop_market_order = 0.2444
-        #
-        # spot_cross_or_isolated_margin = "cross"
-        #
-        # amount_of_asset_for_entry_in_base_currency = 21
-        amount_of_sl = amount_of_asset_for_entry_in_quote_currency
-        amount_of_tp = amount_of_asset_for_entry_in_quote_currency
-        # side_of_stop_market_order = "sell"
+                        model_type = row_df.loc[row_index, "model"]
 
+                        trading_pair_with_underscore = \
+                        stock_name_with_underscore_between_base_and_quote_and_exchange.split("_on_")[0]
+                        trading_pair_with_slash = trading_pair_with_underscore.replace("_", "/")
+                        trading_pair = trading_pair_with_slash
 
-        # Print the values
+                        exchange_id = stock_name_with_underscore_between_base_and_quote_and_exchange = \
+                            row_df.loc[row_index, "exchange"]
 
-        # Print the values
-        # print(f"Exchange ID :{exchange_id}" )
+                        type_of_sl = row_df.loc[row_index, "market_or_limit_stop_loss"]
+                        type_of_tp = row_df.loc[row_index, "market_or_limit_take_profit"]
+                        price_of_tp = row_df.loc[row_index, "final_take_profit_price"]
+                        price_of_sl = row_df.loc[row_index, "final_stop_loss_price"]
+                        price_of_limit_or_stop_order = row_df.loc[row_index, "final_position_entry_price"]
 
+                        spot_cross_or_isolated_margin = ""
 
-        # print("Trading Pair:", trading_pair)
-        # print("Price of SL:", price_of_sl)
-        # print("Type of SL:", type_of_sl)
-        # print("Amount of SL:", amount_of_sl)
-        # print("Price of TP:", price_of_tp)
-        # print("Type of TP:", type_of_tp)
-        # print("Amount of TP:", amount_of_tp)
-        # print("Post Only for Limit TP (bool):", post_only_for_limit_tp_bool)
-        # print("Price of stop_market Order:", price_of_stop_market_order)
-        # print("Amount of Asset for Entry:", amount_of_asset_for_entry)
-        # print("Side of stop_market Order:", side_of_stop_market_order)
+                        spot_without_margin_bool = row_df.loc[row_index, "spot_without_margin"]
+                        cross_margin_bool = row_df.loc[row_index, "cross_margin"]
+                        isolated_margin_bool = row_df.loc[row_index, "isolated_margin"]
 
-        entry_price_is_between_sl_and_tp=\
-            check_if_entry_price_is_between_sl_and_tp(file, price_of_sl, price_of_tp, price_of_stop_market_order, side_of_stop_market_order)
-        if entry_price_is_between_sl_and_tp:
-            if spot_cross_or_isolated_margin == "spot":
-                place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account1(file, exchange_id,
-                                                                                                  trading_pair,
-                                                                                                  price_of_sl, type_of_sl,
-                                                                                                  amount_of_sl,
-                                                                                                  price_of_tp, type_of_tp,
-                                                                                                  amount_of_tp,
-                                                                                                  post_only_for_limit_tp_bool,
-                                                                                                  price_of_stop_market_order,
-                                                                                                  amount_of_asset_for_entry_in_quote_currency,
-                                                                                                  side_of_stop_market_order)
-            elif spot_cross_or_isolated_margin == "cross":
-                place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_cross_margin_account1(file, exchange_id,
+                        if spot_without_margin_bool == True:
+                            spot_cross_or_isolated_margin = "spot"
+                        elif cross_margin_bool == True:
+                            spot_cross_or_isolated_margin = "cross"
+                        elif isolated_margin_bool == True:
+                            spot_cross_or_isolated_margin = "isolated"
+                        else:
+                            print(f"{spot_cross_or_isolated_margin} is not spot, cross or isolated1")
+
+                        amount_of_asset_for_entry_in_quote_currency = row_df.loc[row_index, "position_size"]
+
+                        post_only_for_limit_tp_bool = False
+                        price_of_stop_market_order = price_of_limit_or_stop_order
+
+                        side_of_stop_market_order = row_df.loc[row_index, "side"]
+
+                        # Print the values
+                        file.write("\n" + "_________________________________________________________")
+                        file.write("\n" + f"exchange_id :{exchange_id}")
+                        file.write("\n" + f"trading_pair :{trading_pair}")
+                        file.write("\n" + f"price_of_sl :{price_of_sl}")
+                        file.write("\n" + f"type_of_sl :{type_of_sl}")
+
+                        file.write("\n" + f"price_of_tp :{price_of_tp}")
+                        file.write("\n" + f"type_of_tp :{type_of_tp}")
+
+                        file.write("\n" + f"post_only_for_limit_tp_bool :{post_only_for_limit_tp_bool}")
+                        file.write("\n" + f"price_of_stop_market_order :{price_of_stop_market_order}")
+                        file.write(
+                            "\n" + f"amount_of_asset_for_entry_in_quote_currency :{amount_of_asset_for_entry_in_quote_currency}")
+                        file.write("\n" + f"side_of_stop_market_order :{side_of_stop_market_order}")
+                        file.write("\n" + f"spot_cross_or_isolated_margin :{spot_cross_or_isolated_margin}")
+
+                        # Print the values
+
+                        # Print the values
+                        # print(f"Exchange ID :{exchange_id}" )
+
+                        # print("Trading Pair:", trading_pair)
+                        # print("Price of SL:", price_of_sl)
+                        # print("Type of SL:", type_of_sl)
+                        # print("Amount of SL:", amount_of_sl)
+                        # print("Price of TP:", price_of_tp)
+                        # print("Type of TP:", type_of_tp)
+                        # print("Amount of TP:", amount_of_tp)
+                        # print("Post Only for Limit TP (bool):", post_only_for_limit_tp_bool)
+                        # print("Price of stop_market Order:", price_of_stop_market_order)
+                        # print("Amount of Asset for Entry:", amount_of_asset_for_entry)
+                        # print("Side of stop_market Order:", side_of_stop_market_order)
+                        amount_of_sl = amount_of_asset_for_entry_in_quote_currency
+                        amount_of_tp = amount_of_asset_for_entry_in_quote_currency
+
+                        price_of_sl, amount_of_sl, price_of_tp, amount_of_tp, post_only_for_limit_tp_bool, \
+                            price_of_stop_market_order, amount_of_asset_for_entry = \
+                            convert_back_from_string_args_to_necessary_types(price_of_sl,
+                                                                             amount_of_sl,
+                                                                             price_of_tp,
+                                                                             amount_of_tp,
+                                                                             post_only_for_limit_tp_bool,
+                                                                             price_of_stop_market_order,
+                                                                             amount_of_asset_for_entry_in_quote_currency)
+
+                        entry_price_is_between_sl_and_tp=\
+                            check_if_entry_price_is_between_sl_and_tp(file, price_of_sl, price_of_tp, price_of_stop_market_order, side_of_stop_market_order)
+                        if entry_price_is_between_sl_and_tp:
+                            if spot_cross_or_isolated_margin == "spot":
+                                place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account1(row_df, row_index,file, exchange_id,
                                                                                                                   trading_pair,
-                                                                                                                  price_of_sl,
-                                                                                                                  type_of_sl,
+                                                                                                                  price_of_sl, type_of_sl,
                                                                                                                   amount_of_sl,
-                                                                                                                  price_of_tp,
-                                                                                                                  type_of_tp,
+                                                                                                                  price_of_tp, type_of_tp,
                                                                                                                   amount_of_tp,
                                                                                                                   post_only_for_limit_tp_bool,
                                                                                                                   price_of_stop_market_order,
                                                                                                                   amount_of_asset_for_entry_in_quote_currency,
                                                                                                                   side_of_stop_market_order)
-            elif spot_cross_or_isolated_margin=="isolated":
-                place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_isolated_margin_account1(file, exchange_id,
-                                                                                                                  trading_pair,
-                                                                                                                  price_of_sl,
-                                                                                                                  type_of_sl,
-                                                                                                                  amount_of_sl,
-                                                                                                                  price_of_tp,
-                                                                                                                  type_of_tp,
-                                                                                                                  amount_of_tp,
-                                                                                                                  post_only_for_limit_tp_bool,
-                                                                                                                  price_of_stop_market_order,
-                                                                                                                  amount_of_asset_for_entry_in_quote_currency,
-                                                                                                                  side_of_stop_market_order)
+                            elif spot_cross_or_isolated_margin == "cross":
+                                place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_cross_margin_account1(row_df, row_index,file, exchange_id,
+                                                                                                                                  trading_pair,
+                                                                                                                                  price_of_sl,
+                                                                                                                                  type_of_sl,
+                                                                                                                                  amount_of_sl,
+                                                                                                                                  price_of_tp,
+                                                                                                                                  type_of_tp,
+                                                                                                                                  amount_of_tp,
+                                                                                                                                  post_only_for_limit_tp_bool,
+                                                                                                                                  price_of_stop_market_order,
+                                                                                                                                  amount_of_asset_for_entry_in_quote_currency,
+                                                                                                                                  side_of_stop_market_order)
+                            elif spot_cross_or_isolated_margin=="isolated":
+                                place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_isolated_margin_account1(row_df, row_index,file, exchange_id,
+                                                                                                                                  trading_pair,
+                                                                                                                                  price_of_sl,
+                                                                                                                                  type_of_sl,
+                                                                                                                                  amount_of_sl,
+                                                                                                                                  price_of_tp,
+                                                                                                                                  type_of_tp,
+                                                                                                                                  amount_of_tp,
+                                                                                                                                  post_only_for_limit_tp_bool,
+                                                                                                                                  price_of_stop_market_order,
+                                                                                                                                  amount_of_asset_for_entry_in_quote_currency,
+                                                                                                                                  side_of_stop_market_order)
+                            else:
+                                file.write(f"{spot_cross_or_isolated_margin} is neither spot, cross, or isolated")
+                        else:
+                            file.write("\n" + "entry price is not between take profit and stop loss")
+                            # do checking for the next trading pair
+                            continue
+                    except:
+                        traceback.print_exc()
+                        continue
+            except:
+                traceback.print_exc()
+                continue

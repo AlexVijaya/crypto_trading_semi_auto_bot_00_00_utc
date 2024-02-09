@@ -37,4 +37,4 @@ if __name__ == '__main__':
 
     file_path1 = os.path.join(os.getcwd(), 'current_rebound_breakout_and_false_breakout', file_name1)
     file_path2 = os.path.join(os.getcwd(), 'current_rebound_breakout_and_false_breakout', file_name2)
-    upload_files_to_google_drive(json_file_name, file_path1, file_path2)
+    # upload_files_to_google_drive(json_file_name, file_path1, file_path2)

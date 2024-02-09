@@ -77,10 +77,8 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
          ) / df_with_resulting_table_of_certain_models['cumulative_max'] * 100
 
 
-    st.write("df_with_resulting_table_of_certain_models['drawdown']_sl_technical")
+    st.write("df_with_resulting_table_of_certain_models['drawdown']")
     st.write(df_with_resulting_table_of_certain_models['drawdown'])
-    st.write("df_with_resulting_table_of_certain_models['cumulative_max']_sl_technical")
-    st.write(df_with_resulting_table_of_certain_models['cumulative_max'])
     print("df_with_resulting_table_of_certain_models['drawdown']")
     print(df_with_resulting_table_of_certain_models['drawdown'])
 
@@ -104,11 +102,11 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
     df_with_resulting_table_of_certain_models.loc[df_with_resulting_table_of_certain_models['drawdown'] > 0].shape[0]
 
     # Print the results
-    print("Absolute Maximum Drawdown when sl_technical:", abs_max_drawdown)
-    print("Percentage Maximum Drawdown when sl_technical:", max_drawdown_percentage)
-    print("Drawdown Begin Date when sl_technical:", drawdown_begin_date)
-    print("drawdown_date_when_drawdawn_is_max when sl_technical:", drawdown_date_when_drawdawn_is_max)
-    print("Number of Trades in all Drawdowns when sl_technical:", num_trades_in_drawdowns)
+    print("Absolute Maximum Drawdown:", abs_max_drawdown)
+    print("Percentage Maximum Drawdown:", max_drawdown_percentage)
+    print("Drawdown Begin Date:", drawdown_begin_date)
+    print("drawdown_date_when_drawdawn_is_max:", drawdown_date_when_drawdawn_is_max)
+    print("Number of Trades in all Drawdowns:", num_trades_in_drawdowns)
 
     # Step 1: Create a mask to identify consecutive zeros in the drawdown column
     mask = ((df_with_resulting_table_of_certain_models['drawdown'] == 0) &
@@ -147,10 +145,10 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
 
     # Output the results
     print(
-        f"The longest drawdown period when sl_technical starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
+        f"The longest drawdown period starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
 
     # Output the results
-    st.write(f"The longest drawdown period when sl_technical starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
+    st.write(f"The longest drawdown period starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
 
     return df_with_resulting_table_of_certain_models, abs_max_drawdown,max_drawdown_percentage,drawdown_begin_date,drawdown_date_when_drawdawn_is_max,num_trades_in_drawdowns
 def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
@@ -162,10 +160,8 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
         'deposit_by_end_of_period_with_risk_{}_and_tp_{}_to_one_sl_calculated'.format(risk_percent_value,
                                                                                      tp_value)].cummax()
 
-    st.write("df_with_resulting_table_of_certain_models['cumulative_max']_sl_calculated")
+    st.write("df_with_resulting_table_of_certain_models['cumulative_max']")
     st.write(df_with_resulting_table_of_certain_models['cumulative_max'])
-    st.write("df_with_resulting_table_of_certain_models['drawdown']_sl_calculated")
-    st.write(df_with_resulting_table_of_certain_models['drawdown'])
     print("df_with_resulting_table_of_certain_models['cumulative_max']")
     print(df_with_resulting_table_of_certain_models['cumulative_max'])
     print("risk_percent_value")
@@ -213,14 +209,12 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
         df_with_resulting_table_of_certain_models.loc[df_with_resulting_table_of_certain_models['drawdown'] > 0].shape[
             0]
 
-
-
     # Print the results
-    print("Absolute Maximum Drawdown when sl_calculated:", abs_max_drawdown)
-    print("Percentage Maximum Drawdown when sl_calculated:", max_drawdown_percentage)
-    print("Drawdown Begin Date when sl_calculated:", drawdown_begin_date)
-    print("drawdown_date_when_drawdawn_is_max when sl_calculated:", drawdown_date_when_drawdawn_is_max)
-    print("Number of Trades in all Drawdowns when sl_calculated:", num_trades_in_drawdowns)
+    print("Absolute Maximum Drawdown:", abs_max_drawdown)
+    print("Percentage Maximum Drawdown:", max_drawdown_percentage)
+    print("Drawdown Begin Date:", drawdown_begin_date)
+    print("drawdown_date_when_drawdawn_is_max:", drawdown_date_when_drawdawn_is_max)
+    print("Number of Trades in all Drawdowns:", num_trades_in_drawdowns)
 
     # Step 1: Create a mask to identify consecutive zeros in the drawdown column
     mask = ((df_with_resulting_table_of_certain_models['drawdown'] == 0) &
@@ -228,8 +222,6 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
 
     # Step 2: Find the indices of consecutive zeros
     consecutive_zero_indices = df_with_resulting_table_of_certain_models[mask].index.tolist()
-    st.write("consecutive_zero_indices")
-    st.write(consecutive_zero_indices)
 
     # Step 3: Calculate the periods of consecutive zeros
     drawdown_periods = []
@@ -255,7 +247,6 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
             len(df_with_resulting_table_of_certain_models) - 1, 'timestamp_of_order_placement_bar']
         longest_drawdown_days = len((df_with_resulting_table_of_certain_models['drawdown']))
 
-
     number_of_trades_in_max_drawdown = number_of_trades_in_max_drawdown_longest_drawdown_start_and_longest_drawdown_end(
         df_with_resulting_table_of_certain_models,
         longest_drawdown_start,
@@ -264,11 +255,11 @@ def calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdo
 
     # Output the results
     print(
-        f"The longest drawdown period when sl_calculated starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
+        f"The longest drawdown period starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
 
     # Output the results
     st.write(
-        f"The longest drawdown period when sl_calculated starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
+        f"The longest drawdown period starts from {pd.to_datetime(longest_drawdown_start, unit='s')}, ends on {pd.to_datetime(longest_drawdown_end, unit='s')}, and lasts {longest_drawdown_days} days.")
 
     return df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_date_when_drawdawn_is_max, num_trades_in_drawdowns
 
@@ -2134,7 +2125,7 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
 
         
 
-        fig = make_subplots(rows=8, cols=1, shared_xaxes=True,
+        fig = make_subplots(rows=4, cols=1, shared_xaxes=True,
                             subplot_titles=("deposit by end of period with different tp When SL is Technical",
                                             "deposit by end of period with different tp When SL is Calculated",
                                             "number of trades within [-n days: +n days] superimposed on BTC_USDT_on_gateio",
@@ -2143,13 +2134,13 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
                                             "max_profit_target_multiple_when_sl_technical",
                                             "max_profit_target_multiple_when_sl_calculated",
                                             "count of orders within the defined time window for each exchange"),
-                            vertical_spacing = 0.05,specs=[[{"secondary_y": True}],
+                            vertical_spacing = 0.01,specs=[[{"secondary_y": True}],
                                                            [{"secondary_y": True}],
                                                            [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
-                                                           [{"secondary_y": True}],
+                                                           # [{"secondary_y": True}],
+                                                           # [{"secondary_y": True}],
+                                                           # [{"secondary_y": True}],
+                                                           # [{"secondary_y": True}],
                                                            [{"secondary_y": True}]])
 
 
@@ -2161,12 +2152,13 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
                                      mode='lines+markers',
                                      name=f"{risk_percent_value}% SL Technical"),
                           row=1, col=1)
-            fig.add_trace(go.Scatter(x=deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df.index,
-                                     y=deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df[
-                                         f"deposit_risk_{risk_percent_value}%_sl_is_calculated"],
-                                     mode='lines+markers',
-                                     name=f"{risk_percent_value}% SL Calculated"),
-                          row=2, col=1)
+            if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+                fig.add_trace(go.Scatter(x=deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df.index,
+                                         y=deposit_by_the_end_of_the_given_period_if_sl_is_calculated_df[
+                                             f"deposit_risk_{risk_percent_value}%_sl_is_calculated"],
+                                         mode='lines+markers',
+                                         name=f"{risk_percent_value}% SL Calculated"),
+                              row=2, col=1)
         # Add line chart for close price in the third subplot
         fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
                                  name='Close Price of BTC'),
@@ -2192,7 +2184,7 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
             fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
                                      name='Close Price of BTC'),
                           row=4, col=1)
-
+        #
         if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
 
 
@@ -2226,182 +2218,183 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
                                 x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
                                 y=df_with_resulting_table_of_certain_models[
                                     f"percentage_drawdown"],
-                                mode='markers', yaxis='y2', marker=dict(size=3),
+                                mode='markers', yaxis='y3', marker=dict(size=3),
                                 name=f"percentage_drawdown_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_technical"
 
                                 ), secondary_y=True,
                             row=4, col=1)
-
-
-
-        # if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-        #     fig.add_trace(
-        #         go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-        #                    y=df_with_resulting_table_of_certain_models[
-        #                        f"max_profit_target_multiple_when_sl_technical"],
-        #                    mode='markers', yaxis='y3', visible='legendonly',
-        #                    name=f"max_profit_target_multiple_when_sl_technical"
         #
-        #                    ), secondary_y=True,
-        #         row=4, col=1)
-
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=5, col=1)
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-
-            # with st.form(key=str(uuid.uuid4())):
-            #     # Creating an expander
-            #     risk_percent_value1=1
-            #     with st.expander("Choose a Value"):
-            #         risk_percent_value1 = st.selectbox("Select risk_percent_value",
-            #                                       [5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1], index=9)
-            #     tp_value1=st.number_input("Select take profit N value (tp is N/1)", min_value=3, max_value=100, step=1)
-            #     form_submit_button_is_pressed1=st.form_submit_button("Calculate abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown ")
-            #
-            #     if form_submit_button_is_pressed1:
-            #         abs_max_drawdown,max_drawdown_percentage,drawdown_begin_date,drawdown_end_date,num_trades_in_drawdown=\
-            #             calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
-            #             df_with_resulting_table_of_certain_models,
-            #             risk_percent_value1,
-            #             tp_value1)
-            #         st.write("Absolute Maximum Drawdown:", abs_max_drawdown)
-            #         st.write("Percentage Maximum Drawdown:", max_drawdown_percentage)
-            #         st.write("Drawdown Begin Date:", drawdown_begin_date)
-            #         st.write("Drawdown End Date:", drawdown_end_date)
-            #         st.write("Number of Trades in the Drawdown:", num_trades_in_drawdown)
-
-
-
-            for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
-                for tp_value in range(3, 51):
-
-                    # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-                    #     st.write(True)
-                    # else:
-                    #     st.write(False)
-                    fig.add_trace(
-                        go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                   y=df_with_resulting_table_of_certain_models[
-                                       f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated"],
-                                   mode='lines', yaxis='y2', visible='legendonly',marker=dict(size=3),
-                                   name=f"performance_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
-
-                                   ), secondary_y=True,
-                        row=5, col=1)
-
-                    if risk_percent_value==risk_percent_value_for_drawdown_calculation and tp_value==tp_value_for_drawdown_calculation:
-                        df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown = \
-                            calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
-                                df_with_resulting_table_of_certain_models,
-                                risk_percent_value,
-                                tp_value)
-                        fig.add_trace(
-                            go.Scatter(
-                                x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-                                y=df_with_resulting_table_of_certain_models[
-                                    f"percentage_drawdown"],
-                                mode='markers', yaxis='y2', marker=dict(size=3),
-                                name=f"percentage_drawdown_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
-
-                                ), secondary_y=True,
-                            row=5, col=1)
-
+        #
+        #
+        # # if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
+        # #     fig.add_trace(
+        # #         go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+        # #                    y=df_with_resulting_table_of_certain_models[
+        # #                        f"max_profit_target_multiple_when_sl_technical"],
+        # #                    mode='markers', yaxis='y3', visible='legendonly',
+        # #                    name=f"max_profit_target_multiple_when_sl_technical"
+        # #
+        # #                    ), secondary_y=True,
+        # #         row=4, col=1)
+        #
         # if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+        #     fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
+        #                              name='Close Price of BTC'),
+        #                   row=5, col=1)
+        # if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+        #
+        #     # with st.form(key=str(uuid.uuid4())):
+        #     #     # Creating an expander
+        #     #     risk_percent_value1=1
+        #     #     with st.expander("Choose a Value"):
+        #     #         risk_percent_value1 = st.selectbox("Select risk_percent_value",
+        #     #                                       [5, 4, 3, 2, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1], index=9)
+        #     #     tp_value1=st.number_input("Select take profit N value (tp is N/1)", min_value=3, max_value=100, step=1)
+        #     #     form_submit_button_is_pressed1=st.form_submit_button("Calculate abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown ")
+        #     #
+        #     #     if form_submit_button_is_pressed1:
+        #     #         abs_max_drawdown,max_drawdown_percentage,drawdown_begin_date,drawdown_end_date,num_trades_in_drawdown=\
+        #     #             calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
+        #     #             df_with_resulting_table_of_certain_models,
+        #     #             risk_percent_value1,
+        #     #             tp_value1)
+        #     #         st.write("Absolute Maximum Drawdown:", abs_max_drawdown)
+        #     #         st.write("Percentage Maximum Drawdown:", max_drawdown_percentage)
+        #     #         st.write("Drawdown Begin Date:", drawdown_begin_date)
+        #     #         st.write("Drawdown End Date:", drawdown_end_date)
+        #     #         st.write("Number of Trades in the Drawdown:", num_trades_in_drawdown)
+        #
+        #
+        #
+        #     for risk_percent_value in [5,4,3,2,1,0.5,0.1]:
+        #         for tp_value in range(3, 51):
+        #
+        #             # if f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+        #             #     st.write(True)
+        #             # else:
+        #             #     st.write(False)
+        #             fig.add_trace(
+        #                 go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+        #                            y=df_with_resulting_table_of_certain_models[
+        #                                f"deposit_by_end_of_period_with_risk_{risk_percent_value}_and_tp_{tp_value}_to_one_sl_calculated"],
+        #                            mode='lines', yaxis='y2', visible='legendonly',marker=dict(size=3),
+        #                            name=f"performance_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
+        #
+        #                            ), secondary_y=True,
+        #                 row=5, col=1)
+        #
+        #             if risk_percent_value==risk_percent_value_for_drawdown_calculation and tp_value==tp_value_for_drawdown_calculation:
+        #                 df_with_resulting_table_of_certain_models, abs_max_drawdown, max_drawdown_percentage, drawdown_begin_date, drawdown_end_date, num_trades_in_drawdown = \
+        #                     calculate_max_drawdown_drawdown_beginning_and_end_dates_num_trades_in_drawdown_sl_calculated(
+        #                         df_with_resulting_table_of_certain_models,
+        #                         risk_percent_value,
+        #                         tp_value)
+        #                 fig.add_trace(
+        #                     go.Scatter(
+        #                         x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+        #                         y=df_with_resulting_table_of_certain_models[
+        #                             f"percentage_drawdown"],
+        #                         mode='markers', yaxis='y2', marker=dict(size=3),
+        #                         name=f"percentage_drawdown_with_risk_{risk_percent_value}_and_tp_{tp_value}/1_sl_calculated"
+        #
+        #                         ), secondary_y=True,
+        #                     row=5, col=1)
+        #
+        # # if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+        # #     fig.add_trace(
+        # #         go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
+        # #                    y=df_with_resulting_table_of_certain_models[
+        # #                        f"max_profit_target_multiple_when_sl_calculated"],
+        # #                    mode='markers', yaxis='y3', visible='legendonly',
+        # #                    name=f"max_profit_target_multiple_when_sl_calculated"
+        # #
+        # #                    ), secondary_y=True,
+        # #         row=5, col=1)
+        #
+        # if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
+        #     st.write('''"max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns''')
+        #     fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
+        #                              name='Close Price of BTC'),
+        #                   row=6, col=1)
+        #
+        # if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
+        #     fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
+        #                              name='Close Price of BTC'),
+        #                   row=7, col=1)
+        #
+        # for number_of_y_axis_minus_two, table_name2 in enumerate(dict_of_identical_queries_for_each_table):
+        #     query=dict_of_identical_queries_for_each_table[table_name2]
+        #     df_with_resulting_table_of_certain_models1 = \
+        #         return_df_from_postgres_sql_table(query, table_name2,
+        #                                           engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
+        #     df_with_resulting_table_of_certain_models1 = create_column_in_df_called_number_of_order_placement_within_next_and_prev_n_days(
+        #         df_with_resulting_table_of_certain_models1,
+        #         number_of_prev_and_next_days)
+        #     if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models1.columns:
+        #         # Count the occurrences for max_profit_target_multiple_when_sl_technical=0 and max_profit_target_multiple_when_sl_technical!=0
+        #         counts = df_with_resulting_table_of_certain_models1[
+        #             'max_profit_target_multiple_when_sl_technical'].value_counts()
+        #
+        #         # Retrieve the counts for the values
+        #         count_of_zero = counts.get(0, 0)  # Get the count for max_profit_target_multiple_when_sl_technical=0
+        #         count_of_non_zero = counts.sum() - count_of_zero  # Get the count for max_profit_target_multiple_when_sl_technical!=0
+        #
+        #         fig.add_trace(go.Scatter(x=df_with_resulting_table_of_certain_models1["human_datetime_of_order_placement_bar"],
+        #                                  y=df_with_resulting_table_of_certain_models1["max_profit_target_multiple_when_sl_technical"],
+        #                                  mode='markers',yaxis=f'y{number_of_y_axis_minus_two+2}',visible='legendonly',
+        #                                  name=f"max_profit_target_multiple_when_sl_technical {count_of_non_zero}/{count_of_zero} for {table_name2.replace('''current_''','''''')}"  # Assign a name to the trace
+        #
+        #                                  ),secondary_y=True,
+        #                           row=6, col=1)
+        #
+        #     if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models1.columns:
+        #         # Count the occurrences for max_profit_target_multiple_when_sl_calculated=0 and max_profit_target_multiple_when_sl_calculated!=0
+        #         counts = df_with_resulting_table_of_certain_models1[
+        #             'max_profit_target_multiple_when_sl_calculated'].value_counts()
+        #
+        #         # Retrieve the counts for the values
+        #         count_of_zero = counts.get(0, 0)  # Get the count for max_profit_target_multiple_when_sl_calculated=0
+        #         count_of_non_zero = counts.sum() - count_of_zero  # Get the count for max_profit_target_multiple_when_sl_calculated!=0
+        #
+        #         fig.add_trace(
+        #             go.Scatter(x=df_with_resulting_table_of_certain_models1["human_datetime_of_order_placement_bar"],
+        #                        y=df_with_resulting_table_of_certain_models1["max_profit_target_multiple_when_sl_calculated"],
+        #                        mode='markers', yaxis=f'y{number_of_y_axis_minus_two + 2}', visible='legendonly',
+        #                        name=f"max_profit_target_multiple_when_sl_calculated {count_of_non_zero}/{count_of_zero} for {table_name2.replace('''current_''', '''''')}"
+        #                        # Assign a name to the trace
+        #
+        #                        ), secondary_y=True,
+        #             row=7, col=1)
+        #
+        # list_of_exchanges_in_df=get_unique_exchanges(df_with_resulting_table_of_certain_models)
+        #
+        #
+        # # Add order counts for each exchange
+        #
+        # df_with_resulting_table_of_certain_models_and_with_order_counts = add_order_counts_by_exchange(df_with_resulting_table_of_certain_models,
+        #                                                     list_of_exchanges_in_df,
+        #                                                     number_of_days_before_and_after_to_count_exchanges_where_order_was_placed)
+        #
+        # st.write("df_with_resulting_table_of_certain_models_and_with_order_counts")
+        # st.dataframe(df_with_resulting_table_of_certain_models_and_with_order_counts)
+        #
+        #
+        #
+        # fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
+        #                              name='Close Price of BTC'),
+        #                   row=8, col=1)
+        # for exchange_name in list_of_exchanges_in_df:
+        #
         #     fig.add_trace(
-        #         go.Scatter(x=df_with_resulting_table_of_certain_models["human_datetime_of_order_placement_bar"],
-        #                    y=df_with_resulting_table_of_certain_models[
-        #                        f"max_profit_target_multiple_when_sl_calculated"],
-        #                    mode='markers', yaxis='y3', visible='legendonly',
-        #                    name=f"max_profit_target_multiple_when_sl_calculated"
+        #         go.Scatter(x=df_with_resulting_table_of_certain_models_and_with_order_counts["human_datetime_of_order_placement_bar"],
+        #                    y=df_with_resulting_table_of_certain_models_and_with_order_counts[
+        #                        f'orders_{exchange_name}_{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}d_back_and_forth_window'],
+        #                    mode='markers', yaxis=f'y2', visible='legendonly',marker=dict(size=2),
+        #                    name=f"orders_{exchange_name}_{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}d_back_and_forth_window for {table_name.replace('''current_''', '''''')}"
+        #                    # Assign a name to the trace
         #
         #                    ), secondary_y=True,
-        #         row=5, col=1)
-
-        if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=6, col=1)
-
-        if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models.columns:
-            fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=7, col=1)
-
-        for number_of_y_axis_minus_two, table_name2 in enumerate(dict_of_identical_queries_for_each_table):
-            query=dict_of_identical_queries_for_each_table[table_name2]
-            df_with_resulting_table_of_certain_models1 = \
-                return_df_from_postgres_sql_table(query, table_name2,
-                                                  engine_for_db_levels_formed_by_highs_and_lows_for_cryptos_0000_hist)
-            df_with_resulting_table_of_certain_models1 = create_column_in_df_called_number_of_order_placement_within_next_and_prev_n_days(
-                df_with_resulting_table_of_certain_models1,
-                number_of_prev_and_next_days)
-            if "max_profit_target_multiple_when_sl_technical" in df_with_resulting_table_of_certain_models1.columns:
-                # Count the occurrences for max_profit_target_multiple_when_sl_technical=0 and max_profit_target_multiple_when_sl_technical!=0
-                counts = df_with_resulting_table_of_certain_models1[
-                    'max_profit_target_multiple_when_sl_technical'].value_counts()
-
-                # Retrieve the counts for the values
-                count_of_zero = counts.get(0, 0)  # Get the count for max_profit_target_multiple_when_sl_technical=0
-                count_of_non_zero = counts.sum() - count_of_zero  # Get the count for max_profit_target_multiple_when_sl_technical!=0
-
-                fig.add_trace(go.Scatter(x=df_with_resulting_table_of_certain_models1["human_datetime_of_order_placement_bar"],
-                                         y=df_with_resulting_table_of_certain_models1["max_profit_target_multiple_when_sl_technical"],
-                                         mode='markers',yaxis=f'y{number_of_y_axis_minus_two+2}',visible='legendonly',
-                                         name=f"max_profit_target_multiple_when_sl_technical {count_of_non_zero}/{count_of_zero} for {table_name2.replace('''current_''','''''')}"  # Assign a name to the trace
-
-                                         ),secondary_y=True,
-                                  row=6, col=1)
-
-            if "max_profit_target_multiple_when_sl_calculated" in df_with_resulting_table_of_certain_models1.columns:
-                # Count the occurrences for max_profit_target_multiple_when_sl_calculated=0 and max_profit_target_multiple_when_sl_calculated!=0
-                counts = df_with_resulting_table_of_certain_models1[
-                    'max_profit_target_multiple_when_sl_calculated'].value_counts()
-
-                # Retrieve the counts for the values
-                count_of_zero = counts.get(0, 0)  # Get the count for max_profit_target_multiple_when_sl_calculated=0
-                count_of_non_zero = counts.sum() - count_of_zero  # Get the count for max_profit_target_multiple_when_sl_calculated!=0
-
-                fig.add_trace(
-                    go.Scatter(x=df_with_resulting_table_of_certain_models1["human_datetime_of_order_placement_bar"],
-                               y=df_with_resulting_table_of_certain_models1["max_profit_target_multiple_when_sl_calculated"],
-                               mode='markers', yaxis=f'y{number_of_y_axis_minus_two + 2}', visible='legendonly',
-                               name=f"max_profit_target_multiple_when_sl_calculated {count_of_non_zero}/{count_of_zero} for {table_name2.replace('''current_''', '''''')}"
-                               # Assign a name to the trace
-
-                               ), secondary_y=True,
-                    row=7, col=1)
-
-        list_of_exchanges_in_df=get_unique_exchanges(df_with_resulting_table_of_certain_models)
-
-
-        # Add order counts for each exchange
-
-        df_with_resulting_table_of_certain_models_and_with_order_counts = add_order_counts_by_exchange(df_with_resulting_table_of_certain_models,
-                                                            list_of_exchanges_in_df,
-                                                            number_of_days_before_and_after_to_count_exchanges_where_order_was_placed)
-
-        st.write("df_with_resulting_table_of_certain_models_and_with_order_counts")
-        st.dataframe(df_with_resulting_table_of_certain_models_and_with_order_counts)
-
-
-
-        fig.add_trace(go.Scatter(x=entire_ohlcv_df["open_time"], y=entire_ohlcv_df['close'], mode='lines',
-                                     name='Close Price of BTC'),
-                          row=8, col=1)
-        for exchange_name in list_of_exchanges_in_df:
-
-            fig.add_trace(
-                go.Scatter(x=df_with_resulting_table_of_certain_models_and_with_order_counts["human_datetime_of_order_placement_bar"],
-                           y=df_with_resulting_table_of_certain_models_and_with_order_counts[
-                               f'orders_{exchange_name}_{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}d_back_and_forth_window'],
-                           mode='markers', yaxis=f'y2', visible='legendonly',marker=dict(size=2),
-                           name=f"orders_{exchange_name}_{number_of_days_before_and_after_to_count_exchanges_where_order_was_placed}d_back_and_forth_window for {table_name.replace('''current_''', '''''')}"
-                           # Assign a name to the trace
-
-                           ), secondary_y=True,
-                row=8, col=1)
+        #         row=8, col=1)
 
 
         # # Update layout for each subplot, setting the legend position
@@ -2459,7 +2452,7 @@ def plot_deposit_by_end_of_period_for_calc_and_tech_sl_and_plot_number_of_trades
         # # adding the second y axis
         #
 
-        fig.update_layout(height=height_of_line_chart * 8, width=width_of_line_chart,
+        fig.update_layout(height=height_of_line_chart * 3, width=width_of_line_chart,
                           title="Deposit by end of given period")
 
         # Narrow the gap between subplots

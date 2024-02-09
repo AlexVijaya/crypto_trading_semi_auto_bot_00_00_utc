@@ -1855,7 +1855,7 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                                                     df_with_level_atr_bpu_bsu_etc.loc[
                                                         0, "timestamp_when_bfr_was_found"] = int(time.time())
                                                     df_with_level_atr_bpu_bsu_etc.loc[
-                                                        0, "datetime_when_bfr_was_found"] = datetime.datetime.now()
+                                                        0, "datetime_when_bfr_was_found"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                                                 except:
                                                     traceback.print_exc()
 
@@ -1932,6 +1932,37 @@ def search_for_tickers_with_false_breakout_situations(db_where_ohlcv_data_for_st
                                                 traceback.print_exc()
 
                                             df_with_level_atr_bpu_bsu_etc.at[0, "ticker"] = stock_name
+
+                                            try:
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "backlash"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "backlash_%ATR"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "acceptable_backlash"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "low_of_bpu1"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "low_of_bpu2"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "true_low_of_bsu"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "true_low_of_bpu1"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "true_low_of_bpu2"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "close_of_bpu2"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "open_of_tvx"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_bpu1"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "volume_of_bpu2"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_bpu1"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "timestamp_of_bpu2"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "human_time_of_bsu"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "human_time_of_bpu1"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "human_time_of_bpu2"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "приемлемый_люфт"] = np.nan
+                                            except:
+                                                traceback.print_exc()
+
+                                            try:
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "entry_order_id"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "tp_order_id"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[0, "sl_order_id"] = np.nan
+                                                df_with_level_atr_bpu_bsu_etc.at[
+                                                    0, "stop_market_or_limit_order_to_use_for_entry"] = np.nan
+                                            except:
+                                                traceback.print_exc()
 
                                             # df_with_level_atr_bpu_bsu_etc.to_sql (
                                             #     table_where_ticker_which_may_have_false_breakout_situations_from_ath_will_be ,

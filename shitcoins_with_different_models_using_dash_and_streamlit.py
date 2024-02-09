@@ -27,6 +27,7 @@ from constant_update_of_ohlcv_for_one_pair_on_many_exchanges_in_todays_db import
 import dash
 from dash import html
 import dash_tvlwc
+from psycopg2 import Error
 def get_date_with_and_without_time_from_timestamp(timestamp):
     open_time = \
         datetime.datetime.fromtimestamp ( timestamp  )
@@ -661,7 +662,7 @@ def plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pai
     # st.write("list_of_tables_in_todays_pairs_db")
     # st.write(list_of_tables_in_todays_pairs_db)
 
-    t=""
+    # t=""
 
     for exchange_id in list_of_exchange_ids_where_pair_is_traded_on:
         key_for_placeholder = get_index_of_exchange_id(list_of_exchange_ids_where_pair_is_traded_on, exchange_id)
@@ -693,10 +694,13 @@ def plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pai
                     table_with_ohlcv_data_df = \
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
-                except ProgrammingError:
+                except psycopg2.Error:
+                    st.write("ProgrammingError1")
                     table_with_ohlcv_data_df = \
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT","")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
+                except Exception as e:
+                    st.write(f"error {e}")
                 plot_ohlcv(row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
                            df_with_resulting_table_of_certain_models,table_with_ohlcv_data_df, trading_pair_to_select, asset_type, height, width,
                            key_for_placeholder)
@@ -706,10 +710,13 @@ def plot_multiple_charts_on_one_page(index_of_trading_pair_to_select,trading_pai
                     table_with_ohlcv_data_df = \
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
                                           engine_for_ohlcv_data_for_stocks_0000)
-                except ProgrammingError:
+                except psycopg2.Error:
+                    st.write("ProgrammingError2")
                     table_with_ohlcv_data_df = \
                         pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT", "")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
+                except Exception as e:
+                    st.write(f"error {e}")
                 plot_ohlcv(row_of_pair_ready_for_model,index_of_trading_pair_to_select,ticker_with_exchange_where_model_was_found,
                            df_with_resulting_table_of_certain_models,table_with_ohlcv_data_df, trading_pair_to_select, asset_type, height, width,
                            key_for_placeholder)

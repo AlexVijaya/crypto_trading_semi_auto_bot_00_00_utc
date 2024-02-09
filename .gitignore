@@ -1,3 +1,5 @@
 /current_rebound_breakout_and_false_breakout/
 /datasets
 /db_config.py
+/secrets.toml
+/secrets_with_api_private_and_public_keys_for_exchanges.toml
