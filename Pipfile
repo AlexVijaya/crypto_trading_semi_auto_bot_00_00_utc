@@ -30,6 +30,7 @@ streamlit-lightweight-charts = "*"
 gspread = "*"
 oauth2client = "*"
 psutil = "*"
+async-timeout = "*"
 
 [dev-packages]
 
