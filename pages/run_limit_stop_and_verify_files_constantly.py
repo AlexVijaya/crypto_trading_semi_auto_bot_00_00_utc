@@ -50,20 +50,20 @@ if __name__=="__main__":
         command_args3 = [sys.executable,'verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used']
         process3 = Popen(command_args3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # Example usage
-    process_names = ["place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen.py",
-                     "place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_without_running_verify_no_use_of_popen",
-                     "verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used"]
-    for process_name in process_names:
-
-        pids = get_pids_by_full_command(process_name)
-        print("pids")
-        print(pids)
-        if pids:
-            st.write(f"PIDs of process '{process_name}': {', '.join(pids)}")
-            for pid in pids:
-                if st.button(f"kill the process with {pid}"):
-                    result = kill_process_by_pid(int(pid))
-                    st.write(result)
-        else:
-            st.write(f"No process matching '{process_name}' found.")
+    # # Example usage
+    # process_names = ["place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen.py",
+    #                  "place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_without_running_verify_no_use_of_popen",
+    #                  "verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used"]
+    # for process_name in process_names:
+    #
+    #     pids = get_pids_by_full_command(process_name)
+    #     print("pids")
+    #     print(pids)
+    #     if pids:
+    #         st.write(f"PIDs of process '{process_name}': {', '.join(pids)}")
+    #         for pid in pids:
+    #             if st.button(f"kill the process with {pid}"):
+    #                 result = kill_process_by_pid(int(pid))
+    #                 st.write(result)
+    #     else:
+    #         st.write(f"No process matching '{process_name}' found.")
