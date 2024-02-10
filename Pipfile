@@ -29,6 +29,7 @@ mypy = "*"
 streamlit-lightweight-charts = "*"
 gspread = "*"
 oauth2client = "*"
+psutil = "*"
 
 [dev-packages]
 
