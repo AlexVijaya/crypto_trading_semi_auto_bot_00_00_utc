@@ -1015,6 +1015,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
     try:
         file.write("\n"+str(exchange_id))
         file.write("\n"+"\n")
+        print("--------------------------------------------------")
+        print("--------------------------------------------------")
+        print("--------------------------------------------------")
+        print("--------------------------------------------------")
+        print("--------------------------------------------------")
+        print("\n" + str(exchange_id))
+        print("\n" + "\n")
         exchange_object_where_api_is_required = get_exchange_object_where_api_is_required(exchange_id)
         file.write("\n" + "exchange_object_where_api_is_required="+ str(exchange_object_where_api_is_required))
     except Exception as e:

@@ -40,15 +40,15 @@ if __name__=="__main__":
     pids=[]
     if st.button(f"run place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen"):
         command_args1 = [sys.executable,'place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen.py']
-        process1 = Popen(command_args1, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process1 = Popen(command_args1 )
 
     if st.button("run place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_without_running_verify_no_use_of_popen"):
         command_args2 = [sys.executable,'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_without_running_verify_no_use_of_popen']
-        process2 = Popen(command_args2, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process2 = Popen(command_args2)
 
     if st.button("run verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used"):
         command_args3 = [sys.executable,'verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used']
-        process3 = Popen(command_args3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process3 = Popen(command_args3)
 
 
     # process_names = ["place_limit_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_no_use_of_popen.py",

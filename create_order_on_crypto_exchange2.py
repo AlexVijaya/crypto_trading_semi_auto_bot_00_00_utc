@@ -78,8 +78,8 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'bitpanda': ccxt.bitpanda(),
         'bitso': ccxt.bitso(),
         'bitstamp': ccxt.bitstamp(),
-        'bitstamp1': ccxt.bitstamp1(),
-        'bittrex': ccxt.bittrex(),
+        # 'bitstamp1': ccxt.bitstamp1(),/
+        # 'bittrex': ccxt.bittrex(),
         'bitrue':ccxt.bitrue(),
         'bitvavo': ccxt.bitvavo(),
         # 'bitz': ccxt.bitz(),
@@ -105,14 +105,14 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'cex': ccxt.cex(),
         # 'chilebit': ccxt.chilebit(),
         'coinbase': ccxt.coinbase(),
-        'coinbaseprime': ccxt.coinbaseprime(),
+        # 'coinbaseprime': ccxt.coinbaseprime(),
         'coinbasepro': ccxt.coinbasepro(),
         'coincheck': ccxt.coincheck(),
         # 'coinegg': ccxt.coinegg(),
         'coinex': ccxt.coinex({
         'apiKey': public_api_key ,
         'secret': api_secret }),
-        'coinfalcon': ccxt.coinfalcon(),
+        # 'coinfalcon': ccxt.coinfalcon(),
         'coinsph':ccxt.coinsph(),
         # 'coinfloor': ccxt.coinfloor(),
         # 'coingi': ccxt.coingi(),
@@ -163,7 +163,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'secret': api_secret }),
         'hollaex': ccxt.hollaex(),
         'huobijp': ccxt.huobijp(),
-        'huobipro': ccxt.huobipro({
+        'huobipro': ccxt.huobi({
         'apiKey': public_api_key ,
         'secret': api_secret }),
         # 'ice3x': ccxt.ice3x(),
@@ -194,7 +194,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'mexc':ccxt.mexc({
         'apiKey': public_api_key ,
         'secret': api_secret }),
-        'mexc3' : ccxt.mexc3({
+        'mexc3' : ccxt.mexc({
         'apiKey': public_api_key ,
         'secret': api_secret }),
         # 'mixcoins': ccxt.mixcoins(),
@@ -204,11 +204,11 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'novadax': ccxt.novadax(),
         'oceanex': ccxt.oceanex(),
         'okcoin': ccxt.okcoin(),
-        'okex': ccxt.okex({
+        'okex': ccxt.okx({
         'apiKey': public_api_key ,
         'secret': api_secret,
         'password': trading_password }),
-        'okex5':ccxt.okex5({
+        'okex5':ccxt.okx({
         'apiKey': public_api_key ,
         'secret': api_secret,
         'password': trading_password }),
@@ -220,7 +220,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'huobi': ccxt.huobi({
         'apiKey': public_api_key ,
         'secret': api_secret }),
-        'lbank2': ccxt.lbank2({
+        'lbank2': ccxt.lbank({
         'apiKey': public_api_key ,
         'secret': api_secret }),
         'blockchaincom': ccxt.blockchaincom(),
@@ -251,7 +251,7 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         # 'surbitcoin': ccxt.surbitcoin(),
         # 'therock': ccxt.therock(),
         # 'tidebit': ccxt.tidebit(),
-        'tidex': ccxt.tidex(),
+        # 'tidex': ccxt.tidex(),
         'timex': ccxt.timex(),
         'upbit': ccxt.upbit(),
         # 'vcc': ccxt.vcc(),
