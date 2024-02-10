@@ -8,9 +8,8 @@ import time
 import traceback
 import re
 import numpy as np
-import huobi
-import huobi_client
-import db_config
+
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 from sqlalchemy import text
@@ -36,6 +35,7 @@ def get_all_time_low_from_some_exchange(exchange_object, symbol):
     return all_time_low
 
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
