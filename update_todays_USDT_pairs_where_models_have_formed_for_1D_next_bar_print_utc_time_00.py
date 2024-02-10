@@ -7,7 +7,7 @@ import os
 import sys
 import time
 import traceback
-import db_config
+# import db_config
 from sqlalchemy import text
 import sqlalchemy
 import psycopg2
@@ -66,6 +66,7 @@ def drop_table(table_name, engine):
 
 
 def connect_to_postgres_db_with_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -740,6 +741,7 @@ def get_real_time_bitcoin_price():
     return last_bitcoin_price
 
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

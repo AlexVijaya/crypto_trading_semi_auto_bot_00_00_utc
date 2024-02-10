@@ -17,7 +17,7 @@ from datetime import datetime
 #from if_asset_is_close_to_hh_or_ll import find_asset_close_to_hh_and_ll
 import datetime as dt
 import check_if_asset_is_approaching_its_atl
-import db_config
+# import db_config
 # from sqlalchemy import MetaData
 from sqlalchemy import inspect
 import logging
@@ -85,6 +85,7 @@ def get_list_of_excluded_dates(data_df):
 
 
 def connect_to_postgres_db_without_deleting_it_first(database ):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

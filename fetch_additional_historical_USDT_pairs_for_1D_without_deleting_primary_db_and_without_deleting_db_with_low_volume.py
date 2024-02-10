@@ -94,6 +94,7 @@ def get_maker_and_taker_fees_and_is_shortable(exchange, trading_pair):
     return maker_fee, taker_fee, is_shortable
 
 def connect_to_postgres_db_with_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -192,6 +193,7 @@ def add_time_of_next_candle_print_to_df(data_df):
         traceback.print_exc()
 
 def connect_to_postres_db_and_delete_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

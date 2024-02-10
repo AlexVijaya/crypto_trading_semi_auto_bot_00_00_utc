@@ -10,7 +10,7 @@ import tzlocal
 import numpy as np
 from collections import Counter
 from sqlalchemy_utils import create_database,database_exists
-import db_config
+# import db_config
 # from sqlalchemy import MetaData
 from sqlalchemy import inspect
 import logging
@@ -122,6 +122,7 @@ def calculate_atr_without_paranormal_bars_from_numpy_array(atr_over_this_period,
     return advanced_atr
 
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

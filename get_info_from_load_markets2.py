@@ -63,6 +63,7 @@ def connect_to_postgres_db_without_deleting_it_first(database):
     return engine , connection
 
 def connect_to_postgres_db_with_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

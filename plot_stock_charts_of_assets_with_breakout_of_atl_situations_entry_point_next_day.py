@@ -55,6 +55,7 @@ def get_date_with_and_without_time_from_timestamp(timestamp):
 
 
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

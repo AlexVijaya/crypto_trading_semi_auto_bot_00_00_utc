@@ -110,6 +110,7 @@ def find_if_level_is_round(level):
 
 
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

@@ -10,7 +10,7 @@ import re
 import numpy as np
 import huobi
 import huobi_client
-import db_config
+# import db_config
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 # from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
@@ -21,6 +21,7 @@ def if_margin_true_for_an_asset(markets, trading_pair):
     # pprint.pprint(market)
     return market['margin']
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -48,6 +49,7 @@ def connect_to_postgres_db_without_deleting_it_first(database):
     return engine , connection
 
 def connect_to_postgres_db_with_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

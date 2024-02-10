@@ -7,7 +7,7 @@ import os
 import sys
 import time
 import traceback
-import db_config
+# import db_config
 from sqlalchemy import text
 import sqlalchemy
 import psycopg2
@@ -31,6 +31,7 @@ from get_info_from_load_markets import async_fetch_entire_ohlcv_without_exchange
 from get_info_from_load_markets import get_exchange_object3
 from get_info_from_load_markets import async_get_exchange_object3
 async def get_async_connection_to_db_without_deleting_it_first(database_name):
+    import db_config
     dialect = db_config.dialect
     # driver = db_config.driver
     driver = db_config.async_driver

@@ -21,6 +21,7 @@ def if_margin_true_for_an_asset(markets, trading_pair):
     pprint.pprint(market)
     return market['margin']
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -48,6 +49,7 @@ def connect_to_postgres_db_without_deleting_it_first(database):
     return engine , connection
 
 def connect_to_postgres_db_with_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

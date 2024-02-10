@@ -6,7 +6,7 @@ import os
 import sys
 import time
 import traceback
-import db_config
+
 import sqlalchemy
 import psycopg2
 import pandas as pd
@@ -85,6 +85,7 @@ def get_number_of_last_index(ohlcv_data_df):
     return number_of_last_index
 
 def connect_to_postgres_db_with_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -155,6 +156,7 @@ def connect_to_postgres_db_with_deleting_it_first(database):
     return engine , connection
 
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
@@ -183,6 +185,7 @@ def connect_to_postgres_db_without_deleting_it_first(database):
 
 
 def connect_to_postgres_db_with_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

@@ -6,7 +6,7 @@ import time
 import datetime
 import traceback
 from sqlalchemy_utils import create_database, database_exists
-import db_config
+# import db_config
 from sqlalchemy import inspect
 from before_entry_current_search_for_tickers_with_breakout_situations_of_ath_position_entry_next_day import connect_to_postgres_db_without_deleting_it_first
 from before_entry_current_search_for_tickers_with_breakout_situations_of_ath_position_entry_next_day import get_list_of_tables_in_db

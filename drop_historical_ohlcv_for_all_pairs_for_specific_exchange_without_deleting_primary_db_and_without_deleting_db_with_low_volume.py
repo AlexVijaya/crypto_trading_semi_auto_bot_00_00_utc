@@ -6,7 +6,7 @@ import os
 import sys
 import time
 import traceback
-import db_config
+# import db_config
 import sqlalchemy
 import psycopg2
 import pandas as pd

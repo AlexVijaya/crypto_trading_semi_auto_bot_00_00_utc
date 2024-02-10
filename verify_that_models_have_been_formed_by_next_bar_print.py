@@ -60,6 +60,7 @@ async def get_tickers_from_tables(pool, tables):
     return tickers
 
 async def return_list_of_tickers_in_db_in_all_tables(database_name_with_models,list_of_acceptable_tables_for_search_if_model_is_met):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password

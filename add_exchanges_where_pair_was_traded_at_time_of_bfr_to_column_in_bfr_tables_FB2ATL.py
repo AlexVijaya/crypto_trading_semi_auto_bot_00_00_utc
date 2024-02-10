@@ -11,7 +11,7 @@ import tzlocal
 import numpy as np
 from collections import Counter
 from sqlalchemy_utils import create_database,database_exists
-import db_config
+# import db_config
 # from sqlalchemy import MetaData
 from sqlalchemy import inspect
 import logging
