@@ -11,7 +11,7 @@ import numpy as np
 # from fetch_historical_USDT_pairs_for_1D_delete_first_primary_db_and_delete_low_volume_db import remove_values_from_list
 
 
-import db_config
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 import streamlit as st
@@ -1375,6 +1375,7 @@ def fetch_entire_ohlcv_without_exchange_name(exchange_object,trading_pair, timef
     else:
         return data_df
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
