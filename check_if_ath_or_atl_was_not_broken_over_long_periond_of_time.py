@@ -5,7 +5,7 @@ import pandas as pd
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 from sqlalchemy import inspect
 from sqlalchemy import create_engine
-import db_config
+
 from sqlalchemy_utils import create_database,database_exists
 from collections import Counter
 from get_info_from_load_markets2 import get_all_time_high_low
@@ -3342,6 +3342,7 @@ def get_last_ath_timestamp_and_row_number(table_with_ohlcv_data_df_slice_numpy_a
 
 
 def connect_to_postgres_db_without_deleting_it_first(database):
+    import db_config
     dialect = db_config.dialect
     driver = db_config.driver
     password = db_config.password
