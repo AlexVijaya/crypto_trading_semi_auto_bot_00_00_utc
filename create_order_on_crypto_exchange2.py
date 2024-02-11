@@ -1,7 +1,7 @@
 import traceback
 import toml
 import ccxt  # noqa: E402
-from api_config import api_dict_for_all_exchanges
+# from api_config import api_dict_for_all_exchanges
 
 def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,trading_password):
     import ccxt  # noqa: E402
@@ -324,7 +324,8 @@ def create_order(exchange_id,trading_pair,type,side,amount,price,params):
     exchange_object=None
     if exchange_id=="kucoin":
         try:
-            trading_password=api_dict_for_all_exchanges[exchange_id]['trading_password']
+            # trading_password=api_dict_for_all_exchanges[exchange_id]['trading_password']
+            trading_password = secrets['secrets'][f"{exchange_id}_trading_password"]
         except:
             traceback.print_exc()
 
