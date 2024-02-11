@@ -1,12 +1,12 @@
-from statistics import mean
-from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_ath_breakout
-from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
+# from statistics import mean
+# from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_ath_breakout
+# from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
 import pandas as pd
 import sys
 from datetime import timezone
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import streamlit as st
+# import streamlit as st
 from subprocess import Popen, PIPE
 import subprocess
 from get_info_from_load_markets import get_exchange_object6
@@ -14,9 +14,9 @@ from current_search_for_tickers_with_rebound_situations_off_atl import check_if_
 from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_open_into_atl_level
 from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level
 from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level
-from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
+# from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
 from current_search_for_tickers_with_fast_breakout_of_atl import calculate_atr_without_paranormal_bars_from_numpy_array
-from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
+# from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
 from current_search_for_tickers_with_rebound_situations_off_atl import get_ohlc_of_bpu2
@@ -27,19 +27,71 @@ import time
 import traceback
 from current_search_for_tickers_with_rebound_situations_off_atl import get_volume_of_bpu2
 from current_search_for_tickers_with_rebound_situations_off_atl import calculate_advanced_atr
-from before_entry_current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_current_price_of_asset
-from sqlalchemy_utils import create_database, database_exists
+# from before_entry_current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_current_price_of_asset
+# from sqlalchemy_utils import create_database, database_exists
 # import db_config
-from sqlalchemy import inspect
-from before_entry_current_search_for_tickers_with_breakout_situations_of_ath_position_entry_next_day import connect_to_postgres_db_without_deleting_it_first
-from before_entry_current_search_for_tickers_with_breakout_situations_of_ath_position_entry_next_day import get_list_of_tables_in_db
+# from sqlalchemy import inspect
+# from before_entry_current_search_for_tickers_with_breakout_situations_of_ath_position_entry_next_day import connect_to_postgres_db_without_deleting_it_first
+# from before_entry_current_search_for_tickers_with_breakout_situations_of_ath_position_entry_next_day import get_list_of_tables_in_db
 import datetime
-from build_entire_df_of_assets_which_will_be_used_for_position_entry import build_entire_df_of_assets_which_will_be_used_for_position_entry
+# from build_entire_df_of_assets_which_will_be_used_for_position_entry import build_entire_df_of_assets_which_will_be_used_for_position_entry
 import numpy as np
 from current_search_for_tickers_with_rebound_situations_off_atl import get_last_close_price_of_asset
 from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
 from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
 import math
+
+def check_atl_breakout(table_with_ohlcv_data_df_slice_numpy_array,
+                       number_of_days_where_atl_was_not_broken,
+                       atl,
+                       row_of_last_atl):
+    if np.isnan(row_of_last_atl):
+        return True
+    # Calculate the row index to start selecting data from
+    start_row_index = max(0, row_of_last_atl - number_of_days_where_atl_was_not_broken)
+
+    # Select the relevant rows from the numpy array
+    selected_rows = table_with_ohlcv_data_df_slice_numpy_array[start_row_index:row_of_last_atl + 1]
+
+    # Determine if the low was broken during the selected period
+    atl_is_not_broken_for_a_long_time = True
+    min_low_over_given_period = np.min(selected_rows[:, 3])
+    if min_low_over_given_period < atl:
+        atl_is_not_broken_for_a_long_time = False
+
+    return atl_is_not_broken_for_a_long_time
+
+def check_ath_breakout(table_with_ohlcv_data_df_slice_numpy_array,
+                       number_of_days_where_ath_was_not_broken,
+                       ath,
+                       row_of_last_ath):
+
+    if np.isnan(row_of_last_ath):
+        return True
+
+    # Calculate the row index to start selecting data from
+    start_row_index = max(0, row_of_last_ath - number_of_days_where_ath_was_not_broken)
+    # print("start_row_index")
+    # print(start_row_index)
+
+    # Select the relevant rows from the numpy array
+    selected_rows = table_with_ohlcv_data_df_slice_numpy_array[start_row_index:row_of_last_ath + 1]
+    # print("selected_rows")
+    # print(selected_rows)
+
+    # Determine if the high was broken during the selected period
+    ath_is_not_broken_for_a_long_time = True
+    max_high_over_given_perion = np.max(selected_rows[:, 2])
+    # print("max_high_over_given_perion_when_true")
+    # print(max_high_over_given_perion)
+    if max_high_over_given_perion > ath:
+        # print("max_high_over_given_perion_when_false")
+        # print(max_high_over_given_perion)
+        ath_is_not_broken_for_a_long_time = False
+
+    return ath_is_not_broken_for_a_long_time
+
+
 def return_args_for_placing_limit_or_stop_order(row_df):
     # trading_pair = base_slash_quote
     # price_of_sl = 0
