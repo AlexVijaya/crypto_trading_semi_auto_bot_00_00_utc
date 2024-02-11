@@ -10,10 +10,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 from subprocess import Popen, PIPE
 import subprocess
 from get_info_from_load_markets import get_exchange_object6
-from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_close_into_atl_level
-from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_open_into_atl_level
-from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level
-from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level
+# from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_close_into_atl_level
+# from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_open_into_atl_level
+# from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level
+# from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level
 # from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
 from current_search_for_tickers_with_fast_breakout_of_atl import calculate_atr_without_paranormal_bars_from_numpy_array
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
@@ -40,6 +40,149 @@ from current_search_for_tickers_with_rebound_situations_off_atl import get_last_
 from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
 from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
 import math
+def check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level(
+        acceptable_backlash , atr , open_of_bsu , open_of_bpu1 , open_of_bpu2 ,
+        high_of_bsu , high_of_bpu1 , high_of_bpu2 ,
+        low_of_bsu , low_of_bpu1 , low_of_bpu2):
+    three_bars_do_not_open_into_level = False
+
+    luft_for_bsu = (high_of_bsu - low_of_bsu) * acceptable_backlash
+    luft_for_bpu1 = (high_of_bpu1 - low_of_bpu1) * acceptable_backlash
+    luft_for_bpu2 = (high_of_bpu2 - low_of_bpu2) * acceptable_backlash
+
+    if abs(high_of_bsu-open_of_bsu) >= luft_for_bsu:
+        bsu_ok = True
+    else:
+        bsu_ok = False
+
+    if abs(high_of_bpu1-open_of_bpu1) >= luft_for_bpu1:
+        bpu1_ok = True
+    else:
+        bpu1_ok = False
+
+    if abs(high_of_bpu2-open_of_bpu2) >= luft_for_bpu2:
+        # print ( "luft_for_bpu2" )
+        # print ( luft_for_bpu2 )
+        # print ( "high_of_bpu2 - open_of_bpu2" )
+        # print ( high_of_bpu2 - open_of_bpu2 )
+        bpu2_ok = True
+        # print ( "bpu2_ok" )
+        # print ( bpu2_ok )
+    else:
+        # print ( "luft_for_bpu2" )
+        # print ( luft_for_bpu2 )
+        # print ( "high_of_bpu2" )
+        # print ( high_of_bpu2 )
+        # print ( "open_of_bpu2" )
+        # print ( open_of_bpu2 )
+        # print ( "high_of_bpu2 - open_of_bpu2" )
+        # print ( high_of_bpu2 - open_of_bpu2 )
+        bpu2_ok = False
+        # print ( "bpu2_ok" )
+        # print ( bpu2_ok )
+
+    if all ( [bsu_ok , bpu1_ok , bpu2_ok] ):
+        three_bars_do_not_open_into_level = True
+    else:
+        three_bars_do_not_open_into_level = False
+
+    return three_bars_do_not_open_into_level
+
+
+def check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level(acceptable_backlash , atr , close_of_bsu , close_of_bpu1 ,
+                                                       close_of_bpu2 ,
+                                                       high_of_bsu , high_of_bpu1 , high_of_bpu2 ,
+                                                       low_of_bsu , low_of_bpu1 , low_of_bpu2):
+    three_bars_do_not_close_into_level = False
+
+    luft_for_bsu = (high_of_bsu - low_of_bsu) * acceptable_backlash
+    luft_for_bpu1 = (high_of_bpu1 - low_of_bpu1) * acceptable_backlash
+    luft_for_bpu2 = (high_of_bpu2 - low_of_bpu2) * acceptable_backlash
+
+    if abs(high_of_bsu - close_of_bsu) >= luft_for_bsu:
+        bsu_ok = True
+    else:
+        bsu_ok = False
+
+    if abs(high_of_bpu1 - close_of_bpu1) >= luft_for_bpu1:
+        bpu1_ok = True
+    else:
+        bpu1_ok = False
+
+    if abs(high_of_bpu2 - close_of_bpu2) >= luft_for_bpu2:
+
+        bpu2_ok = True
+    else:
+        bpu2_ok = False
+
+    if all ( [bsu_ok , bpu1_ok , bpu2_ok] ):
+        three_bars_do_not_close_into_level = True
+    else:
+        three_bars_do_not_close_into_level = False
+
+    return three_bars_do_not_close_into_level
+def check_if_bsu_bpu1_bpu2_do_not_open_into_atl_level (
+        acceptable_backlash,atr,open_of_bsu , open_of_bpu1 , open_of_bpu2 ,
+        high_of_bsu , high_of_bpu1 , high_of_bpu2 ,
+        low_of_bsu , low_of_bpu1 , low_of_bpu2 ):
+    three_bars_do_not_open_into_level=False
+
+    luft_for_bsu=(high_of_bsu-low_of_bsu)*acceptable_backlash
+    luft_for_bpu1 = (high_of_bpu1 - low_of_bpu1) * acceptable_backlash
+    luft_for_bpu2 = (high_of_bpu2 - low_of_bpu2) * acceptable_backlash
+
+    if abs(open_of_bsu-low_of_bsu)>=luft_for_bsu:
+        bsu_ok=True
+    else:
+        bsu_ok=False
+
+    if abs(open_of_bpu1-low_of_bpu1)>=luft_for_bpu1:
+        bpu1_ok=True
+    else:
+        bpu1_ok=False
+
+    if abs(open_of_bpu2-low_of_bpu2)>=luft_for_bpu2:
+        bpu2_ok=True
+    else:
+        bpu2_ok=False
+
+    if all([bsu_ok,bpu1_ok,bpu2_ok]):
+        three_bars_do_not_open_into_level=True
+    else:
+        three_bars_do_not_open_into_level = False
+
+    return three_bars_do_not_open_into_level
+
+def check_if_bsu_bpu1_bpu2_do_not_close_into_atl_level ( acceptable_backlash,atr,close_of_bsu , close_of_bpu1 , close_of_bpu2 ,
+                                                                    high_of_bsu , high_of_bpu1 , high_of_bpu2 ,
+                                                                    low_of_bsu , low_of_bpu1 , low_of_bpu2 ):
+    three_bars_do_not_close_into_level = False
+
+    luft_for_bsu = (high_of_bsu - low_of_bsu) * acceptable_backlash
+    luft_for_bpu1 = (high_of_bpu1 - low_of_bpu1) * acceptable_backlash
+    luft_for_bpu2 = (high_of_bpu2 - low_of_bpu2) * acceptable_backlash
+
+    if abs(close_of_bsu - low_of_bsu) >= luft_for_bsu:
+        bsu_ok = True
+    else:
+        bsu_ok = False
+
+    if abs(close_of_bpu1 - low_of_bpu1) >= luft_for_bpu1:
+        bpu1_ok = True
+    else:
+        bpu1_ok = False
+
+    if abs(close_of_bpu2 - low_of_bpu2) >= luft_for_bpu2:
+        bpu2_ok = True
+    else:
+        bpu2_ok = False
+
+    if all ( [bsu_ok , bpu1_ok , bpu2_ok] ):
+        three_bars_do_not_close_into_level = True
+    else:
+        three_bars_do_not_close_into_level = False
+
+    return three_bars_do_not_close_into_level
 
 def check_atl_breakout(table_with_ohlcv_data_df_slice_numpy_array,
                        number_of_days_where_atl_was_not_broken,
