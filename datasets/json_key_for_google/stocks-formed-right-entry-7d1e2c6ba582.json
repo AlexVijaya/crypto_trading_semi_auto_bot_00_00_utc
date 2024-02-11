@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "stocks-formed-right-entry",
+  "private_key_id": "7d1e2c6ba58209bda6984591763b069f219b6214",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC+vGH/PsgTMAFF\nWiKAVmsNsrXafgmLjhl5D8xHmUa08Z04ZkR5CjbIcc1AN2lxSr9qxI1U0ooZW8p4\nGCJKBLvvN4xophM+qdx9C3Zr54uagGCAhXhbF9WOe36ItSj0rkFnayojcV94/3bU\nfox5f+NnEOjrfiWuj5+ZO0dGs5288z+cZRliboIUbJBRQbD1VRv5aGefkhRRHapU\nH4lOHLOjQ2EuCSgxFYt9mCtfNuamDmbVI7Ev3S0vey0S5YDP4mtYax4zmqzSpiwF\nZmpvdhXRTPaurCzrdPuCAyJ1EBdX3yUeGDFFK6SCEPBnEMiUZOgDHwrKZvzFfbdF\nYsN4Mrs1AgMBAAECggEAD3G8PalyafCpKa8dZrxDTt35plzY866TQXTrWvYo/jMn\nl+QwBzJch+kvGtQMewVNGp1vvuk4ECBD9MAqMUl7g5NBO01h9uD/iYs0EOi0Kn6F\nUeLSLA4crLzd3L6j4lbPKktIeODlP4GauE9xmyT6ijiZo6KYn9nhV8xaU89CJoUo\nBHnTyPwzgArJhiCjr4VeFhpEt8eKNWBsTYTq6RbchoV0osV7WCvVD5H9yHBscMGn\nKFPsmIX8Nk5lVOGVAO3R5bPmW0ZN2V3Q6yUn81L4CjC5eDqZYzaTST/Hrjp8ZX/i\nFskNSc3fjX58eS7AoRlYzoCRr+6R6AousdSOBixwwQKBgQDjew4yYPC27+kFphxo\nrYmAvMg30ysTzQ06by6U0vjFPld2SVVUXbEt/4zatOzrUGUflYL5kv9IzA/VzZN/\nVXt4QHYSu/jKQYZQGX2kOU/NvE33PldMHGwo50RuTyu8mkPwvPOR1bNwMBdAoT3D\nhYrTe8ZDYfg+rdkM1DjscIWh0wKBgQDWpgKg42O4SN+0DCq5/koMqU/n6q91/Lu1\ndf3tX4Z1Vqzb1Mb1IQDty2eNI46y+u5dJqankzkAGM8fBjV8FScBlsbsYB+D5sCu\nds7lcttgqUjrc/6b9iTPhodXnvgq4tXB0pVgAVO7nnvoQ1pkxpZzWJU7a4HzSgC0\n7QTMOJIB1wKBgQDQUTB/EideX/WVJrl9Yu445qiz9r3MNEuY55hQ0aLffme5+w4Z\nZHONHClxX55XIBh7BAAdbXA6yiT2NnyMb0vSo7V9EoaTMc4+LBnS+mkKjxcXBBAN\nszmZe7A/FGGJJfxxyZeERZ89bczdcsuM8g5f/UljC6S6QZozFWXLoH+/4QKBgE/Y\nw2OMEt1LpoO4fvBfSrZ5CTNxVsHiOQVglgwGG+NsUbMY7MXk+A59OtEC6CNmOuNF\n7Hqrxmll0S5uRdkZmT/7EZZ+j1qmrQh5Q6+Q0VCcyHZl2NG1d64HEjOi/Bgf93o5\nVr224KoLY3ZcD7UrNm5EBodrD5Ur8yVagg1iAdZTAoGBAKyNRtsadqgecTZIk3UC\nWO61gpS81QIpBdzx+QJEm246Il7Fl/fwWVeky8O6VkmW1UkNI+TGZpmvBP6Llhsr\nd4A/orNGPDobmRThhLnWiKQOApNMfCp0iWVcTCNdxiPPxYX3Rbc98A2OkL2zm2u6\nFTx67jjt6XsoYGWFsuacevqw\n-----END PRIVATE KEY-----\n",
+  "client_email": "my-app-name-service-account883@stocks-formed-right-entry.iam.gserviceaccount.com",
+  "client_id": "110320546618020396113",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/my-app-name-service-account883%40stocks-formed-right-entry.iam.gserviceaccount.com"
+}

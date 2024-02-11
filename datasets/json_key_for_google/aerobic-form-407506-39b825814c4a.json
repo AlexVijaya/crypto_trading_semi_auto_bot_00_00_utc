@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "aerobic-form-407506",
+  "private_key_id": "39b825814c4aed6dea7bd527106e81efe2998957",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCnRLuUgxUx6suE\n7PscTNdcJUGNQUkvtm7r0CZfWBk2m3JvD59KIZc/302ouQAol1IcYPaiB5Oflybn\nsX5FJ4QYnZvBD1Yj/lpMonsjBFKpKoitWcf1RwFvYIEABegQoDud5jUYzyJtpUV5\n2hRs/UFdV25nB/iMo86Jg0AaVA91LkOVvqog5bpbvKWxfKbWEyVI3lIkWtrSjpQw\ne++hsCysccbAxwDAnR7vX/Pbg3CX1PkTmQGSL8bWwIGxCeLLzNTnqnsCLsIu/bjb\nkQtFLOR/ILw/55zzP22Mus3LQYrWujVFK2rEOGV5MABJBZhFA4tueD2D5zWXyEnU\n0XeCZpB/AgMBAAECggEAPEeW2iSLRNv60EKfFEnU6s46W2+Fsn4qZy0yRvX20Ckh\nCkk0/IAyg8AzunRBTF+MJdIDz8yvNLpCOQlMGhvtjPlvohmmz33giPGdMrdiGrjL\nXL2YRBp8t+itVJbMVQGJupO12uT64UzIRuuCpOx32+2gSd0jg3uc+Q2l0lcs4utd\nTWvDvreDDZDwP0xMPJJb8gAz8nrGNwARiXTpA2A/GyaFa9a1oYzgNDXPXew15tS5\nXGGzXMrc3hWQEFYOzyxJIuVfLQEvoudWp+BUAvLrLasHj/kMS+sROsaOurKZZfgK\nyvfAavzsZfJHWWi55A0YXxuPXWTAj4HA4C8Ol6mGAQKBgQDmKZf8t5z653KDsfR8\nPUZyZD1NKHJcUE/Yj1Z9fT78YIArKEzysSK05Vh4RuQVaFlF4Qjb3QRN1Ce6NZTh\nIxxHuij/zn9m0N7d0JqHG+VT5HMPA2XlU6XcW+UgGjsv9yXUyT75lSlOMJs+9QWs\nMO4rAbxKxITrApIrWLHPUL5e/wKBgQC6C7FBMASX8c64RSgt+CJ5fB2rtH3k4GQk\n3IpJ4etRxkz0TLWcdoKRZTVWS/CAEh+3bzq3L5tbxwUawAC2EyPro6tMTrbJH9P2\nK8X6xYFsTukEzl+5ABjkva5yK7XGgBenJQffNxvYMKQLy/eP2aZKxA4w3hRLA3xl\ncFpgFXlOgQKBgATyxfq/89cNHNAqBkiZhKc28n5zLSpA68aLJl/iTnVcmcTTw/u/\nxTBAcgt78rFnIew3r1oSwWHu+r+tITtJ5vS/0tvVE7YhLXl1X60h82c/VR3wg8NP\nbhRzwVRUXAtm8+BER19UTqQItX3ABNQz5Rr1mZe96+Gll4DpEkGTydP/AoGBAIBL\n096KSICnpdB5EG4y8UMpjiR8gVy2SRkKZOryOp7XyvWleI//QacWTiPGloEa/ng2\n4hy1XcN6iVCbG2Jz7I9w/I3QskgcBMV8Bjkavld8S0CfOG+RW5lSHNxqvB2485a1\n+Km7jR4W3OmtrHistPpWHRsh6oiYTM5/HjOoW1EBAoGBAJJ51HDB92J7VYmDCX+0\nH+fF7Ixgk67beOFLfhFNipcv6PuJbjJAekYQWpDAtkaDUls7YTZOU+KdG2JSHn1x\n6Sy/5M5xMz07+10e65oEVLzzp8Y7JgjEdDcOqEkTRHTUnI5xKE5hZurubroyBGcP\nw44OHSmj6W0iApk1BGkuoYgv\n-----END PRIVATE KEY-----\n",
+  "client_email": "streamlit-app-vijaya@aerobic-form-407506.iam.gserviceaccount.com",
+  "client_id": "111128501743720107602",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/streamlit-app-vijaya%40aerobic-form-407506.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
