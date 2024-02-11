@@ -332,7 +332,11 @@ def write_to_google_sheets2(dataframe):
 def write_to_google_sheets(dataframe):
     json_file_name='aerobic-form-407506-39b825814c4a.json'
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    path_to_dir_where_json_file_is = os.path.join(os.getcwd(), '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/', 'json_key_for_google')
+    # Get the directory of the current script
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+    # path_to_dir_where_json_file_is = os.path.join(os.getcwd(), '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/', 'json_key_for_google')
+    path_to_dir_where_json_file_is = os.path.join(current_directory, 'datasets', 'json_key_for_google')
+    os.path.join(current_directory, 'datasets', 'json_key_for_google')
     path_to_json=os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
@@ -397,7 +401,11 @@ def write_to_google_sheets(dataframe):
 def write_to_google_sheets3(dataframe):
     json_file_name='aerobic-form-407506-39b825814c4a.json'
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    path_to_dir_where_json_file_is = os.path.join(os.getcwd(), '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/', 'json_key_for_google')
+    # path_to_dir_where_json_file_is = os.path.join(os.getcwd(), '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/', 'json_key_for_google')
+    # Get the directory of the current script
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+    # path_to_dir_where_json_file_is = os.path.join(os.getcwd(), '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/', 'json_key_for_google')
+    path_to_dir_where_json_file_is = os.path.join(current_directory, 'datasets', 'json_key_for_google')
     path_to_json=os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
