@@ -1656,7 +1656,7 @@ def fetch_huobipro_ohlcv(symbol, exchange,timeframe='1d'):
 
     return df
 def get_huobipro_fees(trading_pair):
-    exchange = ccxt.huobipro()
+    exchange = ccxt.huobi()
     symbol_info = exchange.load_markets()[trading_pair]
     # print("symbol_info")
     # print(symbol_info)
@@ -2265,10 +2265,10 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.bitstamp()
         limit = 1000
     elif exchange_name == 'bitstamp1':
-        exchange_object = ccxt.bitstamp1()
+        exchange_object = ccxt.bitstamp()
         limit = 1000
     elif exchange_name == 'bittrex':
-        exchange_object = ccxt.bittrex()
+        # exchange_object = ccxt.bittrex()
         limit = 1000
     elif exchange_name == 'bl3p':
         exchange_object = ccxt.bl3p()
@@ -2283,7 +2283,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.btcmarkets()
         limit = 1000
     elif exchange_name == 'btctradeua':
-        exchange_object = ccxt.btctradeua()
+        # exchange_object = ccxt.btctradeua()
         limit = 1000
     elif exchange_name == 'btcturk':
         exchange_object = ccxt.btcturk()
@@ -2298,7 +2298,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.coinbase()
         limit = 1000
     elif exchange_name == 'coinbaseprime':
-        exchange_object = ccxt.coinbaseprime()
+        # exchange_object = ccxt.coinbaseprime()
         limit = 1000
     elif exchange_name == 'coinbasepro':
         exchange_object = ccxt.coinbasepro()
@@ -2307,7 +2307,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.coincheck()
         limit = 1000
     elif exchange_name == 'coinfalcon':
-        exchange_object = ccxt.coinfalcon()
+        # exchange_object = ccxt.coinfalcon()
         limit = 1000
     elif exchange_name == 'coinmate':
         exchange_object = ccxt.coinmate()
@@ -2324,9 +2324,6 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'deribit':
         exchange_object = ccxt.deribit()
         limit = 1000
-
-
-
     elif exchange_name == 'bitbank':
         exchange_object = ccxt.bitbank()
         limit = 1000
@@ -2354,7 +2351,6 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'wazirx':
         exchange_object = ccxt.wazirx()
         limit = 1000
-
     elif exchange_name == 'kuna':
         exchange_object = ccxt.kuna()
         limit = 1000
@@ -2373,9 +2369,6 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     elif exchange_name == 'woo':
         exchange_object = ccxt.woo()
         limit = 1000
-
-
-
     elif exchange_name == 'bitcoincom':
         exchange_object = ccxt.bitcoincom()
         limit = 1000
@@ -2383,7 +2376,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.bit2c()
         limit = 1000
     elif exchange_name == 'huobipro':
-        exchange_object = ccxt.huobipro()
+        exchange_object = ccxt.huobi()
         limit = 1000
     elif exchange_name == 'hollaex':
         exchange_object = ccxt.hollaex()
@@ -2407,7 +2400,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.mexc()
         limit = 1000
     elif exchange_name == 'mexc3':
-        exchange_object = ccxt.mexc3()
+        exchange_object = ccxt.mexc()
         limit = 1000
     elif exchange_name == 'bitfinex':
         exchange_object = ccxt.bitfinex({
@@ -2434,10 +2427,10 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.okcoin()
         limit = 100
     elif exchange_name == 'okex5':
-        exchange_object = ccxt.okex5()
+        exchange_object = ccxt.okx()
         limit = 100
     elif exchange_name == 'okex':
-        exchange_object = ccxt.okex()
+        # exchange_object = ccxt.okex()
         limit = 100
     elif exchange_name == 'okx':
         exchange_object = ccxt.okx()
@@ -2464,7 +2457,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
     #     exchange_object = ccxt.stex()
     #     limit = 100
     elif exchange_name == 'tidex':
-        exchange_object = ccxt.tidex()
+        # exchange_object = ccxt.tidex()
         limit = 100
     elif exchange_name == 'timex':
         exchange_object = ccxt.timex()
@@ -2498,7 +2491,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.poloniex()
         limit = 500
     elif exchange_name == 'lbank2':
-        exchange_object = ccxt.lbank2()
+        exchange_object = ccxt.lbank()
         limit = 1000
     elif exchange_name == 'lbank':
         exchange_object = ccxt.lbank()
@@ -2654,8 +2647,8 @@ def get_exchange_object2(exchange_name):
         'bitpanda': ccxt.bitpanda(),
         'bitso': ccxt.bitso(),
         'bitstamp': ccxt.bitstamp(),
-        'bitstamp1': ccxt.bitstamp1(),
-        'bittrex': ccxt.bittrex(),
+        'bitstamp1': ccxt.bitstamp(),
+        # 'bittrex': ccxt.bittrex(),
         'bitrue':ccxt.bitrue(),
         'bitvavo': ccxt.bitvavo(),
         # 'bitz': ccxt.bitz(),
@@ -2676,7 +2669,7 @@ def get_exchange_object2(exchange_name):
         'cex': ccxt.cex(),
         # 'chilebit': ccxt.chilebit(),
         'coinbase': ccxt.coinbase(),
-        'coinbaseprime': ccxt.coinbaseprime(),
+        # 'coinbaseprime': ccxt.coinbaseprime(),
         'coinbasepro': ccxt.coinbasepro(),
         'coincheck': ccxt.coincheck(),
         # 'coinegg': ccxt.coinegg(),
@@ -2717,7 +2710,7 @@ def get_exchange_object2(exchange_name):
         'hitbtc3': ccxt.hitbtc3(),
         'hollaex': ccxt.hollaex(),
         'huobijp': ccxt.huobijp(),
-        'huobipro': ccxt.huobipro(),
+        'huobipro': ccxt.huobi(),
         # 'ice3x': ccxt.ice3x(),
         'idex': ccxt.idex(),
         # 'idex2': ccxt.idex2(),
@@ -2737,7 +2730,7 @@ def get_exchange_object2(exchange_name):
         'lykke': ccxt.lykke(),
         'mercado': ccxt.mercado(),
         'mexc':ccxt.mexc(),
-        'mexc3' : ccxt.mexc3(),
+        'mexc3' : ccxt.mexc(),
         # 'mixcoins': ccxt.mixcoins(),
         'paymium':ccxt.paymium(),
         'poloniexfutures':ccxt.poloniexfutures(),
@@ -2745,12 +2738,12 @@ def get_exchange_object2(exchange_name):
         'novadax': ccxt.novadax(),
         'oceanex': ccxt.oceanex(),
         'okcoin': ccxt.okcoin(),
-        'okex': ccxt.okex(),
-        'okex5':ccxt.okex5(),
+        'okex': ccxt.okx(),
+        'okex5':ccxt.okx(),
         'okx':ccxt.okx(),
         'bitopro': ccxt.bitopro(),
         'huobi': ccxt.huobi(),
-        'lbank2': ccxt.lbank2(),
+        'lbank2': ccxt.lbank(),
         'blockchaincom': ccxt.blockchaincom(),
         # 'btcex': ccxt.btcex(),
         'kucoinfutures': ccxt.kucoinfutures(),
@@ -2769,7 +2762,7 @@ def get_exchange_object2(exchange_name):
         # 'surbitcoin': ccxt.surbitcoin(),
         # 'therock': ccxt.therock(),
         # 'tidebit': ccxt.tidebit(),
-        'tidex': ccxt.tidex(),
+        # 'tidex': ccxt.tidex(),
         'timex': ccxt.timex(),
         'upbit': ccxt.upbit(),
         # 'vcc': ccxt.vcc(),

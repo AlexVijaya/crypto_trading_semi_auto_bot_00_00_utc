@@ -10,6 +10,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from subprocess import Popen, PIPE
 import subprocess
 from get_info_from_load_markets import get_exchange_object6
+import ccxt
 # from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_close_into_atl_level
 # from current_search_for_tickers_with_rebound_situations_off_atl import check_if_bsu_bpu1_bpu2_do_not_open_into_atl_level
 # from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level
@@ -37,9 +38,1265 @@ import datetime
 # from build_entire_df_of_assets_which_will_be_used_for_position_entry import build_entire_df_of_assets_which_will_be_used_for_position_entry
 import numpy as np
 # from current_search_for_tickers_with_rebound_situations_off_atl import get_last_close_price_of_asset
-from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
+# from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
 from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
 import math
+list_of_inactive_pairs=[]
+list_of_newly_added_trading_pairs=[]
+def add_time_of_next_candle_print_to_df(data_df):
+    try:
+        # Set the timezone for Moscow
+        moscow_tz = timezone('Europe/Moscow')
+        almaty_tz = timezone('Asia/Almaty')
+        data_df['open_time_datatime_format'] = pd.to_datetime(data_df['open_time'])
+        data_df['open_time_without_date'] = data_df['open_time_datatime_format'].dt.strftime('%H:%M:%S')
+        # Convert the "open_time" column from UTC to Moscow time
+        data_df['open_time_msk'] =\
+            data_df['open_time_datatime_format'].dt.tz_localize('UTC').dt.tz_convert(moscow_tz)
+
+        data_df['open_time_msk_time_only'] = data_df['open_time_msk'].dt.strftime('%H:%M:%S')
+
+        # Convert the "open_time_datatime_format" column from UTC to Almaty time
+        data_df['open_time_almaty'] =  data_df['open_time_msk'].dt.tz_convert('Asia/Almaty')
+
+        # Create a new column called "open_time_almaty_time" that contains the time in string format
+        data_df['open_time_almaty_time_only'] = data_df['open_time_almaty'].dt.strftime('%H:%M:%S')
+    except:
+        traceback.print_exc()
+
+def check_volume(trading_pair,
+                 min_volume_over_these_many_last_days,
+                 data_df,
+                 min_volume_in_bitcoin,
+                 last_bitcoin_price):
+    """
+    Checks if the trading pair has enough volume over the specified number of days
+    and if the volume is not less than n prices of bitcoin for USD pairs or the minimum volume for BTC pairs.
+
+    Args:
+        trading_pair (str): The trading pair to check for volume.
+        min_volume_over_these_many_last_days (int): The number of days to look back for volume.
+        data_df (pandas.DataFrame): The DataFrame containing the trading data.
+        min_volume_in_bitcoin (float): The minimum volume in bitcoin to be considered sufficient.
+        last_bitcoin_price (float): The last price of bitcoin.
+
+    Returns:
+        asset_has_enough_volume (bool): True if the trading pair has enough volume, False otherwise.
+    """
+
+    data_df_n_days_slice = data_df.iloc[:-1].tail(min_volume_over_these_many_last_days).copy()
+    data_df_n_days_slice["volume_by_close"] = data_df_n_days_slice["volume"] * data_df_n_days_slice["close"]
+
+    min_volume_over_last_n_days_for_usd_pairs = min(data_df_n_days_slice["volume_by_close"])
+    min_volume_over_last_n_days_for_btc_pairs = min(data_df_n_days_slice["volume_by_close"])
+
+    asset_has_enough_volume = True
+
+    if "_BTC" not in trading_pair:
+        if min_volume_over_last_n_days_for_usd_pairs < min_volume_in_bitcoin * last_bitcoin_price:
+            print(f"{trading_pair} discarded due to low volume")
+            asset_has_enough_volume = False
+    else:
+        if min_volume_over_last_n_days_for_btc_pairs < min_volume_in_bitcoin:
+            print(f"{trading_pair} discarded due to low volume")
+            asset_has_enough_volume = False
+
+    return asset_has_enough_volume
+def get_perpetual_swap_url(exchange_id, trading_pair):
+
+    trading_pair=trading_pair.split(":")[0]
+    base=trading_pair.split("/")[0]
+    quote = trading_pair.split("/")[1]
+
+    print(f"base = {base}")
+    print(f"quote = {quote}")
+
+    if exchange_id == 'binance':
+        return f"https://www.binance.com/en/futures/{trading_pair.replace('/','').upper()}"
+    elif exchange_id == 'huobipro':
+        return f"https://www.huobi.com/en-us/futures/linear_swap/exchange#contract_code={base}-{quote}&contract_type=swap&type=isolated"
+    elif exchange_id == 'huobi':
+        return f"https://www.huobi.com/en-us/futures/linear_swap/exchange#contract_code={base}-{quote}&contract_type=swap&type=isolated"
+    elif exchange_id == 'bybit':
+        return f"https://www.bybit.com/trade/{quote.lower()}/{trading_pair.replace('/','').upper()}"
+    elif exchange_id == 'hitbtc3':
+        return f"https://www.hitbtc.com/futures/{base.lower()}-to-{quote.lower()}"
+    elif exchange_id == 'mexc' or exchange_id == 'mexc3':
+        return f"https://futures.mexc.com/exchange/{trading_pair.replace('/','_').upper()}?type=linear_swap"
+    elif exchange_id == 'bitfinex' or exchange_id == 'bitfinex2':
+        # return f"https://trading.bitfinex.com/t/{trading_pair.replace('/','')+'F0:USDTF0'}"
+        base=trading_pair.split('/')[0]
+        quote=trading_pair.split('/')[1]
+        if quote=='USDT':
+            return f"https://trading.bitfinex.com/t/{base}F0:USTF0"
+        if quote=='BTC':
+            return f"https://trading.bitfinex.com/t/{base}F0:{quote}F0"
+    elif exchange_id == 'gateio':
+        return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/en/futures_trade/{quote}/{trading_pair.replace('/','_').upper()}"
+    elif exchange_id == 'kucoin':
+        return f"https://futures.kucoin.com/trade/{trading_pair.replace('/','-')}-SWAP"
+    elif exchange_id == 'coinex':
+        # return f"https://www.coinex.com/swap/{trading_pair.replace('/','').upper()}"
+        return f"https://www.coinex.com/futures/{trading_pair.replace('/','-').upper()}"
+    elif exchange_id == 'poloniex':
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'lbank2':
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
+    elif exchange_id == 'lbank':
+        return f"https://www.lbank.com/futures/{base.lower()}{quote.lower()}/"
+    elif exchange_id == 'bkex':
+        return f"https://swap.bkex.com/contract/LIVE_{quote.upper()}/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'bitmart':
+        return f"https://derivatives.bitmart.com/en-US?symbol={base.upper()}{quote.upper()}&theme=dark"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{base.upper()}-PERP"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/mix/usdt/{base.upper()}{quote.upper()}_UMCBL/"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{base.upper()}{quote.upper()}-PERP"
+    elif exchange_id == 'delta':
+        return f"https://www.delta.exchange/app/futures/trade/{base.upper()}/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/perpetual/{base.upper()}-{quote.upper()}-PERPETUAL"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/futures-perpetualcontract-trading/{base.lower()}-perp"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/contract/trade/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'xt':
+        return f"https://www.xt.com/en/futures/trade/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'woo':
+        return f"https://x.woo.org/en/trade/{base.upper()}_PERP"
+    elif exchange_id == 'okex5':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'okex':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'okx':
+        return f"https://www.okx.com/ru/trade-swap/{base.lower()}-{quote.lower()}-swap"
+    elif exchange_id == 'poloniexfutures':
+        return f"https://www.poloniex.com/futures/trade/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/margin-trading/{quote.lower()}/{base.lower()}"
+    elif exchange_id == 'phemex':
+        return f"https://phemex.com/trade/{base.upper()}{quote.upper()}"
+    elif exchange_id == 'digifinex':
+        return f"https://www.digifinex.com/en-ww/swap/{base.upper()}{quote.upper()}PERP"
+    elif exchange_id == 'bingx':
+        return f"https://swap.bingx.com/en-us/{base.upper()}-{quote.upper()}"
+    elif exchange_id == 'bitforex':
+        return f"https://www.bitforex.com/en/perpetual/{base.lower()}_{quote.lower()}"
+    elif exchange_id == 'bitrue':
+        return f"https://www.bitrue.com/futures/{base.upper()}"
+    elif exchange_id == 'bitbns':
+        return f"https://bitbns.com/trade/#/futures/{base.upper()}{quote.upper()}_Perpetual"
+    elif exchange_id == 'fmfwio':
+        return f"https://fmfw.io/futures/{base.lower()}-to-{quote.lower()}"
+    else:
+        return "Exchange not supported"
+
+def get_exchange_url(exchange_id, exchange_object,symbol):
+    exchange = exchange_object
+    print("exchange_object")
+    print(exchange_object)
+    market = exchange.market(symbol)
+
+    if exchange_id == 'binance':
+        return f"https://www.binance.com/en/trade/{market['base']}_{''.join(market['quote'].split('/'))}?layout=pro&type=spot"
+    elif exchange_id == 'huobipro':
+        return f"https://www.huobi.com/en-us/exchange/{market['base'].lower()}_{market['quote'].lower()}/"
+    elif exchange_id == 'huobi':
+        return f"https://www.huobi.com/en-us/exchange/{market['base'].lower()}_{market['quote'].lower()}/"
+    elif exchange_id == 'bybit':
+        return f"https://www.bybit.com/ru-RU/trade/spot/{market['base']}/{market['quote']}"
+    elif exchange_id == 'hitbtc3':
+        return f"https://hitbtc.com/{market['base']}-to-{market['quote']}"
+    elif exchange_id == 'mexc' or exchange_id == 'mexc3':
+        return f"https://www.mexc.com/exchange/{market['base']}_{market['quote']}"
+    elif exchange_id == 'bitfinex' or exchange_id == 'bitfinex2':
+        return f"https://trading.bitfinex.com/t/{market['base']}:UST?type=exchange"
+    elif exchange_id == 'exmo':
+        return f"https://exmo.me/en/trade/{market['base']}_{market['quote']}"
+    elif exchange_id == 'gateio':
+        return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'gate':
+        return f"https://www.gate.io/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'kucoin':
+        return f"https://trade.kucoin.com/{market['base']}-{market['quote']}"
+    elif exchange_id == 'coinex':
+        return f"https://www.coinex.com/exchange/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'poloniex':
+        return f"https://www.poloniex.com/trade/{market['base'].upper()}_{market['quote'].upper()}/?type=spot"
+    elif exchange_id == 'lbank2':
+        return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
+    elif exchange_id == 'lbank':
+        return f"https://www.lbank.com/trade/{market['base'].lower()}_{market['quote'].lower()}/"
+    elif exchange_id == 'bitmart':
+        return f"https://www.bitmart.com/trade/en-US?layout=basic&theme=dark&symbol={market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'bkex':
+        return f"https://www.bkex.com/en/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'whitebit':
+        return f"https://whitebit.com/ru/trade/{market['base'].upper()}-{market['quote'].upper()}?type=spot&tab=open-orders"
+    elif exchange_id == 'bitget':
+        return f"https://www.bitget.com/ru/spot/{market['base'].upper()}{market['quote'].upper()}_SPBL?type=spot"
+    elif exchange_id == 'cryptocom':
+        return f"https://crypto.com/exchange/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'currencycom':
+        return f"https://currency.com/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id == 'btcex':
+        return f"https://www.btcex.com/en-us/spot/{market['base'].upper()}-{market['quote'].upper()}-SPOT"
+    elif exchange_id == 'tokocrypto':
+        return f"https://www.tokocrypto.com/id/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'wazirx':
+        return f"https://wazirx.com/exchange/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbase':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbasepro':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'coinbaseprime':
+        return f"https://exchange.coinbase.com/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'bigone':
+        return f"https://big.one/en/trade/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'xt':
+        return f"https://www.xt.com/en/trade/{market['base'].lower()}_{market['quote'].lower()}"
+    elif exchange_id == 'woo':
+        return f"https://x.woo.org/en/trade/{market['base'].upper()}_{market['quote'].upper()}"
+    elif exchange_id == 'okex5':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'okex':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'okx':
+        return f"https://www.okx.com/ru/trade-spot/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'ascendex':
+        return f"https://ascendex.com/en/cashtrade-spottrading/{market['quote'].lower()}/{market['base'].lower()}"
+    elif exchange_id == 'probit':
+        return f"https://www.probit.com/app/exchange/{market['base'].upper()}-{market['quote'].upper()}"
+    elif exchange_id == 'oceanex':
+        return f"https://oceanex.pro/en/trades/{market['base'].lower()}{market['quote'].lower()}"
+    elif exchange_id == 'phemex':
+        return f"https://phemex.com/margin/trade/{market['base'].upper()}{market['quote'].upper()}"
+    elif exchange_id == 'digifinex':
+        return f"https://www.digifinex.com/en-ww/trade/{market['quote'].upper()}/{market['base'].upper()}"
+    elif exchange_id == 'bequant':
+        return f"https://bequant.io/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id== 'bingx':
+        return f"https://bingx.com/en-us/spot/{market['base'].upper()}{market['quote'].upper()}/"
+    elif exchange_id == 'bitforex':
+        return f"https://www.bitforex.com/en/spot/{market['base'].lower()}_{market['quote'].lower()}"
+    elif exchange_id == 'bitrue':
+        return f"https://www.bitrue.com/trade/{market['base'].lower()}_{market['quote'].lower()}"
+    elif exchange_id == 'bitbns':
+        return f"https://bitbns.com/trade/#/{market['base'].lower()}"
+    elif exchange_id == 'fmfwio':
+        return f"https://fmfw.io/{market['base'].lower()}-to-{market['quote'].lower()}"
+    elif exchange_id == 'hollaex':
+        return f"https://pro.hollaex.com/trade/{market['base'].lower()}-{market['quote'].lower()}"
+    elif exchange_id == 'upbit':
+        return f"https://upbit.com/exchange?code=CRIX.UPBIT.{market['quote'].upper()}-{market['base'].upper()}"
+    elif exchange_id == 'zonda':
+        return f"https://app.zondacrypto.exchange/market/{market['base'].lower()}-{market['quote'].lower()}"
+    else:
+        return "Exchange not supported"
+def if_margin_true_for_an_asset(markets, trading_pair):
+    market = markets[trading_pair]
+    print(f" markets[{trading_pair}]")
+    print(market)
+    return market['margin']
+def convert_index_to_unix_timestamp(df):
+    # convert the index to datetime object
+    df.index = pd.to_datetime(df.index)
+
+    # convert the datetime object to Unix timestamp in milliseconds
+    df.index = df.index.astype(int) // 10**6
+def ohlcVolume(x):
+    if len(x):
+        ohlc={ "open":x["open"][0],"high":max(x["high"]),"low":min(x["low"]),"close":x["close"][-1],"volume":sum(x["volume"])}
+        return pd.Series(ohlc)
+def resample_dataframe_daily(df):
+    # df: The dataframe to be resampled.
+
+    # Convert the timestamp to be in 12h:
+    # df.index = df.index /1000
+    print("df.index")
+    print(df.index)
+    df.index =  pd.to_datetime(df.index,unit='ms')
+
+    # Resample the dataframe based on the day timeframe:
+    resampled_df = df.resample('D').apply(ohlcVolume)
+
+    return resampled_df
+def get_maker_taker_fees_for_huobi(exchange_object):
+    fees = exchange_object.describe()['fees']['trading']
+    maker_fee = fees['maker']
+    taker_fee = fees['taker']
+    return maker_fee, taker_fee
+def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,limit_of_daily_candles):
+    # import ccxt
+    # exchange_id = 'bybit'
+    # exchange_class = getattr(ccxt, exchange_id)
+    # exchange = exchange_class()
+
+    # limit_of_daily_candles = 200
+    data = []
+    header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+    data_df1 = pd.DataFrame(columns=header)
+    data_df=pd.DataFrame()
+
+    # Fetch the most recent 100 days of data for latoken exchange
+    try:
+        # exchange latoken has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.latoken):
+            print("exchange is latoken")
+            limit_of_daily_candles = 1
+    except:
+        traceback.print_exc()
+
+    # Fetch the most recent 200 days of data bybit exchange
+    try:
+        # exchange bybit has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.bybit):
+            print("exchange is bybit")
+            limit_of_daily_candles = 200
+    except:
+        traceback.print_exc()
+
+    try:
+        # exchange bybit has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.poloniex):
+            print("exchange is poloniex")
+            limit_of_daily_candles = 480
+    except:
+        traceback.print_exc()
+
+    if exchange_object.id == "btcex":
+        timeframe = "12h"
+        data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+    else:
+        data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
+
+    first_timestamp_in_df=0
+    first_timestamp_in_df_for_gateio=0
+
+
+    print(f"limit_of_daily_candles123 for {exchange_object}")
+    print(limit_of_daily_candles)
+    # Fetch previous 200 days of data consecutively
+    for i in range(1, 100):
+
+        print("i=", i)
+        print("data[0][0] - i * 86400000 * limit_of_daily_candles")
+        # print(data[0][0] - i * 86400000 * limit_of_daily_candles)
+        try:
+            if exchange_object.id == "btcex" :
+                timeframe = "12h"
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * (
+                                                                        86400000 / 2) * limit_of_daily_candles)
+            elif exchange_object.id == "alpaca":
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
+            elif exchange_object.id == "exmo":
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
+            elif exchange_object.id == "bittrex":
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
+            elif exchange_object.id == "bitmex":
+                previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                            timeframe,
+                                                            limit=limit_of_daily_candles,
+                                                            since=data[-1][0] - i * 86400000 * limit_of_daily_candles)
+
+            else:
+                if i>1:
+                    previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                                timeframe,
+                                                                limit=limit_of_daily_candles,
+                                                                since=data[-1][0] - i * 86400000 * limit_of_daily_candles,
+                                                                params={'endTime': data[-1][0] - (i-1) * 86400000 * limit_of_daily_candles})
+                else:
+                    previous_data = exchange_object.fetch_ohlcv(trading_pair,
+                                                                timeframe,
+                                                                limit=limit_of_daily_candles,
+                                                                since=data[-1][
+                                                                          0] - i * 86400000 * limit_of_daily_candles)
+            data = previous_data + data
+        except:
+            traceback.print_exc()
+        finally:
+
+            data_df1 = pd.DataFrame(data, columns=header)
+            if data_df1.iloc[0]['Timestamp'] == first_timestamp_in_df:
+                break
+            first_timestamp_in_df = data_df1.iloc[0]['Timestamp']
+
+    if exchange_object.id == "whitebit":
+        data = exchange_object.fetch_ohlcv(trading_pair,
+                                                timeframe)
+
+    if exchange_object.id == "hitbtc3":
+        data=exchange_object.fetch_ohlcv(trading_pair, timeframe, params={"paginate": True})
+
+
+    header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
+    data_df = pd.DataFrame(data, columns=header)
+    # try:
+    #     data_df["open_time"] = data_df["Timestamp"].apply(
+    #         lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
+    # except Exception as e:
+    #     print("error_message")
+    #     traceback.print_exc()
+    data_df.drop_duplicates(subset=["Timestamp"],keep="first",inplace=True)
+    data_df.sort_values("Timestamp",inplace=True)
+    data_df = data_df.set_index('Timestamp')
+
+
+    if exchange_object.id=="btcex":
+        data_df_for_btcex=resample_dataframe_daily(data_df)
+        # print("data_df_for_btcex")
+        # print(data_df_for_btcex.to_string())
+        data_df_for_btcex=convert_index_to_unix_timestamp(data_df_for_btcex)
+        # print("data_df_for_btcex")
+        # print(data_df_for_btcex.to_string())
+
+        try:
+            # add volume multiplied by low
+            data_df_for_btcex["volume*low"] = data_df_for_btcex["volume"] * data_df_for_btcex["low"]
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by close
+            data_df_for_btcex["volume*close"] = data_df_for_btcex["volume"] * data_df_for_btcex["close"]
+        except:
+            traceback.print_exc()
+
+        return data_df_for_btcex
+    else:
+        try:
+            # add volume multiplied by low
+            data_df["volume*low"] = data_df["volume"] * data_df["low"]
+        except:
+            traceback.print_exc()
+
+        try:
+            # add volume multiplied by close
+            data_df["volume*close"] = data_df["volume"] * data_df["close"]
+        except:
+            traceback.print_exc()
+
+
+        return data_df
+
+
+def check_exchange_object_is_none(exchange_object):
+    if exchange_object is None:
+        return True
+    else:
+        return False
+
+def get_asset_type2(markets, trading_pair):
+    market = markets[trading_pair]
+    return market['type']
+def get_fees(markets, trading_pair):
+    market=markets[trading_pair]
+    # pprint.pprint(market)
+    return market['maker'], market['taker']
+def get_exchange_object2(exchange_name):
+    exchange_objects = {
+        # 'aax': ccxt.aax(),
+        # 'aofex': ccxt.aofex(),
+        'ace': ccxt.ace(),
+        'alpaca': ccxt.alpaca(),
+        'ascendex': ccxt.ascendex(),
+        'bequant': ccxt.bequant(),
+        # 'bibox': ccxt.bibox(),
+        'bigone': ccxt.bigone(),
+        'binance': ccxt.binance(),
+        'binanceus': ccxt.binanceus(),
+        'binancecoinm': ccxt.binancecoinm(),
+        'binanceusdm':ccxt.binanceusdm(),
+        'bit2c': ccxt.bit2c(),
+        'bitbank': ccxt.bitbank(),
+        'bitbay': ccxt.bitbay(),
+        'bitbns': ccxt.bitbns(),
+        'bitcoincom': ccxt.bitcoincom(),
+        'bitfinex': ccxt.bitfinex(),
+        'bitfinex2': ccxt.bitfinex2(),
+        'bitflyer': ccxt.bitflyer(),
+        'bitforex': ccxt.bitforex(),
+        'bitget': ccxt.bitget(),
+        'bithumb': ccxt.bithumb(),
+        # 'bitkk': ccxt.bitkk(),
+        'bitmart': ccxt.bitmart(),
+        # 'bitmax': ccxt.bitmax(),
+        'bitmex': ccxt.bitmex(),
+        'bitpanda': ccxt.bitpanda(),
+        'bitso': ccxt.bitso(),
+        'bitstamp': ccxt.bitstamp(),
+        'bitstamp1': ccxt.bitstamp(),
+        # 'bittrex': ccxt.bittrex(),
+        'bitrue':ccxt.bitrue(),
+        'bitvavo': ccxt.bitvavo(),
+        # 'bitz': ccxt.bitz(),
+        'bl3p': ccxt.bl3p(),
+        # 'bleutrade': ccxt.bleutrade(),
+        # 'braziliex': ccxt.braziliex(),
+        # 'bkex': ccxt.bkex(),
+        'btcalpha': ccxt.btcalpha(),
+        'btcbox': ccxt.btcbox(),
+        'btcmarkets': ccxt.btcmarkets(),
+        # 'btctradeim': ccxt.btctradeim(),
+        'btcturk': ccxt.btcturk(),
+        # 'btctradeua':ccxt.btctradeua(),
+        # 'buda': ccxt.buda(),
+        'bybit': ccxt.bybit(),
+        # 'bytetrade': ccxt.bytetrade(),
+        # 'cdax': ccxt.cdax(),
+        'cex': ccxt.cex(),
+        # 'chilebit': ccxt.chilebit(),
+        'coinbase': ccxt.coinbase(),
+        # 'coinbaseprime': ccxt.coinbaseprime(),
+        'coinbasepro': ccxt.coinbasepro(),
+        'coincheck': ccxt.coincheck(),
+        # 'coinegg': ccxt.coinegg(),
+        'coinex': ccxt.coinex(),
+        # 'coinfalcon': ccxt.coinfalcon(),
+        'coinsph':ccxt.coinsph(),
+        # 'coinfloor': ccxt.coinfloor(),
+        # 'coingi': ccxt.coingi(),
+        # 'coinmarketcap': ccxt.coinmarketcap(),
+        'cryptocom': ccxt.cryptocom(),
+        'coinmate': ccxt.coinmate(),
+        'coinone': ccxt.coinone(),
+        'coinspot': ccxt.coinspot(),
+        # 'crex24': ccxt.crex24(),
+        'currencycom': ccxt.currencycom(),
+        'delta': ccxt.delta(),
+        'deribit': ccxt.deribit(),
+        'digifinex': ccxt.digifinex(),
+        # 'dsx': ccxt.dsx(),
+        # 'dx': ccxt.dx(),
+        # 'eqonex': ccxt.eqonex(),
+        # 'eterbase': ccxt.eterbase(),
+        'exmo': ccxt.exmo(),
+        # 'exx': ccxt.exx(),
+        # 'fcoin': ccxt.fcoin(),
+        # 'fcoinjp': ccxt.fcoinjp(),
+        # 'ftx': ccxt.ftx(),
+        # 'flowbtc':ccxt.flowbtc(),
+        'fmfwio': ccxt.fmfwio(),
+        'gate':ccxt.gate(),
+        'gateio': ccxt.gateio(),
+        'gemini': ccxt.gemini(),
+        # 'gopax': ccxt.gopax(),
+        # 'hbtc': ccxt.hbtc(),
+        'hitbtc': ccxt.hitbtc(),
+        # 'hitbtc2': ccxt.hitbtc2(),
+        # 'hkbitex': ccxt.hkbitex(),
+        'hitbtc3': ccxt.hitbtc3(),
+        'hollaex': ccxt.hollaex(),
+        'huobijp': ccxt.huobijp(),
+        'huobipro': ccxt.huobi(),
+        # 'ice3x': ccxt.ice3x(),
+        'idex': ccxt.idex(),
+        # 'idex2': ccxt.idex2(),
+        'indodax': ccxt.indodax(),
+        'independentreserve': ccxt.independentreserve(),
+
+        # 'itbit': ccxt.itbit(),
+        'kraken': ccxt.kraken(),
+        'krakenfutures': ccxt.krakenfutures(),
+        'kucoin': ccxt.kucoin(),
+        'kuna': ccxt.kuna(),
+        # 'lakebtc': ccxt.lakebtc(),
+        'latoken': ccxt.latoken(),
+        'lbank': ccxt.lbank(),
+        # 'liquid': ccxt.liquid(),
+        'luno': ccxt.luno(),
+        'lykke': ccxt.lykke(),
+        'mercado': ccxt.mercado(),
+        'mexc':ccxt.mexc(),
+        'mexc3' : ccxt.mexc(),
+        # 'mixcoins': ccxt.mixcoins(),
+        'paymium':ccxt.paymium(),
+        'poloniexfutures':ccxt.poloniexfutures(),
+        'ndax': ccxt.ndax(),
+        'novadax': ccxt.novadax(),
+        'oceanex': ccxt.oceanex(),
+        'okcoin': ccxt.okcoin(),
+        'okex': ccxt.okx(),
+        'okex5':ccxt.okx(),
+        'okx':ccxt.okx(),
+        'bitopro': ccxt.bitopro(),
+        'huobi': ccxt.huobi(),
+        'lbank2': ccxt.lbank(),
+        'blockchaincom': ccxt.blockchaincom(),
+        # 'btcex': ccxt.btcex(),
+        'kucoinfutures': ccxt.kucoinfutures(),
+        # 'okex3': ccxt.okex3(),
+        # 'p2pb2b': ccxt.p2pb2b(),
+        # 'paribu': ccxt.paribu(),
+        'phemex': ccxt.phemex(),
+        'tokocrypto':ccxt.tokocrypto(),
+        'poloniex': ccxt.poloniex(),
+        'probit': ccxt.probit(),
+        # 'qtrade': ccxt.qtrade(),
+        # 'ripio': ccxt.ripio(),
+        # 'southxchange': ccxt.southxchange(),
+        # 'stex': ccxt.stex(),
+        # 'stronghold': ccxt.stronghold(),
+        # 'surbitcoin': ccxt.surbitcoin(),
+        # 'therock': ccxt.therock(),
+        # 'tidebit': ccxt.tidebit(),
+        # 'tidex': ccxt.tidex(),
+        'timex': ccxt.timex(),
+        'upbit': ccxt.upbit(),
+        # 'vcc': ccxt.vcc(),
+        'wavesexchange': ccxt.wavesexchange(),
+        'woo':ccxt.woo(),
+        'wazirx':ccxt.wazirx({
+        'rateLimit': 300,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    }),
+        'whitebit': ccxt.whitebit(),
+        # 'xbtce': ccxt.xbtce(),
+        # 'xena': ccxt.xena(),
+        'yobit': ccxt.yobit(),
+        'zaif': ccxt.zaif(),
+        # 'zb': ccxt.zb(),
+        'zonda':ccxt.zonda(),
+        'bingx': ccxt.bingx()
+        # 'xt': ccxt.xt()
+
+    }
+    exchange_object = exchange_objects.get(exchange_name)
+    if exchange_object is None:
+        raise ValueError(f"Exchange '{exchange_name}' is not available via CCXT.")
+    return exchange_object
+def get_limit_of_daily_candles_original_limits(exchange_name):
+    exchange_object = None
+    limit = None
+
+    if exchange_name == 'binance':
+        exchange_object = ccxt.binance()
+        limit = 1000
+    elif exchange_name == 'bingx':
+        exchange_object = ccxt.bingx()
+        limit = 1000
+
+    elif exchange_name == 'ace':
+        exchange_object = ccxt.ace()
+        limit = 1000
+    elif exchange_name == 'alpaca':
+        exchange_object = ccxt.alpaca()
+        limit = 1000
+    elif exchange_name == 'ascendex':
+        exchange_object = ccxt.ascendex()
+        limit = 1000
+    elif exchange_name == 'bequant':
+        exchange_object = ccxt.bequant()
+        limit = 1000
+    elif exchange_name == 'digifinex':
+        exchange_object = ccxt.digifinex()
+        limit = 1000
+    elif exchange_name == 'fmfwio':
+        exchange_object = ccxt.fmfwio()
+        limit = 1000
+
+    elif exchange_name == 'independentreserve':
+        exchange_object = ccxt.independentreserve()
+        limit = 1000
+    elif exchange_name == 'fmfwio':
+        exchange_object = ccxt.fmfwio()
+        limit = 1000
+    elif exchange_name == 'yobit':
+        exchange_object = ccxt.yobit()
+        limit = 1000
+    elif exchange_name == 'zaif':
+        exchange_object = ccxt.zaif()
+        limit = 1000
+    elif exchange_name == 'zonda':
+        exchange_object = ccxt.zonda()
+        limit = 1000
+    elif exchange_name == 'bitflyer':
+        exchange_object = ccxt.bitflyer()
+        limit = 1000
+    elif exchange_name == 'bithumb':
+        exchange_object = ccxt.bithumb()
+        limit = 1000
+    elif exchange_name == 'bitmex':
+        exchange_object = ccxt.bitmex()
+        limit = 1000
+    elif exchange_name == 'bitopro':
+        exchange_object = ccxt.bitopro()
+        limit = 1000
+    elif exchange_name == 'bitpanda':
+        exchange_object = ccxt.bitpanda()
+        limit = 1000
+    elif exchange_name == 'bitrue':
+        exchange_object = ccxt.bitrue()
+        limit = 1000
+    elif exchange_name == 'bitso':
+        exchange_object = ccxt.bitso()
+        limit = 1000
+    elif exchange_name == 'bitstamp':
+        exchange_object = ccxt.bitstamp()
+        limit = 1000
+    elif exchange_name == 'bitstamp1':
+        exchange_object = ccxt.bitstamp()
+        limit = 1000
+    elif exchange_name == 'bittrex':
+        # exchange_object = ccxt.bittrex()
+        limit = 1000
+    elif exchange_name == 'bl3p':
+        exchange_object = ccxt.bl3p()
+        limit = 1000
+    elif exchange_name == 'blockchaincom':
+        exchange_object = ccxt.blockchaincom()
+        limit = 1000
+    elif exchange_name == 'btcbox':
+        exchange_object = ccxt.btcbox()
+        limit = 1000
+    elif exchange_name == 'btcmarkets':
+        exchange_object = ccxt.btcmarkets()
+        limit = 1000
+    elif exchange_name == 'btctradeua':
+        # exchange_object = ccxt.btctradeua()
+        limit = 1000
+    elif exchange_name == 'btcturk':
+        exchange_object = ccxt.btcturk()
+        limit = 1000
+    elif exchange_name == 'cex':
+        exchange_object = ccxt.cex()
+        limit = 1000
+    elif exchange_name == 'coinbase':
+        exchange_object = ccxt.coinbase()
+        limit = 1000
+    elif exchange_name == 'coinbase':
+        exchange_object = ccxt.coinbase()
+        limit = 1000
+    elif exchange_name == 'coinbaseprime':
+        # exchange_object = ccxt.coinbaseprime()
+        limit = 1000
+    elif exchange_name == 'coinbasepro':
+        exchange_object = ccxt.coinbasepro()
+        limit = 1000
+    elif exchange_name == 'coincheck':
+        exchange_object = ccxt.coincheck()
+        limit = 1000
+    elif exchange_name == 'coinfalcon':
+        # exchange_object = ccxt.coinfalcon()
+        limit = 1000
+    elif exchange_name == 'coinmate':
+        exchange_object = ccxt.coinmate()
+        limit = 1000
+    elif exchange_name == 'coinone':
+        exchange_object = ccxt.coinone()
+        limit = 1000
+    elif exchange_name == 'coinsph':
+        exchange_object = ccxt.coinsph()
+        limit = 1000
+    elif exchange_name == 'coinspot':
+        exchange_object = ccxt.coinspot()
+        limit = 1000
+    elif exchange_name == 'deribit':
+        exchange_object = ccxt.deribit()
+        limit = 1000
+    elif exchange_name == 'bitbank':
+        exchange_object = ccxt.bitbank()
+        limit = 1000
+    elif exchange_name == 'bitbay':
+        exchange_object = ccxt.bitbay()
+        limit = 1000
+    elif exchange_name == 'bitbns':
+        exchange_object = ccxt.bitbns()
+        limit = 1000
+    elif exchange_name == 'gemini':
+        exchange_object = ccxt.gemini()
+        limit = 1000
+    elif exchange_name == 'idex':
+        exchange_object = ccxt.idex()
+        limit = 1000
+    elif exchange_name == 'indodax':
+        exchange_object = ccxt.indodax()
+        limit = 1000
+    elif exchange_name == 'kraken':
+        exchange_object = ccxt.kraken()
+        limit = 1000
+    elif exchange_name == 'krakenfutures':
+        exchange_object = ccxt.krakenfutures()
+        limit = 1000
+    elif exchange_name == 'wazirx':
+        exchange_object = ccxt.wazirx()
+        limit = 1000
+    elif exchange_name == 'kuna':
+        exchange_object = ccxt.kuna()
+        limit = 1000
+    elif exchange_name == 'luno':
+        exchange_object = ccxt.luno()
+        limit = 1000
+    elif exchange_name == 'lykke':
+        exchange_object = ccxt.lykke()
+        limit = 1000
+    elif exchange_name == 'mercado':
+        exchange_object = ccxt.mercado()
+        limit = 1000
+    elif exchange_name == 'wavesexchange':
+        exchange_object = ccxt.wavesexchange()
+        limit = 1000
+    elif exchange_name == 'woo':
+        exchange_object = ccxt.woo()
+        limit = 1000
+    elif exchange_name == 'bitcoincom':
+        exchange_object = ccxt.bitcoincom()
+        limit = 1000
+    elif exchange_name == 'bit2c':
+        exchange_object = ccxt.bit2c()
+        limit = 1000
+    elif exchange_name == 'huobipro':
+        exchange_object = ccxt.huobi()
+        limit = 1000
+    elif exchange_name == 'hollaex':
+        exchange_object = ccxt.hollaex()
+        limit = 1000
+    elif exchange_name == 'huobijp':
+        exchange_object = ccxt.huobijp()
+        limit = 1000
+    elif exchange_name == 'upbit':
+        exchange_object = ccxt.upbit()
+        limit = 1000
+    elif exchange_name == 'huobi':
+        exchange_object = ccxt.huobi()
+        limit = 1000
+    elif exchange_name == 'bybit':
+        exchange_object = ccxt.bybit()
+        limit = 200
+    elif exchange_name == 'hitbtc3':
+        exchange_object = ccxt.hitbtc3()
+        limit = 500
+    elif exchange_name == 'mexc':
+        exchange_object = ccxt.mexc()
+        limit = 1000
+    elif exchange_name == 'mexc3':
+        exchange_object = ccxt.mexc()
+        limit = 1000
+    elif exchange_name == 'bitfinex':
+        exchange_object = ccxt.bitfinex({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    })
+        limit = 1000
+    elif exchange_name == 'bitfinex2':
+        exchange_object = ccxt.bitfinex2({
+        'rateLimit': 6000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    })
+        limit = 1000
+    elif exchange_name == 'bitvavo':
+        exchange_object = ccxt.bitvavo()
+        limit = 100
+    elif exchange_name == 'ndax':
+        exchange_object = ccxt.ndax()
+        limit = 100
+    elif exchange_name == 'oceanex':
+        exchange_object = ccxt.oceanex()
+        limit = 100
+    elif exchange_name == 'okcoin':
+        exchange_object = ccxt.okcoin()
+        limit = 100
+    elif exchange_name == 'okex5':
+        exchange_object = ccxt.okx()
+        limit = 100
+    elif exchange_name == 'okex':
+        # exchange_object = ccxt.okex()
+        limit = 100
+    elif exchange_name == 'okx':
+        exchange_object = ccxt.okx()
+        limit = 100
+    elif exchange_name == 'paymium':
+        exchange_object = ccxt.paymium()
+        limit = 100
+    elif exchange_name == 'phemex':
+        exchange_object = ccxt.phemex()
+        limit = 100
+    elif exchange_name == 'poloniex':
+        exchange_object = ccxt.poloniex({
+        'rateLimit': 2000,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    })
+        limit = 480
+    elif exchange_name == 'poloniexfutures':
+        exchange_object = ccxt.poloniexfutures()
+        limit = 100
+    elif exchange_name == 'probit':
+        exchange_object = ccxt.probit()
+        limit = 100
+    # elif exchange_name == 'stex':
+    #     exchange_object = ccxt.stex()
+    #     limit = 100
+    elif exchange_name == 'tidex':
+        # exchange_object = ccxt.tidex()
+        limit = 100
+    elif exchange_name == 'timex':
+        exchange_object = ccxt.timex()
+        limit = 100
+    elif exchange_name == 'tokocrypto':
+        exchange_object = ccxt.tokocrypto()
+        limit = 100
+    # elif exchange_name == 'upbit':
+    #     exchange_object = ccxt.upbit()
+    #     limit = 100
+
+    elif exchange_name == 'novadax':
+        exchange_object = ccxt.novadax()
+        limit = 100
+    elif exchange_name == 'exmo':
+        exchange_object = ccxt.exmo()
+        limit = 2000
+    elif exchange_name == 'gateio':
+        exchange_object = ccxt.gateio()
+        limit = 1000
+    elif exchange_name == 'gate':
+        exchange_object = ccxt.gate()
+        limit = 1000
+    elif exchange_name == 'kucoin':
+        exchange_object = ccxt.kucoin()
+        limit = 2000
+    elif exchange_name == 'coinex':
+        exchange_object = ccxt.coinex()
+        limit = 500
+    elif exchange_name == 'poloniex':
+        exchange_object = ccxt.poloniex()
+        limit = 500
+    elif exchange_name == 'lbank2':
+        exchange_object = ccxt.lbank()
+        limit = 1000
+    elif exchange_name == 'lbank':
+        exchange_object = ccxt.lbank()
+        limit = 1000
+
+    elif exchange_name == 'zb':
+        # exchange_object = ccxt.zb()
+        limit = 1000
+    # elif exchange_name == 'tokocrypto':
+    #     exchange_object = ccxt.tokocrypto()
+    #     limit = 1000
+    elif exchange_name == 'currencycom':
+        exchange_object = ccxt.currencycom()
+        limit = 1000
+    elif exchange_name == 'cryptocom':
+        exchange_object = ccxt.cryptocom()
+        limit = 300
+    elif exchange_name == 'delta':
+        exchange_object = ccxt.delta()
+        limit = 1000
+    elif exchange_name == 'bitmart':
+        exchange_object = ccxt.bitmart()
+        limit = 1000
+    # elif exchange_name == 'probit':
+    #     exchange_object = ccxt.probit()
+    #     limit = 1000
+    elif exchange_name == 'whitebit':
+        exchange_object = ccxt.whitebit()
+        limit = 30
+    elif exchange_name == 'latoken':
+        exchange_object = ccxt.latoken()
+        limit = 100
+    elif exchange_name == 'phemex':
+        exchange_object = ccxt.phemex()
+        limit = 1000
+    # elif exchange_name == 'bkex':
+    #     exchange_object = ccxt.bkex()
+    #     limit = 1000
+    elif exchange_name == 'bigone':
+        exchange_object = ccxt.bigone()
+        limit = 500
+    elif exchange_name == 'bitget':
+        exchange_object = ccxt.bitget()
+        limit = 300
+
+
+    return exchange_object, limit
+def fetch_one_ohlcv_table(ticker,timeframe,last_bitcoin_price):
+
+    exchange=ticker.split("_on_")[1]
+    base_underscore_quote=ticker.split("_on_")[0]
+    trading_pair=base_underscore_quote.replace("_","/")
+
+    # print("exchange=",exchange)
+
+    exchange_object=False
+    limit_of_daily_candles=np.nan
+    data_df=pd.DataFrame()
+
+    # active_trading_pairs_list_from_huobipro=[]
+    try:
+        # active_trading_pairs_list_from_huobipro=[]
+        # if exchange in ["huobipro"]:
+        #     active_trading_pairs_list_from_huobipro = get_active_trading_pairs_from_huobipro()
+        exchange_object, limit_of_daily_candles=\
+            get_limit_of_daily_candles_original_limits(exchange)
+
+
+
+
+        try:
+            if check_exchange_object_is_none(exchange_object):
+                exchange_object=get_exchange_object2(exchange)
+                limit_of_daily_candles=1000
+        except:
+            print(f"2problem with {exchange}")
+            traceback.print_exc()
+
+        # exchange_object = getattr ( ccxt , exchange ) ()
+        exchange_object.enableRateLimit = True
+
+    except:
+        traceback.print_exc()
+
+
+    try:
+        markets=exchange_object.load_markets ()
+
+        asset_type=''
+        if_margin_true_for_an_asset_bool=''
+        try:
+            asset_type=get_asset_type2(markets, trading_pair.replace("_", "/"))
+            try:
+                if_margin_true_for_an_asset_bool=if_margin_true_for_an_asset(markets, trading_pair.replace("_", "/"))
+            except:
+                traceback.print_exc()
+            print(f"asset_type for {trading_pair} on {exchange}")
+
+
+        except:
+            traceback.print_exc()
+
+        # Fetch the most recent 100 days of data for latoken exchange
+        try:
+            # exchange latoken has a specific limit of one request number of candles
+            if isinstance(exchange_object, ccxt.latoken):
+                print("exchange is latoken")
+                limit_of_daily_candles = 100
+        except:
+            traceback.print_exc()
+
+        # Fetch the most recent 200 days of data bybit exchange
+        try:
+            # exchange bybit has a specific limit of one request number of candles
+            if isinstance(exchange_object, ccxt.bybit):
+                print("exchange is bybit")
+                limit_of_daily_candles = 200
+        except:
+            traceback.print_exc()
+
+        try:
+            data_df=fetch_entire_ohlcv(exchange_object,exchange,trading_pair,timeframe,limit_of_daily_candles)
+        except:
+            traceback.print_exc()
+
+
+        print ( "=" * 80 )
+        print ( f'ohlcv for {trading_pair} on exchange {exchange}\n' )
+        print ( data_df )
+
+
+
+
+
+        trading_pair=trading_pair.replace("/","_")
+
+        data_df['ticker'] = trading_pair
+        data_df['exchange'] = exchange
+        # print("markets[trading_pair]")
+
+        # print(markets[trading_pair])
+
+
+        #if trading pair is traded with margin
+        try:
+            data_df['trading_pair_is_traded_with_margin'] = if_margin_true_for_an_asset_bool
+        except:
+            data_df['trading_pair_is_traded_with_margin'] = np.nan
+
+        # add asset type to df
+        try:
+            data_df['asset_type'] = asset_type
+        except:
+            data_df['asset_type'] = np.nan
+            traceback.print_exc()
+
+        # add maker and taker fees
+        try:
+            if exchange!='huobipro':
+                maker_fee, taker_fee=get_fees(markets, trading_pair.replace("_","/"))
+                data_df['maker_fee'] = maker_fee
+                data_df['taker_fee'] = taker_fee
+
+        except:
+            data_df['maker_fee'] = np.nan
+            data_df['taker_fee'] = np.nan
+            traceback.print_exc()
+
+        try:
+            if exchange == "huobipro":
+                maker_fee, taker_fee = get_maker_taker_fees_for_huobi(exchange_object)
+                data_df['maker_fee'] = maker_fee
+                data_df['taker_fee'] = taker_fee
+                print("fees for huobi pro")
+                print("maker_fee for huobi")
+                print(maker_fee)
+                print("taker_fee for huobi")
+                print(taker_fee)
+        except:
+            data_df['maker_fee'] = np.nan
+            data_df['taker_fee'] = np.nan
+            traceback.print_exc()
+
+
+
+        # add url of trading pair to df
+        try:
+            # market = markets[trading_pair.replace("_", "/")]
+            # market_id = market['id']
+            url_of_trading_pair =\
+                get_exchange_url(exchange, exchange_object, trading_pair.replace("_", "/"))
+            data_df['url_of_trading_pair'] = url_of_trading_pair
+        except:
+            data_df['url_of_trading_pair'] = np.nan
+            traceback.print_exc()
+
+        spot_asset_is_also_available_as_swap_contract_on_the_same_exchange=False
+        if asset_type == "spot":
+            try:
+                from fetch_additional_historical_USDT_pairs_for_1D_without_deleting_primary_db_and_without_deleting_db_with_low_volume import \
+                    insert_into_df_whether_swap_contract_is_also_available_for_swap
+                spot_asset_is_also_available_as_swap_contract_on_the_same_exchange = insert_into_df_whether_swap_contract_is_also_available_for_swap(
+                    data_df,
+                    exchange_object,
+                    markets,
+                    trading_pair)
+            except:
+                traceback.print_exc()
+
+        try:
+            data_df[
+                'spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_is_also_available_as_swap_contract_on_the_same_exchange
+        except:
+            data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+            traceback.print_exc()
+
+        try:
+            if spot_asset_is_also_available_as_swap_contract_on_the_same_exchange:
+                data_df["url_of_swap_contract_if_it_exists"] = get_perpetual_swap_url(exchange,
+                                                                                      trading_pair.replace("_", "/"))
+                print("url_swap_added")
+            else:
+                data_df["url_of_swap_contract_if_it_exists"] = "swap_of_spot_asset_does_not_exist"
+        except:
+            traceback.print_exc()
+
+        # add url of trading pair to df
+        if asset_type=='swap':
+            try:
+
+                url_of_trading_pair = \
+                    get_perpetual_swap_url(exchange, trading_pair.replace("_", "/"))
+                data_df['url_of_trading_pair'] = url_of_trading_pair
+                data_df['trading_pair_is_traded_with_margin'] = True
+            except:
+                data_df['url_of_trading_pair'] = np.nan
+                traceback.print_exc()
+
+        try:
+            data_df[
+                'spot_asset_also_available_as_swap_contract_on_same_exchange'] = spot_asset_is_also_available_as_swap_contract_on_the_same_exchange
+        except:
+            data_df['spot_asset_also_available_as_swap_contract_on_same_exchange'] = np.nan
+            traceback.print_exc()
+
+        try:
+            if spot_asset_is_also_available_as_swap_contract_on_the_same_exchange:
+                data_df["url_of_swap_contract_if_it_exists"] = get_perpetual_swap_url(exchange,
+                                                                                      trading_pair.replace("_", "/"))
+                print("url_swap_added")
+            else:
+                data_df["url_of_swap_contract_if_it_exists"] = "swap_of_spot_asset_does_not_exist"
+        except:
+            traceback.print_exc()
+
+
+
+        current_timestamp=time.time()
+        last_timestamp_in_df=data_df.tail(1).index.item()/1000.0
+        print("current_timestamp=",current_timestamp)
+        print("data_df.tail(1).index.item()=",data_df.tail(1).index.item()/1000.0)
+
+
+        #-----------------------------------------
+        #-------------------------------------------
+        # #проверить, что объем за последние n дней не меньше, чем 4 цены биткойна
+        min_volume_over_these_many_last_days = 7
+        min_volume_in_bitcoin = 3
+
+
+        asset_has_enough_volume = check_volume(trading_pair,
+                                               min_volume_over_these_many_last_days,
+                                               data_df,
+                                               min_volume_in_bitcoin,
+                                               last_bitcoin_price)
+        if not asset_has_enough_volume:
+            asset_has_enough_volume=False
+
+        data_df["Timestamp"] = (data_df.index)
+
+        try:
+            data_df["open_time"] = data_df["Timestamp"].apply(lambda x: pd.to_datetime(x, unit='ms').strftime('%Y-%m-%d %H:%M:%S'))
+        except Exception as e:
+            print("error_message")
+            traceback.print_exc()
+
+        data_df['Timestamp'] = data_df["Timestamp"] / 1000.0
+
+        data_df.index = range(0, len(data_df))
+
+
+        data_df["exchange"] = exchange
+
+
+        data_df.set_index("open_time")
+
+        add_time_of_next_candle_print_to_df(data_df)
+        print("2program got here")
+
+
+
+        print(f"{trading_pair} was added to df")
+        list_of_newly_added_trading_pairs.append(f"{trading_pair}_on_{exchange}")
+
+        print("data_df.index")
+        print(data_df.index)
+
+        if asset_has_enough_volume==True:
+
+            return data_df
+        else:
+
+            return data_df
+    except:
+        traceback.print_exc()
+
 
 def get_date_with_and_without_time_from_timestamp(timestamp):
 
