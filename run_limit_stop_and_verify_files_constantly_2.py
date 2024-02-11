@@ -43,11 +43,11 @@ if __name__=="__main__":
         process1 = Popen(command_args1 )
 
     if st.button("run place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_without_running_verify_no_use_of_popen"):
-        command_args2 = [sys.executable,'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_without_running_verify_no_use_of_popen']
+        command_args2 = [sys.executable,'place_buy_or_sell_stop_order_on_exchange_with_sl_and_tp_margin_is_available_with_writing_to_output_file_without_running_verify_no_use_of_popen.py']
         process2 = Popen(command_args2)
 
     if st.button("run verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used"):
-        command_args3 = [sys.executable,'verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used']
+        command_args3 = [sys.executable,'verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used.py']
         process3 = Popen(command_args3)
 
 
