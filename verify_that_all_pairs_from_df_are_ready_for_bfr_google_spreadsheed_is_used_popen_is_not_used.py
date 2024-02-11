@@ -15,7 +15,7 @@ from get_info_from_load_markets import get_exchange_object6
 # from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level
 # from current_search_for_tickers_with_rebound_situations_off_ath import check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level
 # from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
-from current_search_for_tickers_with_fast_breakout_of_atl import calculate_atr_without_paranormal_bars_from_numpy_array
+# from current_search_for_tickers_with_fast_breakout_of_atl import calculate_atr_without_paranormal_bars_from_numpy_array
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
 from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
@@ -40,6 +40,47 @@ from current_search_for_tickers_with_rebound_situations_off_atl import get_last_
 from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
 from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
 import math
+
+def calculate_atr_without_paranormal_bars_from_numpy_array(atr_over_this_period,
+                  numpy_array_slice,
+                  row_number_last_bar):
+    list_of_true_ranges = []
+    advanced_atr=False
+    percentile_20=False
+    percentile_80=False
+    number_of_rows_in_numpy_array=len(numpy_array_slice)
+    array_of_true_ranges=False
+    try:
+        if (row_number_last_bar+1 - number_of_rows_in_numpy_array) < 0:
+            array_of_true_ranges=numpy_array_slice[:,2]-numpy_array_slice[:,3]
+            percentile_20 = np.percentile ( array_of_true_ranges , 20 )
+            percentile_80 = np.percentile ( array_of_true_ranges , 80 )
+        else:
+            array_of_true_ranges=numpy_array_slice[-atr_over_this_period-1:,2]-\
+                                 numpy_array_slice[-atr_over_this_period-1:,3]
+
+            percentile_20 = np.percentile ( array_of_true_ranges , 20 )
+            percentile_80 = np.percentile ( array_of_true_ranges , 80 )
+            # print("percentile_80")
+            # print ( percentile_80 )
+            # print ( "percentile_20" )
+            # print ( percentile_20 )
+
+
+
+    except:
+        traceback.print_exc()
+
+    list_of_non_rejected_true_ranges = []
+    for true_range_in_array in array_of_true_ranges:
+
+        if true_range_in_array >= percentile_20 and true_range_in_array <= percentile_80:
+            list_of_non_rejected_true_ranges.append ( true_range_in_array )
+    # print("list_of_non_rejected_true_ranges")
+    # print ( list_of_non_rejected_true_ranges )
+    advanced_atr = mean ( list_of_non_rejected_true_ranges )
+
+    return advanced_atr
 def check_if_bsu_bpu1_bpu2_do_not_open_into_ath_level(
         acceptable_backlash , atr , open_of_bsu , open_of_bpu1 , open_of_bpu2 ,
         high_of_bsu , high_of_bpu1 , high_of_bpu2 ,
