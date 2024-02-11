@@ -1,4 +1,4 @@
-# from statistics import mean
+from statistics import mean
 # from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_ath_breakout
 # from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
 import pandas as pd
@@ -18,15 +18,15 @@ from get_info_from_load_markets import get_exchange_object6
 # from current_search_for_tickers_with_fast_breakout_of_atl import calculate_atr_without_paranormal_bars_from_numpy_array
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import os
-from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
-from current_search_for_tickers_with_rebound_situations_off_atl import get_ohlc_of_bpu2
-from count_leading_zeros_in_a_number import count_zeros
+# from current_search_for_tickers_with_rebound_situations_off_atl import get_timestamp_of_bpu2
+# from current_search_for_tickers_with_rebound_situations_off_atl import get_ohlc_of_bpu2
+# from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
-from current_search_for_tickers_with_fast_breakout_of_atl import get_date_with_and_without_time_from_timestamp
+# from current_search_for_tickers_with_fast_breakout_of_atl import get_date_with_and_without_time_from_timestamp
 import time
 import traceback
-from current_search_for_tickers_with_rebound_situations_off_atl import get_volume_of_bpu2
-from current_search_for_tickers_with_rebound_situations_off_atl import calculate_advanced_atr
+# from current_search_for_tickers_with_rebound_situations_off_atl import get_volume_of_bpu2
+# from current_search_for_tickers_with_rebound_situations_off_atl import calculate_advanced_atr
 # from before_entry_current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_current_price_of_asset
 # from sqlalchemy_utils import create_database, database_exists
 # import db_config
@@ -36,10 +36,134 @@ from current_search_for_tickers_with_rebound_situations_off_atl import calculate
 import datetime
 # from build_entire_df_of_assets_which_will_be_used_for_position_entry import build_entire_df_of_assets_which_will_be_used_for_position_entry
 import numpy as np
-from current_search_for_tickers_with_rebound_situations_off_atl import get_last_close_price_of_asset
+# from current_search_for_tickers_with_rebound_situations_off_atl import get_last_close_price_of_asset
 from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
 from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
 import math
+
+def get_date_with_and_without_time_from_timestamp(timestamp):
+
+    try:
+        open_time = \
+            datetime.datetime.fromtimestamp ( timestamp  )
+        # last_timestamp = historical_data_for_crypto_ticker_df["Timestamp"].iloc[-1]
+        # last_date_with_time = historical_data_for_crypto_ticker_df["open_time"].iloc[-1]
+        # print ( "type(last_date_with_time)\n" , type ( last_date_with_time ) )
+        # print ( "last_date_with_time\n" , last_date_with_time )
+        date_with_time = open_time.strftime ( "%Y/%m/%d %H:%M:%S" )
+        date_without_time = date_with_time.split ( " " )
+        print ( "date_with_time\n" , date_without_time[0] )
+        date_without_time = date_without_time[0]
+        print ( "date_without_time\n" , date_without_time )
+        # date_without_time = date_without_time.replace ( "/" , "_" )
+        # date_with_time = date_with_time.replace ( "/" , "_" )
+        # date_with_time = date_with_time.replace ( " " , "__" )
+        # date_with_time = date_with_time.replace ( ":" , "_" )
+        return date_with_time,date_without_time
+    except:
+        return timestamp,timestamp
+def get_last_close_price_of_asset(ohlcv_table_df):
+    last_close_price=ohlcv_table_df["close"].iat[-1]
+    return last_close_price
+def calculate_advanced_atr(atr_over_this_period,
+                  truncated_high_and_low_table_with_ohlcv_data_df,
+                  row_number_of_bpu1):
+    # calcualte atr over 5 days before bpu2. bpu2 is not included
+
+    list_of_true_ranges = []
+    for row_number_for_atr_calculation_backwards in range ( 0 , atr_over_this_period ):
+        try:
+            if (row_number_of_bpu1 - row_number_for_atr_calculation_backwards) < 0:
+                continue
+            # if truncated_high_and_low_table_with_ohlcv_data_df.loc[
+            #     row_number_of_bpu1 + 1 , "high"]:
+            #     high_for_atr_calculation = truncated_high_and_low_table_with_ohlcv_data_df.loc[
+            #         row_number_of_bpu1 + 1 - row_number_for_atr_calculation_backwards , "high"]
+            #     low_for_atr_calculation = truncated_high_and_low_table_with_ohlcv_data_df.loc[
+            #         row_number_of_bpu1 + 1 - row_number_for_atr_calculation_backwards , "low"]
+            #     true_range = abs ( high_for_atr_calculation - low_for_atr_calculation )
+            # else:
+            high_for_atr_calculation = truncated_high_and_low_table_with_ohlcv_data_df.loc[
+                row_number_of_bpu1 - row_number_for_atr_calculation_backwards , "high"]
+            low_for_atr_calculation = truncated_high_and_low_table_with_ohlcv_data_df.loc[
+                row_number_of_bpu1 - row_number_for_atr_calculation_backwards , "low"]
+            true_range = abs ( high_for_atr_calculation - low_for_atr_calculation )
+            # print("true_range")
+            # print(true_range)
+
+            list_of_true_ranges.append ( true_range )
+
+        except:
+            traceback.print_exc ()
+    percentile_20=np.percentile(list_of_true_ranges,20)
+    percentile_80 = np.percentile ( list_of_true_ranges , 80 )
+    print ( "list_of_true_ranges" )
+    print ( list_of_true_ranges )
+    print ( "percentile_20" )
+    print ( percentile_20 )
+    print ( "percentile_80" )
+    print ( percentile_80 )
+    list_of_non_rejected_true_ranges=[]
+    for true_range_in_list in list_of_true_ranges:
+        if true_range_in_list>=percentile_20 and true_range_in_list<=percentile_80:
+            list_of_non_rejected_true_ranges.append(true_range_in_list)
+    atr = np.nan
+    try:
+        if len(list_of_true_ranges) <= 2:
+            atr = mean(list_of_true_ranges)
+        else:
+            atr = mean(list_of_non_rejected_true_ranges)
+    except:
+        traceback.print_exc()
+
+    return atr
+
+def get_volume_of_bpu2(truncated_high_and_low_table_with_ohlcv_data_df,row_number_of_bpu1):
+    # get high of bpu2
+    volume_bpu2=False
+    try:
+        if len ( truncated_high_and_low_table_with_ohlcv_data_df ) - 1 == row_number_of_bpu1:
+            print ( "there is no bpu2" )
+        else:
+            volume_bpu2 = truncated_high_and_low_table_with_ohlcv_data_df.loc[row_number_of_bpu1 + 1 , "volume"]
+            # print ( "high_of_bpu2" )
+            # print ( high_of_bpu2 )
+    except:
+        traceback.print_exc ()
+    return volume_bpu2
+
+def get_ohlc_of_bpu2(truncated_high_and_low_table_with_ohlcv_data_df,row_number_of_bpu1):
+    # get ohlcv of bpu2
+    low_of_bpu2=False
+    high_of_bpu2 = False
+    open_of_bpu2 = False
+    close_of_bpu2 = False
+    try:
+        if len ( truncated_high_and_low_table_with_ohlcv_data_df ) - 1 == row_number_of_bpu1:
+            print ( "there is no bpu2" )
+        else:
+            low_of_bpu2 = truncated_high_and_low_table_with_ohlcv_data_df.loc[row_number_of_bpu1 + 1 , "low"]
+            open_of_bpu2 = truncated_high_and_low_table_with_ohlcv_data_df.loc[row_number_of_bpu1 + 1 , "open"]
+            close_of_bpu2 = truncated_high_and_low_table_with_ohlcv_data_df.loc[row_number_of_bpu1 + 1 , "close"]
+            high_of_bpu2 = truncated_high_and_low_table_with_ohlcv_data_df.loc[row_number_of_bpu1 + 1 , "high"]
+            print ( "high_of_bpu2_inside_function" )
+            print ( high_of_bpu2 )
+    except:
+        traceback.print_exc ()
+    return open_of_bpu2,high_of_bpu2,low_of_bpu2,close_of_bpu2
+def get_timestamp_of_bpu2(truncated_high_and_low_table_with_ohlcv_data_df,row_number_of_bpu1):
+    # get high of bpu2
+    timestamp_bpu2=False
+    try:
+        if len ( truncated_high_and_low_table_with_ohlcv_data_df ) - 1 == row_number_of_bpu1:
+            print ( "there is no bpu2" )
+        else:
+            timestamp_bpu2 = truncated_high_and_low_table_with_ohlcv_data_df.loc[row_number_of_bpu1 + 1 , "Timestamp"]
+            # print ( "high_of_bpu2" )
+            # print ( high_of_bpu2 )
+    except:
+        traceback.print_exc ()
+    return timestamp_bpu2
 
 def calculate_atr_without_paranormal_bars_from_numpy_array(atr_over_this_period,
                   numpy_array_slice,
