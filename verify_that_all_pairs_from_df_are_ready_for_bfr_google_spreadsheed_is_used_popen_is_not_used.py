@@ -39,10 +39,17 @@ import datetime
 import numpy as np
 # from current_search_for_tickers_with_rebound_situations_off_atl import get_last_close_price_of_asset
 # from fetch_historical_ohlcv_data_for_one_USDT_pair_for_1D_without_inserting_into_db import fetch_one_ohlcv_table
-from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
+# from update_todays_USDT_pairs_where_models_have_formed_for_1D_next_bar_print_utc_time_00 import get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table
 import math
 list_of_inactive_pairs=[]
 list_of_newly_added_trading_pairs=[]
+
+def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
+    asset_type = ohlcv_data_df["asset_type"].iat[-1]
+    maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
+    taker_fee = ohlcv_data_df["taker_fee"].iat[-1]
+    url_of_trading_pair = ohlcv_data_df["url_of_trading_pair"].iat[-1]
+    return asset_type,maker_fee,taker_fee,url_of_trading_pair
 def add_time_of_next_candle_print_to_df(data_df):
     try:
         # Set the timezone for Moscow
