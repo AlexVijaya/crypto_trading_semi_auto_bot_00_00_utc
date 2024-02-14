@@ -3724,9 +3724,11 @@ def get_base_slash_quote_from_stock_name_with_underscore_between_base_and_quote_
 def fetch_dataframe_from_google_spreadsheet(spread_sheet_title):
     json_file_name = 'aerobic-form-407506-39b825814c4a.json'
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    path_to_dir_where_json_file_is = os.path.join(os.getcwd(),
-                                                  '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/',
-                                                  'json_key_for_google')
+    # Get the directory of the current script
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+
+    # Define the path to the JSON file relative to the script's directory
+    path_to_dir_where_json_file_is = os.path.join(current_directory, 'datasets', 'json_key_for_google')
     path_to_json = os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
