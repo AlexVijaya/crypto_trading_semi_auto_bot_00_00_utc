@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 from sqlalchemy import inspect
+
 from sqlalchemy import create_engine
 
 from sqlalchemy_utils import create_database,database_exists
@@ -18,7 +19,7 @@ from async_update_historical_USDT_pairs_for_1D import connect_to_postgres_db_wit
 from async_update_historical_USDT_pairs_for_1D import get_list_of_tables_in_db
 from count_leading_zeros_in_a_number import count_zeros
 from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
-
+# from shitcoins_with_different_models import pd.read_sql_query
 def add_trading_pairs_to_sql_table_if_they_were_processed(table_where_ticker_which_may_have_breakout_situations_from_ath_or_atl_will_be,
                                                           engine_for_db_where_ticker_which_may_have_breakout_situations_processed,
                                                           list_of_already_processed_pairs,

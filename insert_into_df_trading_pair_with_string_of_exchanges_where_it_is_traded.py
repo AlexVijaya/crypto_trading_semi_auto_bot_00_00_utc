@@ -10,6 +10,7 @@ import re
 import numpy as np
 
 import db_config
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 from sqlalchemy import text
@@ -804,7 +805,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
 def get_all_exchanges():
     exchanges = ccxt.exchanges
 
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges=[value for value in exchanges if value not in exclusion_list]
     return exchanges
@@ -908,8 +909,8 @@ def get_exchange_object2(exchange_name):
         'bitpanda': ccxt.bitpanda(),
         'bitso': ccxt.bitso(),
         'bitstamp': ccxt.bitstamp(),
-        'bitstamp1': ccxt.bitstamp1(),
-        'bittrex': ccxt.bittrex(),
+        'bitstamp1': ccxt.bitstamp(),
+        # 'bittrex': ccxt.bittrex(),
         'bitrue':ccxt.bitrue(),
         'bitvavo': ccxt.bitvavo(),
         # 'bitz': ccxt.bitz(),
@@ -930,7 +931,7 @@ def get_exchange_object2(exchange_name):
         'cex': ccxt.cex(),
         # 'chilebit': ccxt.chilebit(),
         'coinbase': ccxt.coinbase(),
-        'coinbaseprime': ccxt.coinbaseprime(),
+        # 'coinbaseprime': ccxt.coinbaseprime(),
         'coinbasepro': ccxt.coinbasepro(),
         'coincheck': ccxt.coincheck(),
         # 'coinegg': ccxt.coinegg(),
@@ -971,7 +972,7 @@ def get_exchange_object2(exchange_name):
         'hitbtc3': ccxt.hitbtc3(),
         'hollaex': ccxt.hollaex(),
         'huobijp': ccxt.huobijp(),
-        'huobipro': ccxt.huobipro(),
+        'huobipro': ccxt.huobi(),
         # 'ice3x': ccxt.ice3x(),
         'idex': ccxt.idex(),
         # 'idex2': ccxt.idex2(),
@@ -991,7 +992,7 @@ def get_exchange_object2(exchange_name):
         'lykke': ccxt.lykke(),
         'mercado': ccxt.mercado(),
         'mexc':ccxt.mexc(),
-        'mexc3' : ccxt.mexc3(),
+        'mexc3' : ccxt.mexc(),
         # 'mixcoins': ccxt.mixcoins(),
         'paymium':ccxt.paymium(),
         'poloniexfutures':ccxt.poloniexfutures(),
@@ -999,12 +1000,12 @@ def get_exchange_object2(exchange_name):
         'novadax': ccxt.novadax(),
         'oceanex': ccxt.oceanex(),
         'okcoin': ccxt.okcoin(),
-        'okex': ccxt.okex(),
-        'okex5':ccxt.okex5(),
+        # 'okex': ccxt.okex(),
+        'okex5':ccxt.okx(),
         'okx':ccxt.okx(),
         'bitopro': ccxt.bitopro(),
         'huobi': ccxt.huobi(),
-        'lbank2': ccxt.lbank2(),
+        'lbank2': ccxt.lbank(),
         'blockchaincom': ccxt.blockchaincom(),
         # 'btcex': ccxt.btcex(),
         'kucoinfutures': ccxt.kucoinfutures(),

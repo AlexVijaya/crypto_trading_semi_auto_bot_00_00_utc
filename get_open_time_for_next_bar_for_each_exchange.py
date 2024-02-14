@@ -10,7 +10,7 @@ def get_bar_open_times():
     # Get list of all available exchanges
     exchanges = ccxt.exchanges
 
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges=[value for value in exchanges if value not in exclusion_list]
 

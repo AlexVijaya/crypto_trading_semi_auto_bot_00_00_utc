@@ -15,6 +15,7 @@ import db_config
 from sqlalchemy import inspect
 import logging
 from sqlalchemy import MetaData
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base

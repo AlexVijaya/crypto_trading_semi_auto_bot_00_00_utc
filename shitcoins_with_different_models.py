@@ -3,6 +3,7 @@ import datetime
 from sqlalchemy.exc import ProgrammingError
 import streamlit as st
 import pandas as pd
+
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import traceback
 import asyncio
@@ -586,6 +587,17 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
         url_of_trading_pair_link=f'Click [{crypto_ticker}]({url_of_trading_pair})  if you want to go to {exchange} website and see the trading pair yourself'
         st.markdown(url_of_trading_pair_link, unsafe_allow_html=True)
+
+        if "trading_pair_is_traded_with_margin" in df_with_resulting_table_of_certain_models.columns:
+            trading_pair_is_traded_with_margin = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'trading_pair_is_traded_with_margin'].iat[0]
+            st.write(f"Trading pair is traded with margin on {exchange}={trading_pair_is_traded_with_margin}")
+
+
+        if "spot_asset_also_available_as_swap_contract_on_same_exchange" in df_with_resulting_table_of_certain_models.columns:
+            trading_pair_is_traded_with_margin = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'spot_asset_also_available_as_swap_contract_on_same_exchange'].iat[0]
+            st.write(f"Perpetual Swap is also available on {exchange}={trading_pair_is_traded_with_margin}")
 
         # st.button(label=f"View chart of {crypto_ticker} on Trading View",key=np.random.random(100)
         #           ,on_click=generate_html_of_tv_widget_to_insert_into_streamlit,
@@ -1553,10 +1565,32 @@ def initialize_connection_and_engine(db_where_ohlcv_data_for_stocks_is_stored_00
     return engine_for_ohlcv_data_for_stocks_0000,connection_to_ohlcv_data_for_stocks
 
 # @st.cache_data(ttl=30)
+
+def return_df_from_an_sql_query(query,engine):
+    # Establish a connection and execute SQL query
+    connection = engine.raw_connection()
+    cursor = connection.cursor()
+    # table_name = "your_table_name"
+    # cursor.execute(f'SELECT * FROM "{table_name}"')
+    cursor.execute(query)
+    result_set = cursor.fetchall()
+
+    # Close the cursor and the connection
+    cursor.close()
+    connection.close()
+
+    # Convert the result set to a DataFrame if needed
+    columns = [col[0] for col in cursor.description]
+    df_with_resulting_table_of_certain_models = pd.DataFrame(result_set, columns=columns)
+
+    return df_with_resulting_table_of_certain_models
 def return_df_from_postgres_sql_table(table_name,_engine_name):
-    df_with_resulting_table_of_certain_models = \
-        pd.read_sql_query(f'''select * from "{table_name}"''',
-                          _engine_name)
+    # Establish a database connection
+    # connection = _engine_name.connect()
+    # df_with_resulting_table_of_certain_models = \
+    #         pd.read_sql(f'''select * from "{table_name}"''',_engine_name)
+    query=f'''select * from "{table_name}"'''
+    df_with_resulting_table_of_certain_models=return_df_from_an_sql_query(query, _engine_name)
     return df_with_resulting_table_of_certain_models
 
 async def generate_tasks_in_async_fetch_entire_ohlcv(trading_pair,list_of_exchange_ids_where_pair_is_traded_on,asset_type):
@@ -1695,10 +1729,10 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
     exchanges_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
         row_of_pair_ready_for_model, 'exchange_id_string_where_trading_pair_is_traded'].iat[0]
 
-    ####################3
-    exchanges_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
-        row_of_pair_ready_for_model, 'exchange_id_string_where_trading_pair_is_traded'].iat[0]
-    ########################
+    # ####################3
+    # exchanges_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
+    #     row_of_pair_ready_for_model, 'exchange_id_string_where_trading_pair_is_traded'].iat[0]
+    # ########################
 
 
 
@@ -1763,12 +1797,12 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
                 try:
 
                     table_with_ohlcv_data_df = \
-                        pd.read_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
+                        return_df_from_an_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
 
                 except ProgrammingError:
                     table_with_ohlcv_data_df = \
-                        pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT","")}"''',
+                        return_df_from_an_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT","")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
 
                 plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
@@ -1787,11 +1821,11 @@ def plot_multiple_charts_on_one_page(connection_to_db_levels_formed_by_highs_and
                 # st.write(f"{table_with_ohlcv_table} is not in db")
                 try:
                     table_with_ohlcv_data_df = \
-                        pd.read_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
+                        return_df_from_an_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
                                           engine_for_ohlcv_data_for_stocks_0000)
                 except ProgrammingError:
                     table_with_ohlcv_data_df = \
-                        pd.read_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT", "")}"''',
+                        return_df_from_an_sql_query(f'''select * from "{table_with_ohlcv_table.replace(":USDT", "")}"''',
                                           engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
                 plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000,
                            table_name,

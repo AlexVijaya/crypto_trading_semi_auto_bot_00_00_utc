@@ -12,6 +12,7 @@ import numpy as np
 
 
 
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 import streamlit as st
@@ -337,7 +338,7 @@ def get_exchange_object3(exchange_name):
         'cex': ccxt.cex(),
         # 'chilebit': ccxt.chilebit(),
         'coinbase': ccxt.coinbase(),
-        'coinbaseprime': ccxt.coinbaseprime(),
+        # 'coinbaseprime': ccxt.coinbaseprime(),
         'coinbasepro': ccxt.coinbasepro(),
         'coincheck': ccxt.coincheck(),
         # 'coinegg': ccxt.coinegg(),
@@ -1844,6 +1845,14 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
     except:
         traceback.print_exc()
 
+    try:
+        # exchange bybit has a specific limit of one request number of candles
+        if isinstance(exchange_object, ccxt.bingx):
+            print("exchange is bingx")
+            limit_of_daily_candles = 100
+    except:
+        traceback.print_exc()
+
     if exchange_object.id == "btcex":
         timeframe = "12h"
         data += exchange_object.fetch_ohlcv(trading_pair, timeframe, limit=limit_of_daily_candles)
@@ -1920,6 +1929,9 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
 
     if exchange_object.id == "hitbtc3":
         data=exchange_object.fetch_ohlcv(trading_pair, timeframe, params={"paginate": True})
+
+    # if exchange_object.id == "bingx":
+    #     data=exchange_object.fetch_ohlcv(trading_pair, timeframe, params={"paginate": True})
 
 
     header = ['Timestamp', 'open', 'high', 'low', 'close', 'volume']
@@ -2543,7 +2555,7 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
 def get_all_exchanges():
     exchanges = ccxt.exchanges
 
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges=[value for value in exchanges if value not in exclusion_list]
     return exchanges
@@ -3081,7 +3093,7 @@ if __name__=="__main__":
 
     exchanges_list=ccxt.exchanges
 
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     print("exchanges_list")

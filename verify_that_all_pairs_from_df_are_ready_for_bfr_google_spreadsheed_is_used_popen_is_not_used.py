@@ -2,6 +2,7 @@ from statistics import mean
 # from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_ath_breakout
 # from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
 import pandas as pd
+# from shitcoins_with_different_models import pd.read_sql_query
 import sys
 from datetime import timezone
 import gspread
@@ -5353,9 +5354,15 @@ def update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, r
 def update_one_cell_in_google_spreadsheet(row_index,column_number_of_trade_status,cell_value):
     json_file_name = 'aerobic-form-407506-39b825814c4a.json'
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    path_to_dir_where_json_file_is = os.path.join(os.getcwd(),
-                                                  '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/',
-                                                  'json_key_for_google')
+    # path_to_dir_where_json_file_is = os.path.join(os.getcwd(),
+    #                                               '/home/alex/PycharmProjects/crypto_trading_semi_auto_bot_00_00_utc/datasets/',
+    #                                               'json_key_for_google')
+    # Get the directory of the current script
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+
+    # Define the path to the JSON file relative to the script's directory
+    path_to_dir_where_json_file_is = os.path.join(current_directory, 'datasets', 'json_key_for_google')
+
     path_to_json = os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)

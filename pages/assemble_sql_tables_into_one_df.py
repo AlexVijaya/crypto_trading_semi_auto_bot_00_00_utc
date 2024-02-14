@@ -16,6 +16,7 @@ import pandas as pd
 import datetime
 import ccxt as ccxt_not_async
 import ccxt.async_support as ccxt  # noqa: E402
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 from sqlalchemy import inspect
@@ -23,6 +24,7 @@ import datetime as dt
 from sqlalchemy import text
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from shitcoins_with_different_models import return_df_from_an_sql_query
 import streamlit as st
 def filter_tables(list_of_tables_in_bfr_models_db, list_of_all_possible_table_names_in_bfr_db):
     return [table for table in list_of_tables_in_bfr_models_db if table in list_of_all_possible_table_names_in_bfr_db]
@@ -506,7 +508,7 @@ def assemble_sql_tables_into_one_df(db_where_bfr_models_are_stored):
     dfs = []
     for bfr_table in filtered_tables:
         table_with_bfr_models_df = \
-            pd.read_sql_query(f'''select * from "{bfr_table}"''',
+            return_df_from_an_sql_query(f'''select * from "{bfr_table}"''',
                               engine_for_bfr_models_db)
 
         dfs.append(table_with_bfr_models_df)

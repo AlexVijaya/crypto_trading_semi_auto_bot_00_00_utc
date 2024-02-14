@@ -17,9 +17,8 @@ import plotly.graph_objects as go
 from constant_update_of_ohlcv_db_to_plot_later import async_get_list_of_tables_from_db
 from constant_update_of_ohlcv_db_to_plot_later import get_async_connection_to_db_without_deleting_it_first
 # from test_streamlit_app_with_trading_view import generate_html_of_tv_widget_to_insert_into_streamlit
-
-
-@st.cache_data
+from async_update_historical_USDT_pairs_for_1D import get_list_of_tables_in_db
+from shitcoins_with_different_models import return_df_from_an_sql_query
 def generate_html_of_tv_widget_to_insert_into_streamlit(height, width, exchange_name, trading_pair, asset_type):
     if "/" in trading_pair:
         trading_pair = trading_pair.replace("/", "")
@@ -233,11 +232,24 @@ def plot_ohlcv(entire_ohlcv_df, crypto_ticker,asset_type,height,width):
         st.dataframe(entire_ohlcv_df)
 
 
+        #add link to trading view markets (where trading pair is traded)
+        url_of_trading_pair_on_trading_view_markets=f'''https://www.tradingview.com/symbols/{crypto_ticker.replace("/","")}/markets/'''
+        if asset_type=="swap":
+            url_of_trading_pair_on_trading_view_markets = f'''https://www.tradingview.com/symbols/{crypto_ticker.split(":")[0].replace("/", "")+".P"}/markets/'''
+        link = f'Click this link if you want to go to Trading View to see where {crypto_ticker} is traded [link]({url_of_trading_pair_on_trading_view_markets})'
+        st.markdown(link, unsafe_allow_html=True)
+
+
+
+
         # st.button(label=f"View chart of {crypto_ticker} on Trading View",key=np.random.random(100)
         #           ,on_click=generate_html_of_tv_widget_to_insert_into_streamlit,
         #           args=(height, width, exchange, crypto_ticker,asset_type))
 
-
+        # st.write(f"If you see 'Invalid symbol' on the Trading View chart below it means "
+        #          f"Trading View does not have {crypto_ticker} on {exchange} chart available")
+        # html_of_trading_view_widget=generate_html_of_tv_widget_to_insert_into_streamlit(height, width, exchange, crypto_ticker, asset_type)
+        # components.html(html_of_trading_view_widget, height=height, width=width)
 
         fig = go.Figure(go.Ohlc(x=entire_ohlcv_df["open_time"], open=entire_ohlcv_df['open'], high=entire_ohlcv_df['high'],
             low=entire_ohlcv_df['low'], close=entire_ohlcv_df['close'], increasing_line_color= 'green',
@@ -271,8 +283,8 @@ def plot_ohlcv(entire_ohlcv_df, crypto_ticker,asset_type,height,width):
         fig.update_xaxes(rangeslider={'visible': False})
         st.write("all time low for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =',entire_ohlcv_df["low"].min())
         st.write("all time high for",f'{crypto_ticker.split("_on_")[0]} on {exchange} =', entire_ohlcv_df["high"].max())
-        fig.update_layout(height=500 ,
-                          width=1000,
+        fig.update_layout(height=height ,
+                          width=width,
                           title_text=f'{crypto_ticker.split("_on_")[0]} on {exchange} ',
                                      # f'with level formed by atl={atl}',
                           font=dict(
@@ -339,7 +351,7 @@ def initialize_connection_and_engine(db_where_ohlcv_data_for_stocks_is_stored_00
 @st.cache_data(ttl=30)
 def return_df_from_postgres_sql_table(table_name,_engine_name):
     df_with_resulting_table_of_certain_models = \
-        pd.read_sql_query(f'''select * from "{table_name}"''',
+        return_df_from_an_sql_query(f'''select * from "{table_name}"''',
                           _engine_name)
     return df_with_resulting_table_of_certain_models
 
@@ -413,8 +425,6 @@ def plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trad
 
 
 # @st.exception
-# @st.cache_data
-
 def streamlit_func():
     st.set_page_config(
         page_title="Screen shitcoins and stocks for breakouts, false breakouts and rebounds",
@@ -423,9 +433,13 @@ def streamlit_func():
     )
 
     st.header("Screen shitcoins and stocks for breakouts, false breakouts and rebounds")
+    # st.header("Screen shitcoins and stocks for breakouts, false breakouts and rebounds")
+    # st.header("Screen shitcoins and stocks for breakouts, false breakouts and rebounds")
 
-
-
+    db_where_ohlcv_data_for_stocks_is_stored_0000_todays_pairs = "ohlcv_1d_data_for_usdt_pairs_0000_for_todays_pairs"
+    engine_for_ohlcv_data_for_stocks_0000_todays_pairs, \
+        connection_to_ohlcv_data_for_stocks_todays_pairs = \
+        initialize_connection_and_engine(db_where_ohlcv_data_for_stocks_is_stored_0000_todays_pairs)
 
     db_where_ohlcv_data_for_stocks_is_stored_0000 = "ohlcv_1d_data_for_usdt_pairs_0000"
     engine_for_ohlcv_data_for_stocks_0000, \
@@ -459,6 +473,7 @@ def streamlit_func():
                                         ])
 
     if model=="New ATL within last two days":
+        number_of_plots=0
         table_name="current_asset_had_atl_within_two_last_days_period"
         df_with_resulting_table_of_certain_models=\
             return_df_from_postgres_sql_table(table_name,
@@ -475,112 +490,124 @@ def streamlit_func():
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         tuple_of_trading_pairs_with_exchange=tuple(df_with_resulting_table_of_certain_models['ticker'])
-        trading_pair_to_select = st.selectbox("Choose your cryptocurrency", tuple_of_trading_pairs_with_exchange)
-        trading_pair=trading_pair_to_select.split("_on_")[0]
-        # exchange= df_with_resulting_table_of_certain_models.iloc[-1, df_with_resulting_table_of_certain_models.columns.get_loc("exchange")]
+        # st.write("tuple_of_trading_pairs_with_exchange")
 
+        for trading_pair_to_select in tuple_of_trading_pairs_with_exchange:
+            try:
+                trading_pair=trading_pair_to_select.split("_on_")[0]
+                trading_pair_first_part_without_exchange = trading_pair_to_select.split("_on_")[0]
+                # exchange= df_with_resulting_table_of_certain_models.iloc[-1, df_with_resulting_table_of_certain_models.columns.get_loc("exchange")]
 
-        series_of_exchanges_where_pair_is_traded=\
-            df_with_resulting_table_of_certain_models.loc[
-                df_with_resulting_table_of_certain_models["ticker"] == trading_pair_to_select ,
-                "exchange_id_string_where_trading_pair_is_traded"]
+                series_of_exchanges_where_pair_is_traded=\
+                    df_with_resulting_table_of_certain_models.loc[
+                        df_with_resulting_table_of_certain_models["ticker"] == trading_pair_to_select ,
+                        "exchange_id_string_where_trading_pair_is_traded"]
 
+                row_of_pair_ready_for_model=df_with_resulting_table_of_certain_models.loc[
+                        df_with_resulting_table_of_certain_models["ticker"] == trading_pair_to_select ,
+                        "exchange_id_string_where_trading_pair_is_traded"].index
 
-        row_of_pair_ready_for_model=df_with_resulting_table_of_certain_models.loc[
-                df_with_resulting_table_of_certain_models["ticker"] == trading_pair_to_select ,
-                "exchange_id_string_where_trading_pair_is_traded"].index
+                exchange = df_with_resulting_table_of_certain_models.loc[
+                    row_of_pair_ready_for_model, 'exchange']
+                atl = df_with_resulting_table_of_certain_models.loc[
+                    row_of_pair_ready_for_model, 'atl'].iat[0]
+                url_of_trading_pair_on_particular_exchange=df_with_resulting_table_of_certain_models.loc[
+                    row_of_pair_ready_for_model, 'url_of_trading_pair'].iat[0]
+                asset_type = df_with_resulting_table_of_certain_models.loc[
+                    row_of_pair_ready_for_model, 'asset_type'].iat[0]
+                exchanges_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
+                    row_of_pair_ready_for_model, 'exchange_id_string_where_trading_pair_is_traded'].iat[0]
 
-        exchange = df_with_resulting_table_of_certain_models.loc[
-            row_of_pair_ready_for_model, 'exchange']
-        atl = df_with_resulting_table_of_certain_models.loc[
-            row_of_pair_ready_for_model, 'atl'].iat[0]
-        url_of_trading_pair_on_particular_exchange=df_with_resulting_table_of_certain_models.loc[
-            row_of_pair_ready_for_model, 'url_of_trading_pair'].iat[0]
-        asset_type = df_with_resulting_table_of_certain_models.loc[
-            row_of_pair_ready_for_model, 'asset_type'].iat[0]
-        exchanges_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
-            row_of_pair_ready_for_model, 'exchange_id_string_where_trading_pair_is_traded'].iat[0]
+                trading_pair = trading_pair.replace("_", "/")
+                exchange_name=exchange.iat[0]
+                st.write(exchange.iat[0])
+                st.write(trading_pair)
 
+                link = f'Click this link if you want to go to {exchange_name} website to see {trading_pair}  [link]({url_of_trading_pair_on_particular_exchange})'
+                st.markdown(link, unsafe_allow_html=True)
 
+                string_of_exchanges_where_pair_is_traded=series_of_exchanges_where_pair_is_traded.iat[0]
+                st.write(f"{trading_pair} as spot or perpetual swap is traded on the following cryptocurrency exchanges")
 
+                list_of_exchange_ids_where_pair_is_traded_on=string_of_exchanges_where_pair_is_traded.split("_")
 
-        trading_pair = trading_pair.replace("_", "/")
-        exchange_name=exchange.iat[0]
-        st.write(exchange.iat[0])
-        st.write(trading_pair)
+                exchange_names_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
+                    row_of_pair_ready_for_model, "exchange_names_string_where_trading_pair_is_traded"].iat[0]
+                list_of_exchange_names_where_pair_is_traded_on = exchange_names_where_pair_is_traded.split("_")
 
-        link = f'Click this link if you want to go to {exchange_name} website to see {trading_pair}  [link]({url_of_trading_pair_on_particular_exchange})'
-        st.markdown(link, unsafe_allow_html=True)
+                st.write(exchanges_where_pair_is_traded)
 
+                # resulting_list_of_ohlcv_dataframes=\
+                #     asyncio.run(generate_tasks_in_async_fetch_entire_ohlcv(trading_pair,list_of_exchange_ids_where_pair_is_traded_on,asset_type))
 
+                height = 500
+                width = 1000
 
-        string_of_exchanges_where_pair_is_traded=series_of_exchanges_where_pair_is_traded.iat[0]
-        st.write(f"{trading_pair} as spot or perpetual swap is traded on the following cryptocurrency exchanges")
-        st.write(exchanges_where_pair_is_traded)
-        list_of_exchange_ids_where_pair_is_traded_on=string_of_exchanges_where_pair_is_traded.split("_")
+                list_of_tables_in_todays_pairs_db = get_list_of_tables_in_db(
+                    engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
 
-        exchange_names_where_pair_is_traded = df_with_resulting_table_of_certain_models.loc[
-            row_of_pair_ready_for_model, "exchange_names_string_where_trading_pair_is_traded"].iat[0]
-        list_of_exchange_names_where_pair_is_traded_on = exchange_names_where_pair_is_traded.split("_")
+                st.markdown("""<hr style="height: 15px; border: none; color: #333; background-color: #003366;" /> """,
+                            unsafe_allow_html=True)
 
+                for exchange_id in list_of_exchange_ids_where_pair_is_traded_on:
 
+                    try:
+                        table_with_ohlcv_table = trading_pair_first_part_without_exchange + "_on_" + exchange_id
+                        # for table_with_ohlcv_table in tuple_of_trading_pairs_with_exchange:
+                        table_with_ohlcv_data_df = \
+                            pd.read_sql_query(f'''select * from "{table_with_ohlcv_table}"''',
+                                              engine_for_ohlcv_data_for_stocks_0000_todays_pairs)
+                        # Draw a horizontal line
+                        st.markdown("""<hr style="height:5px;border:none;color:#333;background-color:#333;" /> """,
+                                    unsafe_allow_html=True)
 
+                        number_of_plots=number_of_plots+1
+                        print('number_of_plots')
+                        print(number_of_plots)
 
+                        plot_ohlcv(table_with_ohlcv_data_df, trading_pair_to_select, asset_type, height, width)
+                    except:
+                        traceback.print_exc()
 
+                # plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trading_pair, height, width,
+                #                                                                         asset_type)
 
+                # st.write(f"Maybe {trading_pair} is available on the OKEX exchange."
+                #          f" Look at the Trading View chart to find out")
+                # html_of_trading_view_widget = generate_html_of_tv_widget_to_insert_into_streamlit(height=height,
+                #                                                                                   width=width,
+                #                                                                                   exchange_name="okx",
+                #                                                                                   trading_pair=trading_pair
+                #                                                                                   , asset_type=asset_type)
+                # components.html(html_of_trading_view_widget, height=height, width=width)
+                #
+                # st.write(f"Maybe {trading_pair} is available on the BITSTAMP exchange."
+                #          f" Look at the Trading View chart to find out")
+                # html_of_trading_view_widget = generate_html_of_tv_widget_to_insert_into_streamlit(height=height,
+                #                                                                                   width=width,
+                #                                                                                   exchange_name="bitstamp",
+                #                                                                                   trading_pair=trading_pair
+                #                                                                                   , asset_type=asset_type)
+                # components.html(html_of_trading_view_widget, height=height, width=width)
 
-        # resulting_list_of_ohlcv_dataframes=\
-        #     asyncio.run(generate_tasks_in_async_fetch_entire_ohlcv(trading_pair,list_of_exchange_ids_where_pair_is_traded_on,asset_type))
-
-        height = 600
-        width = 1200
-
-        # plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trading_pair, height, width, asset_type)
-        for exchange_name_in_list in list_of_exchange_names_where_pair_is_traded_on:
-            # plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trading_pair, height, width,
-            #                                                                         asset_type)
-            st.write(f"If you see 'Invalid symbol' on the Trading View chart below it means "
-                     f"Trading View does not have {trading_pair} on {exchange} chart available")
-            html_of_trading_view_widget = generate_html_of_tv_widget_to_insert_into_streamlit(height, width, exchange_name_in_list,
-                                                                                              trading_pair, asset_type)
-            components.html(html_of_trading_view_widget, height=height, width=width)
-
-        # st.write(f"Maybe {trading_pair} is available on the OKEX exchange."
-        #          f" Look at the Trading View chart to find out")
-        # html_of_trading_view_widget = generate_html_of_tv_widget_to_insert_into_streamlit(height=height,
-        #                                                                                   width=width,
-        #                                                                                   exchange_name="okx",
-        #                                                                                   trading_pair=trading_pair
-        #                                                                                   , asset_type=asset_type)
-        # components.html(html_of_trading_view_widget, height=height, width=width)
-        #
-        # st.write(f"Maybe {trading_pair} is available on the BITSTAMP exchange."
-        #          f" Look at the Trading View chart to find out")
-        # html_of_trading_view_widget = generate_html_of_tv_widget_to_insert_into_streamlit(height=height,
-        #                                                                                   width=width,
-        #                                                                                   exchange_name="bitstamp",
-        #                                                                                   trading_pair=trading_pair
-        #                                                                                   , asset_type=asset_type)
-        # components.html(html_of_trading_view_widget, height=height, width=width)
-
-
-        plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trading_pair,height,width,asset_type)
-
-
-        # for ohlcv_dataframe in resulting_list_of_ohlcv_dataframes:
-        #     print("ohlcv_dataframe_in_loop")
-        #     print(ohlcv_dataframe)
-        #     if ohlcv_dataframe.empty:
-        #         print("The dataframe is empty")
-        #         continue
-        #     # Draw a horizontal line
-        #     st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """,
-        #                 unsafe_allow_html=True)
-        #
-        #
-        #
-        #     plot_ohlcv(ohlcv_dataframe,trading_pair_to_select,asset_type,height,width)
-#######################################
+                # for ohlcv_dataframe in resulting_list_of_ohlcv_dataframes:
+                #     print("ohlcv_dataframe_in_loop")
+                #     print(ohlcv_dataframe)
+                #     if ohlcv_dataframe.empty:
+                #         print("The dataframe is empty")
+                #         continue
+                #     # Draw a horizontal line
+                #     st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """,
+                #                 unsafe_allow_html=True)
+                #
+                #
+                #
+                #     plot_ohlcv(ohlcv_dataframe,trading_pair_to_select,asset_type,height,width)
+                #
+                # plot_trading_view_charts_on_okex_and_bitstamp_in_front_of_plotly_charts(trading_pair, height, width, asset_type)
+            except:
+                traceback.print_exc()
+    #######################################
     ####################################
     ###################################
 

@@ -15,6 +15,7 @@ import pandas as pd
 import datetime
 import ccxt
 # import ccxt.async_support as ccxt  # noqa: E402
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 from pytz import timezone
@@ -299,7 +300,7 @@ def get_hisorical_data_from_exchange_for_many_symbols(engine_for_ohlcv_database_
         try:
             if check_exchange_object_is_none(exchange_object):
                 exchange_object=get_exchange_object2(exchange)
-                limit_of_daily_candles=1000
+                # limit_of_daily_candles=1000
         except:
             print(f"2problem with {exchange}")
             traceback.print_exc()
@@ -964,7 +965,7 @@ def fetch_historical_usdt_pairs_asynchronously(engine_for_ohlcv_database_without
         #     continue
         # if exchange not in ["mexc3",
         #                     "poloniex","whitebit","fmfwio","bitopro"]:
-        if exchange not in ["poloniex"]:
+        if exchange not in ["bingx"]:
             continue
 
 
@@ -999,7 +1000,7 @@ def fetch_all_ohlcv_tables(database_name_for_low_volume_pairs,timeframe,database
 
     exchanges_list = ccxt.exchanges
     #
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )

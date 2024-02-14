@@ -15,6 +15,7 @@ import pandas as pd
 import datetime
 import ccxt as ccxt_not_async
 import ccxt.async_support as ccxt  # noqa: E402
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 from sqlalchemy import inspect
@@ -628,7 +629,7 @@ def fetch_all_ohlcv_tables(timeframe,
         connect_to_postgres_db_without_deleting_it_first (database_for_ohlcv_data)
     exchanges_list = ccxt.exchanges
 
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )

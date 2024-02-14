@@ -15,6 +15,7 @@ import db_config
 from sqlalchemy import inspect
 import logging
 from sqlalchemy import MetaData
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
@@ -574,7 +575,7 @@ def check_if_bsu_bpu1_bpu2_do_not_close_into_ath_level(acceptable_backlash , atr
 def get_exchange_list_dataframe():
     exchanges = ccxt.exchanges
 
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges=[value for value in exchanges if value not in exclusion_list]
     exchange_dict = dict()
@@ -594,7 +595,7 @@ def get_exchange_list_dataframe():
 def get_www_of_exchanges_dataframe():
     exchanges = ccxt.exchanges
 
-    exclusion_list = ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm",
+    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges=[value for value in exchanges if value not in exclusion_list]
     exchange_list = []

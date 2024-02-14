@@ -10,6 +10,7 @@ import re
 import numpy as np
 from not_in_hindsight_search_for_tickers_with_ath_equal_to_limit_level import drop_table
 import db_config
+
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database,database_exists
 from sqlalchemy import text

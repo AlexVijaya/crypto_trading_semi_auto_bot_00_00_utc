@@ -1,3 +1,4 @@
+
 from statistics import mean
 import pandas as pd
 from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
@@ -15,6 +16,7 @@ import db_config
 from sqlalchemy import inspect
 import logging
 from sqlalchemy import MetaData
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base

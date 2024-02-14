@@ -7,6 +7,7 @@ import pprint
 from datetime import datetime
 # from before_entry_current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_current_price_of_asset
 import pandas as pd
+# from shitcoins_with_different_models import pd.read_sql_query
 # from verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used import convert_column_to_boolean
 # from verify_that_all_pairs_from_df_are_ready_for_bfr import convert_to_necessary_types_values_from_bfr_dataframe
 # from api_config import api_dict_for_all_exchanges

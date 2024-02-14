@@ -14,6 +14,7 @@ import db_config
 from sqlalchemy import inspect
 import logging
 from sqlalchemy import MetaData
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
@@ -21,6 +22,7 @@ from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_a
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import check_atl_breakout
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_ath_was_broken_on_other_exchanges
 from check_if_ath_or_atl_was_not_broken_over_long_periond_of_time import fill_df_with_info_if_atl_was_broken_on_other_exchanges
+from get_info_from_load_markets import count_zeros_number_with_e_notaton_is_acceptable
 def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
     asset_type = ohlcv_data_df["asset_type"].iat[-1]
     maker_fee = ohlcv_data_df["maker_fee"].iat[-1]
