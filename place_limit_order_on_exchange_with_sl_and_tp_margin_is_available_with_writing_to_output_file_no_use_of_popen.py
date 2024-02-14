@@ -763,6 +763,16 @@ def convert_to_necessary_types_values_from_bfr_dataframe(stop_loss_is_calculated
     return stop_loss_is_calculated,stop_loss_is_technical,price_of_sl,\
         amount_of_sl,post_only_for_limit_tp_bool,\
         price_of_buy_or_sell_market_stop_order,amount_of_asset_for_entry
+
+def get_public_api_key(exchange_id):
+    # Load the secrets from the toml file
+    secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
+    # public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
+    # api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
+    public_api_key = secrets['secrets'][f"{exchange_id}_api_key"]
+    api_secret = secrets['secrets'][f"{exchange_id}_api_secret"]
+
+    return public_api_key
 def get_exchange_object_where_api_is_required(exchange_id):
     # Load the secrets from the toml file
     secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
@@ -1113,6 +1123,9 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # Get the symbol details
         print("trading_pair123")
         print(trading_pair)
+        public_api_key=get_public_api_key(exchange_id)
+        print("public_api_key")
+        print(public_api_key)
         print("exchange_object_where_api_is_required")
         print(exchange_object_where_api_is_required)
         # print("exchange_object_where_api_is_required.markets")
