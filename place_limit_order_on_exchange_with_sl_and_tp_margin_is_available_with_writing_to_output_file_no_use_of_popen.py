@@ -771,7 +771,8 @@ def get_exchange_object_where_api_is_required(exchange_id):
     public_api_key = secrets['secrets'][f"{exchange_id}_api_key"]
     api_secret = secrets['secrets'][f"{exchange_id}_api_secret"]
     trading_password = None
-
+    print("public_api_key")
+    print(public_api_key)
     if exchange_id in ["kucoin","okex5"]:
         try:
             # trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
