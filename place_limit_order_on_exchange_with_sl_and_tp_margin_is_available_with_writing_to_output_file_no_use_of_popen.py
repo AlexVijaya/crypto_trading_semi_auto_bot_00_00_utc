@@ -767,7 +767,7 @@ def convert_to_necessary_types_values_from_bfr_dataframe(stop_loss_is_calculated
 
 def get_public_api_key(exchange_id):
     # Load the secrets from the toml file
-    secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
+    # secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
     # public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
     # api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
     public_api_key = st.secrets['secrets'][f"{exchange_id}_api_key"]
