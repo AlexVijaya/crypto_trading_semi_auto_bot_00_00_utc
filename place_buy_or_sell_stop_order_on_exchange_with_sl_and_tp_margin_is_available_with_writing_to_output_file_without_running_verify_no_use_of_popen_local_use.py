@@ -468,17 +468,17 @@ def convert_to_necessary_types_values_from_bfr_dataframe(stop_loss_is_calculated
         price_of_buy_or_sell_market_stop_order,amount_of_asset_for_entry
 def get_exchange_object_where_api_is_required(exchange_id):
     # Load the secrets from the toml file
-    # secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
+    secrets = toml.load("secrets_with_api_private_and_public_keys_for_exchanges.toml")
     # public_api_key = api_dict_for_all_exchanges[exchange_id]['api_key']
     # api_secret = api_dict_for_all_exchanges[exchange_id]['api_secret']
-    public_api_key = st.secrets['secrets'][f"{exchange_id}_api_key"]
-    api_secret = st.secrets['secrets'][f"{exchange_id}_api_secret"]
+    public_api_key = secrets['secrets'][f"{exchange_id}_api_key"]
+    api_secret = secrets['secrets'][f"{exchange_id}_api_secret"]
     trading_password = None
 
     if exchange_id in [ "kucoin","okex5"]:
         try:
             # trading_password = api_dict_for_all_exchanges[exchange_id]['trading_password']
-            trading_password = st.secrets['secrets'][f"{exchange_id}_trading_password"]
+            trading_password = secrets['secrets'][f"{exchange_id}_trading_password"]
         except:
             traceback.print_exc()
 
