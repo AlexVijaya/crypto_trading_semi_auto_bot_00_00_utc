@@ -1489,6 +1489,14 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                 print("current_price_of_trading_pair1")
                 print(current_price_of_trading_pair)
+
+                try:
+                    limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                    print("limit_sell_order_tp_order_id123")
+                    print(limit_sell_order_tp_order_id)
+                except:
+                    traceback.print_exc()
+
                 print("limit_sell_order_tp_order_id12")
                 print(limit_sell_order_tp_order_id)
 
@@ -2026,7 +2034,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro', 'mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_tp
@@ -2075,7 +2083,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_sl, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_sl

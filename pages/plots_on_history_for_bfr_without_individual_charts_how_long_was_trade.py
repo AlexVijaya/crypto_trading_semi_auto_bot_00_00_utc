@@ -3609,18 +3609,15 @@ def streamlit_func():
         unique_exchanges.sort()
         # Default selected exchanges
         default_exchanges = [
-            "binance", "gateio", "huobi", "mexc3", "huobipro",
-            "kucoin", "okex5", "bybit", "lbank2", "bitfinex2",
+            "binance", "gateio", "huobi", "mexc",
+            "kucoin", "okx", "bybit", "lbank", "bitfinex2",
             "bingx", "whitebit", "bigone", "tokocrypto", "bitget"
         ]
         selected_exchanges=[]
         selected_exchanges_from_expander=[]
         # Create an expander
         with st.expander("Select Exchanges"):
-            selected_exchanges_from_expander = st.multiselect(
-                "Choose exchanges", unique_exchanges, default=default_exchanges
-
-            )
+            selected_exchanges_from_expander = st.multiselect("Choose exchanges", unique_exchanges, default=default_exchanges)
 
         choose_all = st.checkbox("Choose all exchanges")
         if choose_all:

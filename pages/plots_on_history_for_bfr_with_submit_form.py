@@ -1513,8 +1513,8 @@ def streamlit_func():
         unique_exchanges.sort()
         # Default selected exchanges
         default_exchanges = [
-            "binance", "gateio", "huobi", "mexc3", "huobipro",
-            "kucoin", "okex5", "bybit", "lbank2", "bitfinex2",
+            "binance", "gateio", "huobi", "mexc",
+            "kucoin", "okx", "bybit", "lbank", "bitfinex2",
             "bingx", "whitebit", "bigone", "tokocrypto", "bitget"
         ]
         selected_exchanges=[]

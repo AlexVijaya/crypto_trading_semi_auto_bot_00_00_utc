@@ -1424,6 +1424,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             limit_sell_order_tp_order_id = np.nan
             if trade_status != "limit_buy_order_is_filled_and_limit_tp_is_placed" \
                     and trade_status!="market_stop_loss_is_placed":
+                print("trade_status12345")
+                print(trade_status)
                 if trade_status != "neither_sl_nor_tp_has_been_reached":
                     file.write("\n" + "i will try to place limit_sell_order_tp right now")
                     file.write("\n" + "type_of_tp=" + f"{type_of_tp}")
@@ -1433,6 +1435,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         file.write("\n" + "i will try to place limit_sell_order_tp right now. I am inside type_of_tp == limit")
                         file.write("\n" + f"amount_of_tp={amount_of_tp}")
 
+
                         limit_sell_order_tp = exchange_object_where_api_is_required.create_limit_sell_order(
                             trading_pair, amount_of_tp, price_of_tp, params=params)
                         file.write("\n"+"limit_sell_order_tp has been placed")
@@ -1441,6 +1444,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         #######################
                         #######################
                         limit_sell_order_tp_order_id = get_order_id(limit_sell_order_tp)
+                        print("limit_sell_order_tp12345")
+                        print(limit_sell_order_tp)
                         if pd.isna(limit_sell_order_tp):
                             limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
                             print("limit_sell_order_tp_order_id123")
@@ -1489,6 +1494,14 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                 print("current_price_of_trading_pair1")
                 print(current_price_of_trading_pair)
+                try:
+                    limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                    print("limit_sell_order_tp_order_id123")
+                    print(limit_sell_order_tp_order_id)
+                except:
+                    traceback.print_exc()
+
+
                 print("limit_sell_order_tp_order_id12")
                 print(limit_sell_order_tp_order_id)
 

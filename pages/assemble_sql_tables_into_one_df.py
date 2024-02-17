@@ -200,8 +200,11 @@ def write_to_google_sheets2(dataframe):
     # Get the directory of the current script
     current_directory = os.path.dirname(os.path.realpath(__file__))
 
-    # Define the path to the JSON file relative to the script's directory
-    path_to_dir_where_json_file_is = os.path.join(current_directory, 'datasets', 'json_key_for_google')
+    # Go one level up by getting the parent directory of the current directory
+    parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
+
+    # Define the path to the JSON file relative to the parent directory
+    path_to_dir_where_json_file_is = os.path.join(parent_directory, 'datasets', 'json_key_for_google',json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_dir_where_json_file_is, scope)
     gc = gspread.authorize(credentials)
     st.write("authorize ok!")

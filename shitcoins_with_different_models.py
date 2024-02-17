@@ -788,30 +788,54 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
                     # st.write("spot_cross_or_isolated_margin")
                     # st.write(spot_cross_or_isolated_margin)
+                    min_USD_value=5.0
+                    min_asset_amount_technical_stop_loss_is_used_for_calculation=min_USD_value/technical_stop_loss
+                    min_asset_amount_calculated_stop_loss_is_used_for_calculation=min_USD_value/calculated_stop_loss
+
+                    min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_3_to_1
+                    min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_4_to_1
+                    min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_3_to_1
+                    min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_4_to_1
 
                     if "sell_order" in df_with_resulting_table_of_certain_models.columns:
 
                         underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {sell_order}"
                         st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                        min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = \
+                            sell_order * min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation
+                        min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                            sell_order * min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation
+                        min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = \
+                            sell_order * min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation
+                        min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                            sell_order * min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation
                         position_size_in_usd = \
                             st.number_input(
-                                label=f'Please enter position size in USD',
-                                value=1, min_value=0)
+                                label=f'Please enter position size in USD (min USD cost when TTP_3/1={min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation}, '
+                                      f'TTP_4/1={min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation}, '
+                                      f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
+                                      f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}',
+                                value=6, min_value=1)
 
                     if "buy_order" in df_with_resulting_table_of_certain_models.columns:
                         underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
                         st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                        min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation=\
+                            buy_order*min_asset_amount_technical_stop_loss_is_used_for_calculation
+                        min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation = \
+                            buy_order * min_asset_amount_calculated_stop_loss_is_used_for_calculation
                         position_size_in_usd = \
                             st.number_input(
-                                label=f'Please enter position size in USD',
-                                value=1, min_value=0)
+                                label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
+                                      f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL',
+                                value=6, min_value=1)
 
                     # Get the current UTC time
                     current_utc_time = datetime.datetime.now(timezone.utc)
                     position_entry_time=st.time_input(label="I will enter the selected position at this UTC time", value=current_utc_time)
                     position_entry_time=str(position_entry_time)
 
-                    include_last_day_in_bfr_model_assessment=st.checkbox("include_last_day_in_bfr_model_assessment", value=True)
+                    include_last_day_in_bfr_model_assessment=st.checkbox("include_last_day_in_bfr_model_assessment", value=False)
                     # st.write("utc_position_entry_time")
                     # st.write(position_entry_time)
                     # st.write("type(position_entry_time)")
@@ -1127,7 +1151,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                     position_size_in_usd = \
                         st.number_input(
                             label=f'Please enter position size in USD',
-                            value=1, min_value=0)
+                            value=6, min_value=1)
 
                     position_price_input_manually = \
                         st.number_input(
@@ -1138,7 +1162,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                                         value=current_utc_time)
                     position_entry_time = str(position_entry_time)
                     include_last_day_in_bfr_model_assessment = st.checkbox("include_last_day_in_bfr_model_assessment",
-                                                                            value=True)
+                                                                            value=False)
                     # st.write("utc_position_entry_time")
                     # st.write(position_entry_time)
                     # st.write("type(position_entry_time)")

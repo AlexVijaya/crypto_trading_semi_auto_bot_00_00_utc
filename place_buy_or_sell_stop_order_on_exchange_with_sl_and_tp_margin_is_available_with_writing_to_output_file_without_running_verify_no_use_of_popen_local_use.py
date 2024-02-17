@@ -4298,7 +4298,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                 file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
                                 file.write("\n" + "market_sell_order_tp has been placed")
                                 return "market_take_profit_has_been_filled"
-                            if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                            if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                 prices = exchange_object_where_api_is_required.fetch_tickers()
                                 bid = float(prices[trading_pair]['bid'])
                                 amount = amount_of_tp
