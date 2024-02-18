@@ -1491,9 +1491,10 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 print(current_price_of_trading_pair)
 
                 try:
-                    limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
-                    print("limit_sell_order_tp_order_id123")
-                    print(limit_sell_order_tp_order_id)
+                    if trade_status == 'neither_sl_nor_tp_has_been_reached':
+                        limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                        print("limit_sell_order_tp_order_id12345678")
+                        print(limit_sell_order_tp_order_id)
                 except:
                     traceback.print_exc()
 

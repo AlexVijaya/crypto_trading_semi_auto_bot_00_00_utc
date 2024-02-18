@@ -3907,7 +3907,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                                                       cell_value)
                         #########################################
 
-                    elif exchange_id in ['mexc3', 'huobi', 'huobipro','kucoin']:
+                    elif exchange_id in ['mexc3', 'huobi', 'huobipro','kucoin', 'mexc']:
                         prices = exchange_object_where_api_is_required.fetch_tickers()
                         ask = float(prices[trading_pair]['ask'])
                         amount = amount_of_asset_for_entry
@@ -4230,6 +4230,15 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                     current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                     print("current_price_of_trading_pair2")
                     print(current_price_of_trading_pair)
+
+                    try:
+                        if trade_status == 'neither_sl_nor_tp_has_been_reached':
+                            limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                            print("limit_sell_order_tp_order_id12345678")
+                            print(limit_sell_order_tp_order_id)
+                    except:
+                        traceback.print_exc()
+
 
                     if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                         file.write("\n"+f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
