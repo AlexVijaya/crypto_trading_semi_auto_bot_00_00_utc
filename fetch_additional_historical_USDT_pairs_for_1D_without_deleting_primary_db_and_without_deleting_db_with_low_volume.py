@@ -994,7 +994,7 @@ def fetch_historical_usdt_pairs(engine_for_ohlcv_database_without_enough_volume,
         #     continue
 
         list_of_exchanges_to_exclude_because_they_mirror_other_exchange_names = \
-            ["lbank", "huobi", "okex", "okx", "hitbtc", "mexc", "gate", "binanceusdm", "binanceus", "bitfinex",
+            [ "huobipro", "okex",  "hitbtc",  "gate", "binanceusdm", "binanceus", "bitfinex",
              "binancecoinm", "huobijp"]
 
         if exchange in list_of_exchanges_to_exclude_because_they_mirror_other_exchange_names:
@@ -1026,7 +1026,7 @@ def fetch_all_ohlcv_tables(database_name_for_low_volume_pairs,timeframe,database
 
     exchanges_list = ccxt.exchanges
 
-    exclusion_list = [ "okex", "hitbtc",  "gate", "binanceusdm",
+    exclusion_list = [  "hitbtc",  "gate", "binanceusdm",
         "binanceus", "bitfinex", "binancecoinm", "huobijp"]
     exchanges_list=[value for value in exchanges_list if value not in exclusion_list]
     how_many_exchanges = len ( exchanges_list )

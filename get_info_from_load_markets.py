@@ -1874,6 +1874,7 @@ def fetch_entire_ohlcv(exchange_object,exchange_name,trading_pair, timeframe,lim
         try:
             if exchange_object.id == "btcex" :
                 timeframe = "12h"
+
                 previous_data = exchange_object.fetch_ohlcv(trading_pair,
                                                             timeframe,
                                                             limit=limit_of_daily_candles,
@@ -2181,7 +2182,10 @@ def get_exchange_object_and_limit_of_daily_candles(exchange_name):
         exchange_object = ccxt.hitbtc3()
         limit = 10000
     elif exchange_name == 'mexc':
-        exchange_object = ccxt.mexc()
+        exchange_object = ccxt.mexc({
+        'rateLimit': 501,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    })
         limit = 2000
     elif exchange_name == 'mexc3':
         exchange_object = ccxt.mexc3()
@@ -2409,7 +2413,10 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
         exchange_object = ccxt.hitbtc3()
         limit = 500
     elif exchange_name == 'mexc':
-        exchange_object = ccxt.mexc()
+        exchange_object = ccxt.mexc({
+        'rateLimit': 501,  # Set a custom rate limit of 6000 ms (6 seconds)
+        'enableRateLimit': True  # Enable rate limiting
+    })
         limit = 1000
     elif exchange_name == 'mexc3':
         exchange_object = ccxt.mexc()

@@ -965,7 +965,7 @@ def fetch_historical_usdt_pairs_asynchronously(engine_for_ohlcv_database_without
         #     continue
         # if exchange not in ["mexc3",
         #                     "poloniex","whitebit","fmfwio","bitopro"]:
-        if exchange not in ["bingx"]:
+        if exchange not in ["mexc"]:
             continue
 
 

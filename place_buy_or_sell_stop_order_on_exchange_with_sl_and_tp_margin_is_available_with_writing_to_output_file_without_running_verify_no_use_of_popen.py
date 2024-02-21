@@ -2743,8 +2743,128 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
     else:
         print(f"unknown {side_of_stop_market_order} value")
+def get_order_amount_from_list_of_dictionaries_with_all_orders(orders, order_id):
+    start_time = time.perf_counter()
+    print("execution of get_order_amount_from_list_of_dictionaries_with_all_orders")
+
+    if isinstance(orders,list):
+
+        for order in orders:
+            # file.write("\n" + "dict_of_open_cancelled_or_closed_orders")
+            # file.write("\n" + str(dict_of_open_cancelled_or_closed_orders))
+            # for order in dict_of_open_cancelled_or_closed_orders:
+            # file.write("\n" + "order1")
+            # file.write("\n" + str(order))
+            # print("order_id_inside_get_order_amount_from_list_of_dictionaries_with_all_orders")
+            # print("order_inside_get_order_amount_from_list_of_dictionaries_with_all_orders")
+            # print(order)
+            # print(f"order['amount'] of {order['orderId']}")
+            # print(order['amount'])
+            # print("order['info'].keys()")
+            # print(order['info'].keys())
+            if 'ordId' in order.keys() and 'orderId' not in order.keys():
+                if order['ordId'] == order_id:
+                    print("order1")
+                    print(order)
+                    # file.write("\n" + "'ordId' in order.keys() and 'orderId' not in order.keys()")
+                    return order['amount']
+
+                else:
+                    continue
+
+            elif 'ordId' in order['info'].keys() and 'orderId' not in order['info'].keys():
+                if order['info']['ordId'] == order_id:
+                    print("order2")
+                    print(order)
+                    # file.write("\n" + "'ordId' in order['info'].keys() and 'orderId' not in order['info'].keys()")
+                    return order['amount']
+                else:
+                    continue
+            elif 'orderId' in order['info'].keys() and 'ordId' not in order['info'].keys():
+                if order['info']['orderId'] == order_id:
+                    print("order3")
+                    print(order)
+                    # file.write("\n" + "'orderId' in order['info'].keys() and 'ordId' not in order['info'].keys()")
+                    # file.write("\n" + "order['amount']123")
+                    # file.write(order['amount'])
+                    return order['amount']
+                else:
+                    continue
+            elif 'orderId' in order.keys() and 'ordId' not in order.keys():
+                if order['orderId'] == order_id:
+                    print("order4")
+                    print(order)
+                    # file.write("\n" + "'orderId' in order.keys() and 'ordId' not in order.keys()")
+                    return order['amount']
+                else:
+                    continue
+            #for gateio
+            elif 'id' in order['info'].keys() and 'ordId' not in order['info'].keys() and 'amount' not in order.keys():
+                if order['info']['id'] == order_id and 'amount' in order['info'].keys():
+                    print("order5")
+                    print(order)
+                    # file.write("\n" + "'orderId' in order['info'].keys() and 'ordId' not in order['info'].keys()")
+                    # file.write("\n" + "order['amount']123")
+                    # file.write(order['amount'])
+                    return order['info']['amount']
+                else:
+                    continue
+            #for kucoin
+            elif 'id' in order['info'].keys() and 'ordId' not in order['info'].keys():
+
+                if order['info']['id'] == order_id and 'amount' in order.keys():
+                    print("order62")
+                    print(order)
+                    # file.write("\n" + "'orderId' in order['info'].keys() and 'ordId' not in order['info'].keys()")
+                    # file.write("\n" + "order['amount']123")
+                    # file.write(order['amount'])
+                    return order['amount']
+                else:
+                    continue
+            else:
+                print("\n" + "'orderId' 'ordId' do not fulfill necessary criteria")
 
 
+    else:
+        file.write("NOT isinstance(orders,list)")
+        for order in orders:
+            # print("order_id_inside_get_order_amount_from_list_of_dictionaries_with_all_orders")
+            # print("order_inside_get_order_amount_from_list_of_dictionaries_with_all_orders")
+            # print(order)
+            # print(f"order['amount'] of {order['orderId']}")
+            # print(order['amount'])
+            # print("order['info'].keys()")
+            # print(order['info'].keys())
+            if 'orderId' in order.keys():
+                if order['orderId'] == order_id:
+                    print("order63")
+                    print(order)
+                    # print(
+                    #     f"3The function get_order_amount_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
+                    return order['amount']
+
+            elif 'orderId' in order['info'].keys():
+                if order['info']['orderId'] == order_id:
+                    print("order7")
+                    print(order)
+
+                    # print(
+                    #     f"4The function get_order_amount_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
+                    return order['info']['amount']
+
+    # print("orders where 'is not in orders' may occur")
+    # print(orders)
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+    print(
+        f"5The function get_order_amount_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
+
+
+    return f"order_id={order_id} is not in orders"
+
+def get_amount_of_free_base_currency_i_own(spot_balance, base_currency):
+    amount_of_free_base_currency=spot_balance['free'][base_currency]
+    return amount_of_free_base_currency
 def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_cross_margin_account1(file, exchange_id,
                                                        trading_pair,
                                                        price_of_sl, type_of_sl, amount_of_sl,
@@ -4107,6 +4227,14 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # orig_quantity = stop_market_buy_order['info']['origQty']
                 amount_of_tp = orig_quantity
                 amount_of_sl = orig_quantity
+
+            # # amount of tp sometimes is not equal to order amount
+            # spot_balance = exchange_object_where_api_is_required.fetch_balance()
+            # amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+            # print("amount_of_tp_from_spot_balance")
+            # print(amount_of_tp)
+            # amount_of_sl = amount_of_tp
+
             # print("\n"+"order_id4")
             # print("\n"+str(order_id))
             # print("\n" + "orig_quantity")
@@ -5023,7 +5151,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     if exchange_id in ['binance', 'binanceus']:
                                         market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
                                             trading_pair, amount_of_sl, params=params)
-                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                         prices = exchange_object_where_api_is_required.fetch_tickers()
                                         ask = float(prices[trading_pair]['ask'])
                                         amount = amount_of_sl
