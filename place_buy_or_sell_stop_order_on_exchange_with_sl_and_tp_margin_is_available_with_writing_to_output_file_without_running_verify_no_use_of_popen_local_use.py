@@ -1195,7 +1195,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # wait till order is filled (that is closed)
         while True:
             print("waiting for the sell order to get filled")
-            # print("order_id2")
+            # print("order_id21")
             # print(order_id)
             #
             # sapi_get_margin_allorders works only for binance
@@ -1985,7 +1985,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # wait till order is filled (that is closed)
         while True:
             print("waiting for the sell order to get filled")
-            # print("order_id2")
+            # print("order_id22")
             # print(order_id)
             #
             # sapi_get_margin_allorders works only for binance
@@ -2631,7 +2631,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # wait till order is filled (that is closed)
         while True:
             print("waiting for the sell order to get filled")
-            # print("order_id2")
+            # print("order_id23")
             # print(order_id)
             #
             # sapi_get_margin_allorders works only for binance
@@ -3470,7 +3470,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # wait till order is filled (that is closed)
             while True:
                 print("waiting for the sell order to get filled")
-                # print("order_id2")
+                # print("order_id24")
                 # print(order_id)
                 #
                 # sapi_get_margin_allorders works only for binance
@@ -3865,6 +3865,35 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                                           column_name, cell_value)
             df_with_bfr[column_name].iat[row_index] = cell_value
 
+        if trade_status=="bfr_conditions_are_met" and current_price_of_trading_pair>=price_of_stop_market_order:
+            trade_status="limit_order_will_be_used"
+            column_name = "trade_status"
+            cell_value = "limit_order_will_be_used"
+            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                          column_name, cell_value)
+            df_with_bfr[column_name].iat[row_index] = cell_value
+
+
+            stop_market_or_limit_order_to_use_for_entry = "limit_order"
+            column_name = "stop_market_or_limit_order_to_use_for_entry"
+            cell_value = stop_market_or_limit_order_to_use_for_entry
+            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                          column_name, cell_value)
+            df_with_bfr[column_name].iat[row_index] = cell_value
+
+
+
+        current_stop_market_or_limit_order_to_use_for_entry=\
+            get_stop_market_or_limit_order_to_use_for_entry_from_df_given_row_index(row_index,df_with_bfr)
+
+        print("current_stop_market_or_limit_order_to_use_for_entry1")
+        print(current_stop_market_or_limit_order_to_use_for_entry)
+
+        if current_stop_market_or_limit_order_to_use_for_entry not in ["limit_order","stop_market_order"]:
+            print('current_trade_status not in ["limit_order_will_be_used","stop_market_or_limit_order_to_use_for_entry"]')
+            print(current_stop_market_or_limit_order_to_use_for_entry)
+            return 'current_trade_status not in ["limit_order_will_be_used","stop_market_or_limit_order_to_use_for_entry"]'
+
 
 
 
@@ -4192,7 +4221,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
             # order_id = stop_market_buy_order['id']
             # if pd.isna(stop_market_buy_order):
             #     order_id=df_with_bfr.loc[row_index,"entry_order_id"]
-            #     print("order_id2")
+            #     print("order_id25")
             #     print(order_id)
             # else:
             #     order_id = stop_market_buy_order['id']
@@ -4201,7 +4230,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
             try:
                 order_id = df_with_bfr.loc[row_index, "entry_order_id"]
-                print("order_id2")
+                print("order_id26")
                 print(order_id)
             except KeyError:
                 try:
@@ -5031,7 +5060,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
         # wait till order is filled (that is closed)
         while True:
             file.write("\n"+"waiting for the sell order to get filled")
-            # print("order_id2")
+            # print("order_id27")
             # print(order_id)
             #
             # sapi_get_margin_allorders works only for binance
@@ -6163,7 +6192,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # wait till order is filled (that is closed)
                 while True:
                     file.write("\n"+"waiting for the sell order to get filled")
-                    # print("order_id2")
+                    # print("order_id28")
                     # print(order_id)
                     #
                     # sapi_get_margin_allorders works only for binance
@@ -7290,7 +7319,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                 # wait till order is filled (that is closed)
                 while True:
                     file.write("\n"+"waiting for the sell order to get filled")
-                    # print("order_id2")
+                    # print("order_id29")
                     # print(order_id)
                     #
                     # sapi_get_margin_allorders works only for binance
@@ -7486,7 +7515,24 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
         if external_while_loop_break_flag == True:
             file.write("\n"+"external_while_loop_break_flag = True so while loop is breaking")
             break
+def get_trade_status_from_df_given_row_index(row_index_to_be_found,df_with_bfr):
+    trade_status=""
+    for row_index, row in df_with_bfr.iterrows():
 
+        if row_index==row_index_to_be_found:
+            row_df=pd.DataFrame(row).T
+            trade_status = row_df.loc[row_index, "trade_status"]
+    return trade_status
+
+
+def get_stop_market_or_limit_order_to_use_for_entry_from_df_given_row_index(row_index_to_be_found,df_with_bfr):
+    stop_market_or_limit_order_to_use_for_entry=""
+    for row_index, row in df_with_bfr.iterrows():
+
+        if row_index==row_index_to_be_found:
+            row_df=pd.DataFrame(row).T
+            stop_market_or_limit_order_to_use_for_entry = row_df.loc[row_index, "stop_market_or_limit_order_to_use_for_entry"]
+    return stop_market_or_limit_order_to_use_for_entry
 
 if __name__=="__main__":
     # exchange_id = sys.argv[1]

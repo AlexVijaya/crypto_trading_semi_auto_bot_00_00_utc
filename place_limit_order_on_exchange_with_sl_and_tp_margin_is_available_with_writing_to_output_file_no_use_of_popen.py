@@ -969,11 +969,19 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
             print(f"spot_cross_or_isolated_margin variable value problem")
             return None
 
-    elif exchange_object_where_api_is_required.id in ['mexc3','lbank','lbank2']:
+    elif exchange_object_where_api_is_required.id in ['mexc3','mexc','lbank','lbank2']:
         if spot_cross_or_isolated_margin=="spot":
+            # trading_pair="RPL/USDT"
+            # print("trading_pair23")
+            # print(trading_pair)
+            # print("exchange_object_where_api_is_required23")
+            # print(exchange_object_where_api_is_required)
             all_orders_on_spot_account = exchange_object_where_api_is_required.fetch_orders(symbol=trading_pair,
                                                                                             since=None, limit=None,
                                                                                             params={})
+            print("all_orders_on_spot_account4")
+            print(all_orders_on_spot_account)
+
             return all_orders_on_spot_account
         elif spot_cross_or_isolated_margin=="cross":
             # sapi_get_margin_allorders works only for binance
@@ -1210,6 +1218,34 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
                                                                           column_name, cell_value)
             df_with_bfr[column_name].iat[row_index] = cell_value
+
+
+        if trade_status=="bfr_conditions_are_met" and current_price_of_trading_pair<price_of_limit_order:
+            trade_status="stop_market_order_will_be_used"
+            column_name = "trade_status"
+            cell_value = "stop_market_order_will_be_used"
+            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                          column_name, cell_value)
+            df_with_bfr[column_name].iat[row_index] = cell_value
+
+
+            stop_market_or_limit_order_to_use_for_entry = "stop_market_order"
+            column_name = "stop_market_or_limit_order_to_use_for_entry"
+            cell_value = stop_market_or_limit_order_to_use_for_entry
+            update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                          column_name, cell_value)
+            df_with_bfr[column_name].iat[row_index] = cell_value
+
+        current_stop_market_or_limit_order_to_use_for_entry=\
+            get_stop_market_or_limit_order_to_use_for_entry_from_df_given_row_index(row_index,df_with_bfr)
+
+        print("current_stop_market_or_limit_order_to_use_for_entry1")
+        print(current_stop_market_or_limit_order_to_use_for_entry)
+
+        if current_stop_market_or_limit_order_to_use_for_entry not in ["limit_order","stop_market_order"]:
+            print('current_trade_status not in ["limit_order_will_be_used","stop_market_or_limit_order_to_use_for_entry"]')
+            print(current_stop_market_or_limit_order_to_use_for_entry)
+            return 'current_trade_status not in ["limit_order_will_be_used","stop_market_or_limit_order_to_use_for_entry"]'
 
 
 
@@ -1468,7 +1504,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 print("\n" + str(traceback.format_exc()))
 
             print("\n"+f"placed buy limit order on {exchange_id}")
-            print("\n"+"limit_buy_order")
+            print("\n"+"limit_buy_order1")
             print("\n"+str(limit_buy_order))
 
             if pd.isna(limit_buy_order):
@@ -2448,7 +2484,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     print("\n" + str(traceback.format_exc()))
                     raise SystemExit
             print(f"placed buy limit order on {exchange_id}")
-            print("limit_buy_order")
+            print("limit_buy_order2")
             print(limit_buy_order)
 
             order_id = limit_buy_order['id']
@@ -3285,7 +3321,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 raise SystemExit
 
             print(f"placed buy limit order on {exchange_id}")
-            print("limit_buy_order")
+            print("limit_buy_order3")
             print(limit_buy_order)
 
             order_id = limit_buy_order['id']
@@ -3994,7 +4030,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 print("\n"+str(traceback.format_exc()))
                 raise SystemExit
             print("\n"+f"placed buy limit order on {exchange_id}")
-            print("\n"+"limit_buy_order")
+            print("\n"+"limit_buy_order4")
             print("\n"+str(limit_buy_order))
 
             order_id = limit_buy_order['id']
@@ -5065,7 +5101,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 print("\n"+str(traceback.format_exc()))
                 raise SystemExit
             print("\n"+f"placed buy limit order on {exchange_id}")
-            print("\n"+"limit_buy_order")
+            print("\n"+"limit_buy_order5")
             print("\n"+str(limit_buy_order))
 
             order_id = limit_buy_order['id']
@@ -5855,7 +5891,24 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
     else:
         print("\n"+f"unknown {side_of_limit_order} value")
 
+def get_trade_status_from_df_given_row_index(row_index_to_be_found,df_with_bfr):
+    trade_status=""
+    for row_index, row in df_with_bfr.iterrows():
 
+        if row_index==row_index_to_be_found:
+            row_df=pd.DataFrame(row).T
+            trade_status = row_df.loc[row_index, "trade_status"]
+    return trade_status
+
+
+def get_stop_market_or_limit_order_to_use_for_entry_from_df_given_row_index(row_index_to_be_found,df_with_bfr):
+    stop_market_or_limit_order_to_use_for_entry=""
+    for row_index, row in df_with_bfr.iterrows():
+
+        if row_index==row_index_to_be_found:
+            row_df=pd.DataFrame(row).T
+            stop_market_or_limit_order_to_use_for_entry = row_df.loc[row_index, "stop_market_or_limit_order_to_use_for_entry"]
+    return stop_market_or_limit_order_to_use_for_entry
 
 if __name__=="__main__":
 
