@@ -5996,7 +5996,7 @@ if __name__=="__main__":
                 difference_between_current_timestamp_and_when_df_was_last_fetched=current_timestamp-last_df_with_bfr_was_fetched_at
                 print("difference_between_current_timestamp_and_when_df_was_last_fetched")
                 print(difference_between_current_timestamp_and_when_df_was_last_fetched)
-                if difference_between_current_timestamp_and_when_df_was_last_fetched.total_seconds() >= 10:
+                if difference_between_current_timestamp_and_when_df_was_last_fetched.total_seconds() >= 15:
                     spread_sheet_title = 'streamlit_app_google_sheet'
                     df_with_bfr = fetch_dataframe_from_google_spreadsheet_with_converting_string_types_to_boolean_where_needed(
                         spread_sheet_title)
