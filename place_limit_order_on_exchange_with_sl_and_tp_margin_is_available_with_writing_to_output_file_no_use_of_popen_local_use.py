@@ -606,7 +606,8 @@ def get_order_status_from_list_of_dictionaries_with_all_orders(orders, order_id)
             # file.write("\n" + str(order))
             # print("order_id_inside_get_order_status_from_list_of_dictionaries_with_all_orders")
             # print("order_inside_get_order_status_from_list_of_dictionaries_with_all_orders")
-            # print(order)
+            print("order1989")
+            print(order)
             # print(f"order['status'] of {order['orderId']}")
             # print(order['status'])
             # print("order['info'].keys()")
@@ -968,7 +969,7 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
             print(f"spot_cross_or_isolated_margin variable value problem")
             return None
 
-    elif exchange_object_where_api_is_required.id in ['mexc3','lbank','lbank2']:
+    elif exchange_object_where_api_is_required.id in ['mexc3','mexc','lbank','lbank2']:
         if spot_cross_or_isolated_margin=="spot":
             all_orders_on_spot_account = exchange_object_where_api_is_required.fetch_orders(symbol=trading_pair,
                                                                                             since=None, limit=None,
@@ -1046,11 +1047,16 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
             #                                                                                         since=None,
             #                                                                                         limit=None,
             #                                                                                         params={})
+            print("all_open_orders_on_spot_account345")
+            print(all_open_orders_on_spot_account)
+
             all_closed_orders_on_spot_account = exchange_object_where_api_is_required.fetchClosedOrders(
                 symbol=trading_pair,
                 since=None,
                 limit=None,
                 params={})
+            print("all_closed_orders_on_spot_account345")
+            print(all_closed_orders_on_spot_account)
             all_orders_on_spot_account=all_open_orders_on_spot_account+all_closed_orders_on_spot_account
             return all_orders_on_spot_account
         elif spot_cross_or_isolated_margin=="cross":
@@ -1520,6 +1526,19 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
             limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(
                 all_orders_on_spot_account, order_id)
+            print(f"1limit_buy_order_status_on_spot for {trading_pair}")
+            print(limit_buy_order_status_on_spot)
+            try:
+                if "not in orders" in limit_buy_order_status_on_spot:
+
+                    limit_buy_order_status_on_spot = exchange_object_where_api_is_required.fetch_order_status(symbol=trading_pair,
+                                                                                                    id=order_id,
+                                                                                                    params={})
+            except:
+                traceback.print_exc()
+
+            print(f"2limit_buy_order_status_on_spot for {trading_pair}")
+            print(limit_buy_order_status_on_spot)
             file.write("\n"+"limit_buy_order_status_on_spot1")
             file.write("\n"+str(limit_buy_order_status_on_spot))
             # file.write("\n"+"limit_buy_order['status']")
@@ -1561,11 +1580,22 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
         limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(
             all_orders_on_spot_account, order_id)
+        try:
+            if "not in orders" in limit_buy_order_status_on_spot:
+                limit_buy_order_status_on_spot = exchange_object_where_api_is_required.fetch_order_status(
+                    symbol=trading_pair,
+                    id=order_id,
+                    params={})
+        except:
+            traceback.print_exc()
+
         # if counter_for_how_many_times_string_to_be_written_to_file_that_the_status_of_limit_order_is_still_NEW_is_written_to_file==0 or\
         #         counter_for_how_many_times_string_to_be_written_to_file_that_the_status_of_limit_order_is_still_NEW_is_written_to_file % 10==0:
         file.write("\n"+"limit_buy_order_status_on_spot")
         file.write("\n"+limit_buy_order_status_on_spot)
         file.write("\n" + f"amount_of_tp={amount_of_tp}")
+        print("limit_buy_order_status_on_spot")
+        print(limit_buy_order_status_on_spot)
         if limit_buy_order_status_on_spot == "closed" or\
                 limit_buy_order_status_on_spot == "closed".upper() or\
                 limit_buy_order_status_on_spot == "FILLED":
@@ -1770,21 +1800,31 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     else:
                         file.write("\n"+f"there is no order called {type_of_tp}")
 
-
+                print("current_price_of_trading_pair")
+                print(current_price_of_trading_pair)
+                print(f"price_of_sl12 fo {trading_pair}")
+                print(price_of_sl)
 
                 # stop loss has been reached
                 if trade_status =="stop_market_take_profit_has_been_filled" \
                         and trade_status=="market_take_profit_has_been_filled" \
                         and trade_status=="limit_take_profit_has_been_filled":
                     return "tp_is_filled"
-                elif current_price_of_trading_pair <= price_of_sl:
+
+                print("current_price_of_trading_pair")
+                print(current_price_of_trading_pair)
+                print(f"price_of_sl123 fo {trading_pair}")
+                print(price_of_sl)
+                if current_price_of_trading_pair <= price_of_sl and trade_status not in ["limit_take_profit_has_been_filled",
+                                                                                         "stop_market_take_profit_has_been_filled",
+                                                                                         "market_take_profit_has_been_filled"]:
                     print("current_price_of_trading_pair <= price_of_sl")
                     if type_of_sl == "limit":
 
 
 
 
-                        if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                        if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                             exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                trading_pair, params=params)
                             spot_balance = exchange_object_where_api_is_required.fetch_balance()
@@ -1806,9 +1846,13 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         # break
                     elif type_of_sl == "market":
                         file.write("\n" + "market_sell_order_sl is going to be placed")
-                        if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                        print("\n" + "market_sell_order_sl is going to be placed")
+                        if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                             print("limit_sell_order_tp_order_id_to_cancel")
                             print(limit_sell_order_tp_order_id)
+
+                            print("limit_sell_order_tp_order_status123")
+                            print(limit_sell_order_tp_order_status)
 
                             limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
                             exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
@@ -1830,8 +1874,9 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             df_with_bfr.at[row_index, column_name] = cell_value
                             trade_status = "market_stop_loss_is_placed"
                             return "market_stop_loss_is_placed"
-                        if exchange_id in ['mexc3','huobi','huobipro','mexc']:
+                        if exchange_id in ['mexc3','huobi','huobipro','mexc','kucoin']:
                             file.write("\n" + "market_sell_order_sl is going to be placed1")
+                            print("\n" + "market_sell_order_sl is going to be placed1")
                             prices = exchange_object_where_api_is_required.fetch_tickers()
                             bid = float(prices[trading_pair]['bid'])
                             # amount = amount_of_tp
@@ -1871,7 +1916,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                         # break
                     elif type_of_sl == "stop":
-                        if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                        if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                             exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                trading_pair, params=params)
                             file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -2133,10 +2178,23 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
             limit_sell_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(
                 all_orders_on_spot_account, order_id)
+
+            try:
+                if "not in orders" in limit_sell_order_status_on_spot:
+
+                    limit_sell_order_status_on_spot = exchange_object_where_api_is_required.fetch_order_status(symbol=trading_pair,
+                                                                                                    id=order_id,
+                                                                                                    params={})
+            except:
+                traceback.print_exc()
+
+
             file.write("\n"+"limit_sell_order_status_on_spot1")
             file.write("\n"+str(limit_sell_order_status_on_spot))
-            file.write("\n"+"limit_sell_order['status']")
-            print(str(limit_sell_order['status']))
+            # file.write("\n"+"limit_sell_order['status']")
+            # print(str(limit_sell_order['status']))
+
+
 
         except ccxt.InvalidOrder as e:
             if "Filter failure: NOTIONAL" in str(e):
@@ -2174,6 +2232,15 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
             file.write("\n"+"limit_sell_order_status_on_spot2")
             file.write("\n"+str(limit_sell_order_status_on_spot))
+
+            try:
+                if "not in orders" in limit_sell_order_status_on_spot:
+
+                    limit_sell_order_status_on_spot = exchange_object_where_api_is_required.fetch_order_status(symbol=trading_pair,
+                                                                                                    id=order_id,
+                                                                                                    params={})
+            except:
+                traceback.print_exc()
 
 
 
@@ -2251,7 +2318,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         # stop loss has been reached
                         elif current_price_of_trading_pair >= price_of_sl:
                             if type_of_sl == "limit":
-                                if limit_buy_order_tp_order_status!= "CANCELED" and limit_buy_order_tp_order_status!= "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,trading_pair,params=params)
                                     file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
 
@@ -2261,7 +2328,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                                 break
                             elif type_of_sl == "market":
-                                if limit_buy_order_tp_order_status!= "CANCELED" and limit_buy_order_tp_order_status!= "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -2291,7 +2358,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 file.write("\n" + "-----------------------------------------")
                                 break
                             elif type_of_sl == "stop":
-                                if limit_buy_order_tp_order_status!= "CANCELED" and limit_buy_order_tp_order_status!= "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -2632,7 +2699,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 limit_sell_order_sl = exchange_object_where_api_is_required.create_limit_sell_order(
                                     trading_pair, amount_of_sl, price_of_sl, params=params)
                                 print("limit_sell_order_sl has been placed")
-                                if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                                if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -2659,7 +2726,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 file.write("\n" + f"market_sell_order_sl = {market_sell_order_sl}")
                                 file.write("\n" + "market_sell_order_sl has been placed")
 
-                                if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                                if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -2668,7 +2735,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 stop_market_order_sl = exchange_object_where_api_is_required.create_stop_market_order(
                                     trading_pair, "sell", amount_of_sl, price_of_sl, params=params)
                                 print("stop_market_sell_order_sl has been placed")
-                                if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                                if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     print(f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -3044,7 +3111,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 limit_buy_order_sl = exchange_object_where_api_is_required.create_limit_buy_order(
                                     trading_pair, amount_of_sl, price_of_sl, params=params)
                                 print("limit_buy_order_sl has been placed")
-                                if limit_buy_order_tp_order_status!= "CANCELED" and limit_buy_order_tp_order_status!= "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     print(f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -3073,7 +3140,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 file.write("\n" + f"market_buy_order_sl = {market_buy_order_sl}")
                                 file.write("\n" + "market_buy_order_sl has been placed")
                                 print("market_buy_order_sl has been placed")
-                                if limit_buy_order_tp_order_status!= "CANCELED" and limit_buy_order_tp_order_status!= "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     print(f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -3083,7 +3150,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     trading_pair, "buy", amount_of_sl, price_of_sl, params=params)
                                 print("stop_market_buy_order_sl has been placed")
 
-                                if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     print(f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -4191,7 +4258,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                                 # cancel tp because sl has been hit
 
-                                if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                                if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -4224,7 +4291,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                                     # we need to cancel tp first otherwise we will have insufficient funds to sell with sl.
                                     # borrowed amount already locked in tp order
-                                    if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
+                                    if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                         exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                            trading_pair, params=params)
                                         file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -4268,7 +4335,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     file.write("\n"+str(traceback.format_exc()))
 
                                 # # cancel tp because sl has been hit
-                                # if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
+                                # if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                 #     print("4limit_sell_order_tp_order_status")
                                 #     print(limit_sell_order_tp_order_status)
                                 #     print("limit_sell_order_tp_order_id")
@@ -4295,7 +4362,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     trading_pair, "sell", amount_of_sl, price_of_sl, params=params)
                                 file.write("\n"+"stop_market_sell_order_sl has been placed")
 
-                                if limit_sell_order_tp_order_status!="CANCELED" and limit_sell_order_tp_order_status!="CANCELLED":
+                                if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -4732,7 +4799,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 limit_buy_order_sl = exchange_object_where_api_is_required.create_limit_buy_order(
                                     trading_pair, amount_of_sl, price_of_sl, params=params)
                                 file.write("\n"+"limit_buy_order_sl has been placed")
-                                if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -4745,7 +4812,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 break
                             elif type_of_sl == "market":
                                 try:
-                                    if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                    if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                         exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                            trading_pair, params=params)
                                         file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -4791,7 +4858,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     trading_pair, "buy", amount_of_sl, price_of_sl, params=params)
                                 file.write("\n"+"stop_market_buy_order_sl has been placed")
                                 file.write("\n"+"-----------------------------------------")
-                                if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -5262,7 +5329,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                                 # cancel tp because sl has been hit
 
-                                if limit_sell_order_tp_order_status!= "CANCELED" and limit_sell_order_tp_order_status!= "CANCELLED":
+                                if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -5295,7 +5362,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                                     # we need to cancel tp first otherwise we will have insufficient funds to sell with sl.
                                     # borrowed amount already locked in tp order
-                                    if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
+                                    if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                         exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                            trading_pair, params=params)
                                         file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -5339,7 +5406,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     file.write("\n"+str(traceback.format_exc()))
 
                                 # # cancel tp because sl has been hit
-                                # if limit_sell_order_tp_order_status != "CANCELED" and limit_sell_order_tp_order_status != "CANCELLED":
+                                # if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                 #     print("4limit_sell_order_tp_order_status")
                                 #     print(limit_sell_order_tp_order_status)
                                 #     print("limit_sell_order_tp_order_id")
@@ -5366,7 +5433,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     trading_pair, "sell", amount_of_sl, price_of_sl, params=params)
                                 file.write("\n"+"stop_market_sell_order_sl has been placed")
 
-                                if limit_sell_order_tp_order_status!="CANCELED" and limit_sell_order_tp_order_status!="CANCELLED":
+                                if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
@@ -5803,7 +5870,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 limit_buy_order_sl = exchange_object_where_api_is_required.create_limit_buy_order(
                                     trading_pair, amount_of_sl, price_of_sl, params=params)
                                 file.write("\n"+"limit_buy_order_sl has been placed")
-                                if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -5816,7 +5883,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 break
                             elif type_of_sl == "market":
                                 try:
-                                    if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                    if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                         exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                            trading_pair, params=params)
                                         file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")
@@ -5862,7 +5929,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     trading_pair, "buy", amount_of_sl, price_of_sl, params=params)
                                 file.write("\n"+"stop_market_buy_order_sl has been placed")
                                 file.write("\n" + "-----------------------------------------")
-                                if limit_buy_order_tp_order_status != "CANCELED" and limit_buy_order_tp_order_status != "CANCELLED":
+                                if limit_buy_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
                                     exchange_object_where_api_is_required.cancel_order(limit_buy_order_tp_order_id,
                                                                                        trading_pair, params=params)
                                     file.write("\n"+f"tp order with id = {limit_buy_order_tp_order_id} has been canceled")

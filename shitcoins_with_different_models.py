@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy.exc import ProgrammingError
 import streamlit as st
 import pandas as pd
-
+import math
 # from current_search_for_tickers_with_breakout_situations_of_atl_position_entry_on_day_two import get_bool_if_asset_is_traded_with_margin
 import traceback
 import asyncio
@@ -815,7 +815,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                       f'TTP_4/1={min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation}, '
                                       f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
                                       f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}',
-                                value=6, min_value=1)
+                                value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation), min_value=1)
 
                     if "buy_order" in df_with_resulting_table_of_certain_models.columns:
                         underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
@@ -828,7 +828,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                             st.number_input(
                                 label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
                                       f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL',
-                                value=6, min_value=1)
+                                value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation), min_value=1)
 
                     # Get the current UTC time
                     current_utc_time = datetime.datetime.now(timezone.utc)
