@@ -705,11 +705,11 @@ def get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_w
     # print("orders where 'is not in orders' may occur")
     # print(orders)
     try:
-
-        return exchange_object_where_api_is_required.fetch_order_status(
-            symbol=trading_pair,
-            id=order_id,
-            params={})
+        if exchange_object_where_api_is_required.name == "kucoin":
+            return exchange_object_where_api_is_required.fetch_order_status(
+                symbol=trading_pair,
+                id=order_id,
+                params={})
     except:
         traceback.print_exc()
 
@@ -1106,12 +1106,20 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
         if spot_cross_or_isolated_margin == "spot":
             all_open_orders_on_spot_account=exchange_object_where_api_is_required.fetchOpenOrders(symbol=trading_pair,since=None, limit=None,
                                                                                             params={})
+            print("all_open_orders_on_spot_account2345")
+            print(all_open_orders_on_spot_account)
             all_cancelled_orders_on_spot_account = []
             all_closed_orders_on_spot_account = exchange_object_where_api_is_required.fetchClosedOrders(
                 symbol=trading_pair,
                 since=None,
                 limit=None,
                 params={})
+            print("all_closed_orders_on_spot_account2345")
+            print(all_closed_orders_on_spot_account)
+            # all_orders_on_spot_account1 = exchange_object_where_api_is_required.fetch_canceled_orders(symbol=trading_pair,since=None, limit=None,
+            #                                                                                 params={})
+            # print("all_orders_on_spot_account1")
+            # print(all_orders_on_spot_account1)
             all_orders_on_spot_account=all_open_orders_on_spot_account+all_cancelled_orders_on_spot_account+all_closed_orders_on_spot_account
             return all_orders_on_spot_account
         elif spot_cross_or_isolated_margin=="cross":
@@ -1535,8 +1543,17 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
             limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
                 all_orders_on_spot_account, order_id)
-            print(f"1limit_buy_order_status_on_spot for {trading_pair}")
+            print(f"1limit_buy_order_status_on_spot for {trading_pair} on {exchange_object_where_api_is_required.name}")
             print(limit_buy_order_status_on_spot)
+
+            try:
+                fetched_order_from_gateio = exchange_object_where_api_is_required.fetch_order(symbol=trading_pair,id=order_id,
+                                                                                                        params={})
+                print(f"fetched_order_from_gateio for {trading_pair}  on {exchange_object_where_api_is_required.name}")
+                print(fetched_order_from_gateio)
+            except:
+                traceback.print_exc()
+
             try:
                 if "not in orders" in limit_buy_order_status_on_spot:
 
@@ -1611,8 +1628,10 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
             limit_sell_order_tp_order_id = np.nan
-            if trade_status != "limit_buy_order_is_filled_and_limit_tp_is_placed" \
-                    and trade_status!="market_stop_loss_is_placed":
+            if trade_status != "limit_buy_order_is_filled_and_limit_tp_is_placed" and trade_status!="limit_take_profit_has_been_filled"\
+                    and trade_status!="market_stop_loss_is_placed" and trade_status!="market_stop_loss_is_filled":
+                print("trade_status345")
+                print(trade_status)
                 if trade_status != "neither_sl_nor_tp_has_been_reached":
                     file.write("\n" + "i will try to place limit_sell_order_tp right now")
                     file.write("\n" + "type_of_tp=" + f"{type_of_tp}")
@@ -1629,7 +1648,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                         spot_balance = exchange_object_where_api_is_required.fetch_balance()
                         amount_of_tp=get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
-                        print("amount_of_tp1")
+                        print("amount_of_tp1 (amount_of_free_base_currency_i_own)")
                         print(amount_of_tp)
                         limit_sell_order_tp = exchange_object_where_api_is_required.create_limit_sell_order(
                             trading_pair, amount_of_tp, price_of_tp, params=params)

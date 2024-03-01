@@ -592,7 +592,7 @@ def get_origQty_from_list_of_dictionaries_with_all_orders(orders, order_id):
 
     return f"order_id={order_id} is not in orders"
 
-def get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,orders, order_id):
+def get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,orders, order_id):
     start_time = time.perf_counter()
     print("execution of get_order_status_from_list_of_dictionaries_with_all_orders")
 
@@ -705,10 +705,11 @@ def get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_w
     # print(orders)
 
     try:
-        return exchange_object_where_api_is_required.fetch_order_status(
-            symbol=trading_pair,
-            id=order_id,
-            params={})
+        if exchange_object_where_api_is_required.name=="kucoin":
+            return exchange_object_where_api_is_required.fetch_order_status(
+                symbol=trading_pair,
+                id=order_id,
+                params={})
     except:
         traceback.print_exc()
 
@@ -1533,7 +1534,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_spot_account")
             # pprint.pprint(all_orders_on_spot_account)
 
-            limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_spot_account, order_id)
             try:
                 if "not in orders" in limit_buy_order_status_on_spot:
@@ -1583,7 +1584,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         # print("all_orders_on_spot_account1")
         # pprint.pprint(all_orders_on_spot_account)
 
-        limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+        limit_buy_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
             all_orders_on_spot_account, order_id)
         try:
             if "not in orders" in limit_buy_order_status_on_spot:
@@ -1612,8 +1613,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
             limit_sell_order_tp_order_id = np.nan
-            if trade_status != "limit_buy_order_is_filled_and_limit_tp_is_placed" \
-                    and trade_status!="market_stop_loss_is_placed":
+            if trade_status != "limit_buy_order_is_filled_and_limit_tp_is_placed" and trade_status!="limit_take_profit_has_been_filled"\
+                    and trade_status!="market_stop_loss_is_placed" and trade_status!="market_stop_loss_is_filled":
                 print("trade_status12345")
                 print(trade_status)
                 if trade_status != "neither_sl_nor_tp_has_been_reached":
@@ -1696,7 +1697,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 print("limit_sell_order_tp_order_id12")
                 print(limit_sell_order_tp_order_id)
 
-                limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                     all_orders_on_spot_account, limit_sell_order_tp_order_id)
 
                 current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
@@ -2140,7 +2141,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_spot_account")
             # pprint.pprint(all_orders_on_spot_account)
 
-            limit_sell_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_spot_account, order_id)
 
             try:
@@ -2188,7 +2189,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_spot_account")
             # pprint.pprint(all_orders_on_spot_account)
 
-            limit_sell_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_spot = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_spot_account, order_id)
 
             print("\n"+"limit_sell_order_status_on_spot2")
@@ -2232,7 +2233,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_spot_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                                      spot_cross_or_isolated_margin,
                                                                                                      exchange_object_where_api_is_required)
-                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_spot_account, limit_buy_order_tp_order_id)
                         # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
@@ -2541,7 +2542,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             all_orders_on_cross_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                          spot_cross_or_isolated_margin,
                                                                                          exchange_object_where_api_is_required)
-            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
             print("limit_buy_order_status_on_cross_margin1")
             print(limit_buy_order_status_on_cross_margin)
@@ -2575,7 +2576,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_cross_margin_account1")
             # pprint.pprint(all_orders_on_cross_margin_account)
 
-            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
             print("limit_buy_order_status_on_cross_margin")
             print(limit_buy_order_status_on_cross_margin)
@@ -2602,7 +2603,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                      spot_cross_or_isolated_margin,
                                                                                                      exchange_object_where_api_is_required)
 
-                        limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                        limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_cross_margin_account, limit_sell_order_tp_order_id)
                         # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
@@ -2958,7 +2959,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                          exchange_object_where_api_is_required)
 
 
-            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
             print("limit_sell_order_status_on_cross_margin1")
             print(limit_sell_order_status_on_cross_margin)
@@ -2996,7 +2997,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_cross_margin_account1")
             # pprint.pprint(all_orders_on_cross_margin_account)
 
-            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
 
             print("limit_sell_order_status_on_cross_margin3")
@@ -3021,7 +3022,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_cross_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                                      spot_cross_or_isolated_margin,
                                                                                                      exchange_object_where_api_is_required)
-                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_cross_margin_account, limit_buy_order_tp_order_id)
                         # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
@@ -3374,7 +3375,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             print("order_id4")
             print(order_id)
 
-            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_isolated_margin_account, order_id)
             print("limit_buy_order_status_on_isolated_margin1")
             print(limit_buy_order_status_on_isolated_margin)
@@ -3407,7 +3408,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             print("all_orders_on_isolated_margin_account1")
             pprint.pprint(all_orders_on_isolated_margin_account)
 
-            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_isolated_margin_account, order_id)
             print("limit_buy_order_status_on_isolated_margin")
             print(limit_buy_order_status_on_isolated_margin)
@@ -3643,7 +3644,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             print("order_id4")
             print(order_id)
 
-            limit_sell_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_isolated_margin_account, order_id)
             print("limit_sell_order_status_on_isolated_margin1")
             print(limit_sell_order_status_on_isolated_margin)
@@ -3680,7 +3681,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             print("all_orders_on_isolated_margin_account1")
             pprint.pprint(all_orders_on_isolated_margin_account)
 
-            limit_sell_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,all_orders_on_isolated_margin_account, order_id)
+            limit_sell_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,all_orders_on_isolated_margin_account, order_id)
 
 
 
@@ -4087,7 +4088,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             all_orders_on_cross_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                          spot_cross_or_isolated_margin,
                                                                                          exchange_object_where_api_is_required)
-            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
             print("\n"+"limit_buy_order_status_on_cross_margin1")
             print("\n"+str(limit_buy_order_status_on_cross_margin))
@@ -4121,7 +4122,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_cross_margin_account1")
             # pprint.pprint(all_orders_on_cross_margin_account)
 
-            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
             print("\n"+"limit_buy_order_status_on_cross_margin")
             print("\n"+str(limit_buy_order_status_on_cross_margin))
@@ -4150,7 +4151,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                      spot_cross_or_isolated_margin,
                                                                                                      exchange_object_where_api_is_required)
 
-                        limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                        limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_cross_margin_account, limit_sell_order_tp_order_id)
                         # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
@@ -4641,7 +4642,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                          exchange_object_where_api_is_required)
 
 
-            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
             print("\n"+"limit_sell_order_status_on_cross_margin1")
             print("\n"+limit_sell_order_status_on_cross_margin)
@@ -4679,7 +4680,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_cross_margin_account1")
             # pprint.pprint(all_orders_on_cross_margin_account)
 
-            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_cross_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_cross_margin_account, order_id)
 
             print("\n"+"limit_sell_order_status_on_cross_margin3")
@@ -4703,7 +4704,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_cross_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                                      spot_cross_or_isolated_margin,
                                                                                                      exchange_object_where_api_is_required)
-                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_cross_margin_account, limit_buy_order_tp_order_id)
                         # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
@@ -5158,7 +5159,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             all_orders_on_isolated_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                          spot_cross_or_isolated_margin,
                                                                                          exchange_object_where_api_is_required)
-            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_isolated_margin_account, order_id)
             print("\n"+"limit_buy_order_status_on_isolated_margin1")
             print("\n"+str(limit_buy_order_status_on_isolated_margin))
@@ -5192,7 +5193,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_isolated_margin_account1")
             # pprint.pprint(all_orders_on_isolated_margin_account)
 
-            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_buy_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_isolated_margin_account, order_id)
             print("\n"+"limit_buy_order_status_on_isolated_margin")
             print("\n"+str(limit_buy_order_status_on_isolated_margin))
@@ -5221,7 +5222,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                                      spot_cross_or_isolated_margin,
                                                                                                      exchange_object_where_api_is_required)
 
-                        limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                        limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_isolated_margin_account, limit_sell_order_tp_order_id)
                         # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
@@ -5712,7 +5713,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                                                          exchange_object_where_api_is_required)
 
 
-            limit_sell_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_isolated_margin_account, order_id)
             print("\n"+"limit_sell_order_status_on_isolated_margin1")
             print("\n"+str(limit_sell_order_status_on_isolated_margin))
@@ -5750,7 +5751,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print("all_orders_on_isolated_margin_account1")
             # pprint.pprint(all_orders_on_isolated_margin_account)
 
-            limit_sell_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+            limit_sell_order_status_on_isolated_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_isolated_margin_account, order_id)
 
             print("\n"+"limit_sell_order_status_on_isolated_margin3")
@@ -5774,7 +5775,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         all_orders_on_isolated_margin_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                                      spot_cross_or_isolated_margin,
                                                                                                      exchange_object_where_api_is_required)
-                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
+                        limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_isolated_margin_account, limit_buy_order_tp_order_id)
                         # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_buy_order_tp_order_id)

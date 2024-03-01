@@ -56,13 +56,13 @@ def get_last_asset_type_url_maker_and_taker_fee_from_ohlcv_table(ohlcv_data_df):
 def add_time_of_next_candle_print_to_df(data_df):
     try:
         # Set the timezone for Moscow
-        moscow_tz = timezone('Europe/Moscow')
-        almaty_tz = timezone('Asia/Almaty')
+        # moscow_tz = timezone('Europe/Moscow')
+        # almaty_tz = timezone('Asia/Almaty')
         data_df['open_time_datatime_format'] = pd.to_datetime(data_df['open_time'])
         data_df['open_time_without_date'] = data_df['open_time_datatime_format'].dt.strftime('%H:%M:%S')
         # Convert the "open_time" column from UTC to Moscow time
         data_df['open_time_msk'] =\
-            data_df['open_time_datatime_format'].dt.tz_localize('UTC').dt.tz_convert(moscow_tz)
+            data_df['open_time_datatime_format'].dt.tz_localize('UTC').dt.tz_convert('Europe/Moscow')
 
         data_df['open_time_msk_time_only'] = data_df['open_time_msk'].dt.strftime('%H:%M:%S')
 
