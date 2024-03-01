@@ -4219,7 +4219,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                "limit_stop_loss_is_filled",
                                                "market_stop_loss_is_placed",
                                                "market_stop_loss_is_filled",
-                                               "stop_market_stop_loss_is_placed",
+                                               "stop_market_stop_loss_is_placed", "stop_market_stop_loss_is_used",
                                                "neither_sl_nor_tp_has_been_reached",
                                                "limit_order_has_been_cancelled","limit_buy_order_is_filled","limit_sell_order_is_filled"]
                 if trade_status not in list_of_possible_trade_status:
@@ -7670,6 +7670,10 @@ if __name__=="__main__":
                         spot_without_margin_bool = row_df.loc[row_index, "spot_without_margin"]
                         cross_margin_bool = row_df.loc[row_index, "cross_margin"]
                         isolated_margin_bool = row_df.loc[row_index, "isolated_margin"]
+
+                        stop_market_or_limit_order_to_use_for_entry = row_df.loc[row_index, "stop_market_or_limit_order_to_use_for_entry"]
+                        if stop_market_or_limit_order_to_use_for_entry!="stop_market_order":
+                            continue
 
                         if spot_without_margin_bool == True:
                             spot_cross_or_isolated_margin = "spot"
