@@ -3086,42 +3086,43 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 row_index, "advanced_atr"]
             max_allowed_atr_number_away_from_level=4
             max_allowed_distance_between_level_and_current_price=advanced_atr*max_allowed_atr_number_away_from_level
-            if "ath" in row_df.columns:
-                ath = row_df.loc[
-                    row_index, "ath"]
-                ath=float(ath)
-                print("ath=")
-                print(ath)
-                print("type(ath)=")
-                print(type(ath))
-                if ath>0:
-                    distance_between_current_price_and_level=abs(current_price_of_trading_pair-ath)
-                    distance_between_current_price_and_level_in_atr=distance_between_current_price_and_level/advanced_atr
-                    print("distance_between_current_price_and_level_in_atr=")
-                    print(distance_between_current_price_and_level_in_atr)
-                    if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
-                        print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
-                              f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
-                        # exchange_object_where_api_is_required.cancel_order(order_id,
-                        #                                                    trading_pair, params=params)
-            if "atl" in row_df.columns:
-                atl = row_df.loc[
-                    row_index, "atl"]
-                atl=float(atl)
-                print("atl=")
-                print(atl)
-                print("type(atl)=")
-                print(type(atl))
-                if atl>0:
-                    distance_between_current_price_and_level=abs(atl-current_price_of_trading_pair)
-                    distance_between_current_price_and_level_in_atr=distance_between_current_price_and_level/advanced_atr
-                    print("distance_between_current_price_and_level_in_atr=")
-                    print(distance_between_current_price_and_level_in_atr)
-                    if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
-                        print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
-                              f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
-                        # exchange_object_where_api_is_required.cancel_order(order_id,
-                        #
+            if limit_buy_order_status_on_spot == "open":
+                if "ath" in row_df.columns:
+                    ath = row_df.loc[
+                        row_index, "ath"]
+                    ath=float(ath)
+                    print("ath=")
+                    print(ath)
+                    print("type(ath)=")
+                    print(type(ath))
+                    if ath>0:
+                        distance_between_current_price_and_level=abs(current_price_of_trading_pair-ath)
+                        distance_between_current_price_and_level_in_atr=distance_between_current_price_and_level/advanced_atr
+                        print("distance_between_current_price_and_level_in_atr=")
+                        print(distance_between_current_price_and_level_in_atr)
+                        if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
+                            print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
+                                  f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
+                            # exchange_object_where_api_is_required.cancel_order(order_id,
+                            #                                                    trading_pair, params=params)
+                if "atl" in row_df.columns:
+                    atl = row_df.loc[
+                        row_index, "atl"]
+                    atl=float(atl)
+                    print("atl=")
+                    print(atl)
+                    print("type(atl)=")
+                    print(type(atl))
+                    if atl>0:
+                        distance_between_current_price_and_level=abs(atl-current_price_of_trading_pair)
+                        distance_between_current_price_and_level_in_atr=distance_between_current_price_and_level/advanced_atr
+                        print("distance_between_current_price_and_level_in_atr=")
+                        print(distance_between_current_price_and_level_in_atr)
+                        if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
+                            print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
+                                  f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
+                            # exchange_object_where_api_is_required.cancel_order(order_id,
+                            #
         except:
             traceback.print_exc()
 
