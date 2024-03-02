@@ -3103,8 +3103,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
                             print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
                                   f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
-                            # exchange_object_where_api_is_required.cancel_order(order_id,
-                            #                                                    trading_pair, params=params)
+                            exchange_object_where_api_is_required.cancel_order(order_id,
+                                                                               trading_pair, params=params)
                 if "atl" in row_df.columns:
                     atl = row_df.loc[
                         row_index, "atl"]
@@ -3121,8 +3121,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
                             print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
                                   f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
-                            # exchange_object_where_api_is_required.cancel_order(order_id,
-                            #
+                            exchange_object_where_api_is_required.cancel_order(order_id,
+                                                                               trading_pair, params=params)
         except:
             traceback.print_exc()
 
