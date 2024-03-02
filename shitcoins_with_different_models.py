@@ -477,6 +477,20 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
         take_profit_when_sl_is_calculated_4_to_1=np.nan
         calculated_stop_loss=np.nan
         technical_stop_loss=np.nan
+        distance_between_technical_sl_and_buy_order_in_atr=np.nan
+        distance_between_technical_sl_and_sell_order_in_atr=np.nan
+
+
+        if "distance_between_technical_sl_and_buy_order_in_atr" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_technical_sl_and_buy_order_in_atr = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_technical_sl_and_buy_order_in_atr'].iat[0]
+
+
+        if "distance_between_technical_sl_and_sell_order_in_atr" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_technical_sl_and_sell_order_in_atr = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_technical_sl_and_sell_order_in_atr'].iat[0]
+
+
         if "distance_between_technical_sl_and_buy_order" in df_with_resulting_table_of_certain_models.columns:
             distance_between_technical_sl_and_buy_order = df_with_resulting_table_of_certain_models.loc[
                 row_of_pair_ready_for_model, 'distance_between_technical_sl_and_buy_order'].iat[0]
@@ -797,8 +811,19 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                     min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_3_to_1
                     min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_4_to_1
 
+                    allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr=2
                     if "sell_order" in df_with_resulting_table_of_certain_models.columns:
 
+                        st.write(
+                            f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
+                        if distance_between_technical_sl_and_sell_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
+                            st.write(
+                                f'<span style="color: red;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
+                                unsafe_allow_html=True)
+                        else:
+                            st.write(
+                                f'<span style="color: green;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
+                                unsafe_allow_html=True)
                         underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {sell_order}"
                         st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
                         min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = \
@@ -809,6 +834,10 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                             sell_order * min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation
                         min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = \
                             sell_order * min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation
+
+
+
+
                         position_size_in_usd = \
                             st.number_input(
                                 label=f'Please enter position size in USD (min USD cost when TTP_3/1={min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation}, '
@@ -818,12 +847,28 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                 value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation), min_value=1)
 
                     if "buy_order" in df_with_resulting_table_of_certain_models.columns:
+
+                        st.write(
+                            f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
+                        if distance_between_technical_sl_and_buy_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
+                            st.write(
+                                f'<span style="color: red;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
+                                unsafe_allow_html=True)
+                        else:
+                            st.write(
+                                f'<span style="color: green;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
+                                unsafe_allow_html=True)
+
                         underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
                         st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
                         min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation=\
                             buy_order*min_asset_amount_technical_stop_loss_is_used_for_calculation
                         min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation = \
                             buy_order * min_asset_amount_calculated_stop_loss_is_used_for_calculation
+
+
+
+
                         position_size_in_usd = \
                             st.number_input(
                                 label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
@@ -842,6 +887,9 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                     # st.write(type(position_entry_time))
 
                     # Every form must have a submit button.
+
+
+
                     submitted_form_for_precalculated_values = st.form_submit_button("Trace this trading pair and enter position when next bar opens ")
                     if submitted_form_for_precalculated_values:
                         if type_of_stop_loss == "technical":

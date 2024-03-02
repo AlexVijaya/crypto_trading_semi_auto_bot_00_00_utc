@@ -79,7 +79,7 @@ def write_to_google_sheets1(dataframe):
     path_to_dir_where_json_file_is = os.path.join(current_directory, 'datasets', 'json_key_for_google')
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_dir_where_json_file_is, scope)
     gc = gspread.authorize(credentials)
-    st.write("authorize ok!")
+    print("authorize ok!1")
     # Convert datetime columns to string format
     dataframe['datetime_when_bfr_was_found'] = pd.to_datetime(dataframe['datetime_when_bfr_was_found']).dt.strftime(
         '%Y-%m-%d %H:%M:%S')
@@ -207,7 +207,7 @@ def write_to_google_sheets2(dataframe):
     path_to_dir_where_json_file_is = os.path.join(parent_directory, 'datasets', 'json_key_for_google',json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_dir_where_json_file_is, scope)
     gc = gspread.authorize(credentials)
-    st.write("authorize ok!")
+    print("authorize ok!2")
     # Convert datetime columns to string format
     dataframe['datetime_when_bfr_was_found'] = pd.to_datetime(dataframe['datetime_when_bfr_was_found']).dt.strftime(
         '%Y-%m-%d %H:%M:%S')
@@ -347,7 +347,7 @@ def write_to_google_sheets(dataframe):
     path_to_json=os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
-    st.write("authorize ok!")
+    print("authorize ok!3")
     # Convert datetime columns to string format
     dataframe['datetime_when_bfr_was_found'] = pd.to_datetime(dataframe['datetime_when_bfr_was_found']).dt.strftime('%Y-%m-%d %H:%M:%S')
     cleaned_df = dataframe.fillna(-1000000)  # Replace NaN with 0 (or any other appropriate value)
@@ -416,7 +416,7 @@ def write_to_google_sheets3(dataframe):
     path_to_json=os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
-    st.write("authorize ok!")
+    print("authorize ok!4")
     # Convert datetime columns to string format
     dataframe['datetime_when_bfr_was_found'] = pd.to_datetime(dataframe['datetime_when_bfr_was_found']).dt.strftime('%Y-%m-%d %H:%M:%S')
     cleaned_df = dataframe.fillna(-1000000)  # Replace NaN with 0 (or any other appropriate value)

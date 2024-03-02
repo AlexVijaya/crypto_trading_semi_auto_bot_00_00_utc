@@ -3668,7 +3668,7 @@ def fetch_dataframe_from_google_spreadsheet(spread_sheet_title):
     path_to_json = os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
-    st.write("authorize ok!")
+    print("authorize ok!5")
 
 
     # Open the spreadsheet by its title

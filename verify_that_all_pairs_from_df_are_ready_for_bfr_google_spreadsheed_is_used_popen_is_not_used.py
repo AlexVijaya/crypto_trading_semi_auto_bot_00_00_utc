@@ -5371,7 +5371,7 @@ def update_one_cell_in_google_spreadsheet(row_index,column_number_of_trade_statu
     path_to_json = os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
-    print("authorize ok!")
+    print("authorize ok!7")
 
     # Open the spreadsheet by its title
     spread_sheet_title="streamlit_app_google_sheet"
@@ -5431,9 +5431,10 @@ def fetch_dataframe_from_google_spreadsheet(spread_sheet_title):
     path_to_json = os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
-    print("authorize ok!")
+    print("authorize ok!8")
 
-
+    print("spread_sheet_title")
+    print(spread_sheet_title)
     # Open the spreadsheet by its title
     spreadsheet = gc.open(spread_sheet_title)
 
