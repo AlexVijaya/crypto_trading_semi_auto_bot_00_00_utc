@@ -3097,6 +3097,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 if ath>0:
                     distance_between_current_price_and_level=abs(current_price_of_trading_pair-ath)
                     distance_between_current_price_and_level_in_atr=distance_between_current_price_and_level/advanced_atr
+                    print("distance_between_current_price_and_level_in_atr=")
+                    print(distance_between_current_price_and_level_in_atr)
                     if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
                         print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
                               f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
@@ -3113,6 +3115,8 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 if atl>0:
                     distance_between_current_price_and_level=abs(atl-current_price_of_trading_pair)
                     distance_between_current_price_and_level_in_atr=distance_between_current_price_and_level/advanced_atr
+                    print("distance_between_current_price_and_level_in_atr=")
+                    print(distance_between_current_price_and_level_in_atr)
                     if distance_between_current_price_and_level>max_allowed_distance_between_level_and_current_price:
                         print(f"i_will_cancel_order for {trading_pair} on {exchange_id} because"
                               f" distance_between_current_price_and_level_in_atr={distance_between_current_price_and_level_in_atr}")
