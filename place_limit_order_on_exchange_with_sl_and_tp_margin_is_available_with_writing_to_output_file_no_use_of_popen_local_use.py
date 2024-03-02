@@ -2742,8 +2742,10 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         if current_stop_market_or_limit_order_to_use_for_entry not in ["limit_order","stop_market_order"]:
             return 'current_trade_status not in ["limit_order_will_be_used","stop_market_or_limit_order_to_use_for_entry"]'
 
-
-
+        stop_market_or_limit_order_to_use_for_entry = row_df.loc[
+            row_index, "stop_market_or_limit_order_to_use_for_entry"]
+        if stop_market_or_limit_order_to_use_for_entry != "limit_order":
+            return 'stop_market_or_limit_order_to_use_for_entry != "limit_order"'
 
         # ---------------------------------------------------------
         try:
@@ -7597,10 +7599,6 @@ if __name__=="__main__":
                         cross_margin_bool = row_df.loc[row_index, "cross_margin"]
                         isolated_margin_bool = row_df.loc[row_index, "isolated_margin"]
 
-                        stop_market_or_limit_order_to_use_for_entry = row_df.loc[
-                            row_index, "stop_market_or_limit_order_to_use_for_entry"]
-                        if stop_market_or_limit_order_to_use_for_entry != "limit_order":
-                            continue
 
 
                         if spot_without_margin_bool == True:
