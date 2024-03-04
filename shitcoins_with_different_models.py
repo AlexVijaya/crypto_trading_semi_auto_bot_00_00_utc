@@ -2088,6 +2088,15 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------

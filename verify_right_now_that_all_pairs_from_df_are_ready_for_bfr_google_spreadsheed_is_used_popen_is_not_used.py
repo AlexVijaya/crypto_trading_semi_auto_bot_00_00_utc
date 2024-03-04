@@ -5494,303 +5494,289 @@ if __name__=="__main__":
 
     while True:
 
-        try:
-            current_timestamp = datetime.datetime.now()
-            difference_between_current_timestamp_and_when_df_was_last_fetched = current_timestamp - last_df_with_bfr_was_fetched_at
-            print("difference_between_current_timestamp_and_when_df_was_last_fetched")
-            print(difference_between_current_timestamp_and_when_df_was_last_fetched)
-            if difference_between_current_timestamp_and_when_df_was_last_fetched.total_seconds() >= 10:
-                spread_sheet_title = 'streamlit_app_google_sheet'
-                df_with_bfr = fetch_dataframe_from_google_spreadsheet_with_converting_string_types_to_boolean_where_needed(
-                    spread_sheet_title)
-                last_df_with_bfr_was_fetched_at = datetime.datetime.now()
 
-            utc_position_entry_time_list = list(df_with_bfr["utc_position_entry_time"])
-            # Remove seconds and keep only hours and minutes
-            utc_position_entry_time_list_without_seconds = [time_str.rsplit(':', 1)[0] for time_str in
-                                                            utc_position_entry_time_list]
-            print("utc_position_entry_time_list")
-            print(utc_position_entry_time_list)
+        current_timestamp = datetime.datetime.now()
+        # difference_between_current_timestamp_and_when_df_was_last_fetched = current_timestamp - last_df_with_bfr_was_fetched_at
+        # print("difference_between_current_timestamp_and_when_df_was_last_fetched")
+        # print(difference_between_current_timestamp_and_when_df_was_last_fetched)
+        # if difference_between_current_timestamp_and_when_df_was_last_fetched.total_seconds() >= 10:
+        spread_sheet_title = 'streamlit_app_google_sheet'
+        df_with_bfr = fetch_dataframe_from_google_spreadsheet_with_converting_string_types_to_boolean_where_needed(
+            spread_sheet_title)
+            # last_df_with_bfr_was_fetched_at = datetime.datetime.now()
 
-            # Assuming your DataFrame is named df_with_bfr
+        # utc_position_entry_time_list = list(df_with_bfr["utc_position_entry_time"])
+        # Remove seconds and keep only hours and minutes
+        # utc_position_entry_time_list_without_seconds = [time_str.rsplit(':', 1)[0] for time_str in
+        #                                                 utc_position_entry_time_list]
+        # print("utc_position_entry_time_list")
+        # print(utc_position_entry_time_list)
 
-            current_utc_time = datetime.datetime.now(timezone.utc).strftime('%H:%M')
-            current_utc_time_without_leading_zero = datetime.datetime.now(timezone.utc).strftime('%-H:%M')
-            print("current_utc_time")
-            print(current_utc_time)
-            print("utc_position_entry_time_list_without_seconds")
-            print(utc_position_entry_time_list_without_seconds)
-            #delete "not" when in production
-            if current_utc_time in utc_position_entry_time_list_without_seconds or\
-                    current_utc_time_without_leading_zero in utc_position_entry_time_list_without_seconds:
-                #next bar print time has arrived
-                print("desired time is now")
-                # iterate over each row in df_with_bfr and verify that pair still satisfies the desired
-                # criteria for bfr
-                for row_index, row in df_with_bfr.iterrows():
-                    # print("row1")
-                    # print(pd.DataFrame(row).T.to_string())
-                    row_df=pd.DataFrame(row).T
-                    model_type=row_df.loc[row_index,"model"]
+        # Assuming your DataFrame is named df_with_bfr
 
-
-
-
-                    stock_name_with_underscore_between_base_and_quote_and_exchange = \
-                        row_df.loc[row_index, "ticker"]
-                    print("stock_name_with_underscore_between_base_and_quote_and_exchange")
-                    print(stock_name_with_underscore_between_base_and_quote_and_exchange)
-                    base_slash_quote=\
-                        get_base_slash_quote_from_stock_name_with_underscore_between_base_and_quote_and_exchange(
-                        stock_name_with_underscore_between_base_and_quote_and_exchange)
-
-                    exchange_id=row_df.loc[row_index, "exchange"]
-
-                    include_last_day_in_bfr_model_assessment=False
-                    include_last_day_in_bfr_model_assessment=row_df.loc[row_index, "include_last_day_in_bfr_model_assessment"]
-
-                    trade_status=row_df.loc[row_index, "trade_status"]
-                    utc_position_entry_time_in_df=row_df.loc[row_index,"utc_position_entry_time"]
-                    if trade_status!="must_verify_if_bfr_conditions_are_fulfilled":
-                        print("non of trade_status is equal to must_verify_if_bfr_conditions_are_fulfilled")
-                        continue
-                    # if utc_position_entry_time_in_df!=current_utc_time or utc_position_entry_time_in_df!=current_utc_time_without_leading_zero:
-                    #     continue
+        # current_utc_time = datetime.datetime.now(timezone.utc).strftime('%H:%M')
+        # current_utc_time_without_leading_zero = datetime.datetime.now(timezone.utc).strftime('%-H:%M')
+        # print("current_utc_time")
+        # print(current_utc_time)
+        # print("utc_position_entry_time_list_without_seconds")
+        # print(utc_position_entry_time_list_without_seconds)
+        #delete "not" when in production
+        # if current_utc_time in utc_position_entry_time_list_without_seconds or\
+        #         current_utc_time_without_leading_zero in utc_position_entry_time_list_without_seconds:
+            #next bar print time has arrived
+            # print("desired time is now")
+            # iterate over each row in df_with_bfr and verify that pair still satisfies the desired
+            # criteria for bfr
+        for row_index, row in df_with_bfr.iterrows():
+            # print("row1")
+            # print(pd.DataFrame(row).T.to_string())
+            row_df=pd.DataFrame(row).T
+            model_type=row_df.loc[row_index,"model"]
 
 
 
 
-                    exchange_object = get_exchange_object6(exchange_id)
-                    advanced_atr_over_this_period = 30
-                    acceptable_backlash = 0.05
-                    timeframe = "1d"
-                    last_bitcoin_price = 30000
-                    count_min_volume_over_this_many_days = 7
-                    if model_type == "ПРОБОЙ_ATL_с_подтверждением_вход_на_следующий_день":
-                        trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_the_next_day(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
-                        print("trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day")
-                        print(trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day)
+            stock_name_with_underscore_between_base_and_quote_and_exchange = \
+                row_df.loc[row_index, "ticker"]
+            print("stock_name_with_underscore_between_base_and_quote_and_exchange")
+            print(stock_name_with_underscore_between_base_and_quote_and_exchange)
+            base_slash_quote=\
+                get_base_slash_quote_from_stock_name_with_underscore_between_base_and_quote_and_exchange(
+                stock_name_with_underscore_between_base_and_quote_and_exchange)
 
-                        if trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day:
-                            trade_status="bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status="bfr_conditions_are_not_met"
+            exchange_id=row_df.loc[row_index, "exchange"]
+
+            include_last_day_in_bfr_model_assessment=False
+            include_last_day_in_bfr_model_assessment=row_df.loc[row_index, "include_last_day_in_bfr_model_assessment"]
+
+            trade_status=row_df.loc[row_index, "trade_status"]
+            utc_position_entry_time_in_df=row_df.loc[row_index,"utc_position_entry_time"]
+            if trade_status!="must_verify_if_bfr_conditions_are_fulfilled":
+                print("non of trade_status is equal to must_verify_if_bfr_conditions_are_fulfilled")
+                continue
+            # if utc_position_entry_time_in_df!=current_utc_time or utc_position_entry_time_in_df!=current_utc_time_without_leading_zero:
+            #     continue
 
 
 
 
-                    elif model_type == "ПРОБОЙ_ATH_с_подтверждением_вход_на_следующий_день":
-                        trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_ath_position_entry_on_the_next_day(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
-                        print("trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day")
-                        print(trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day)
+            exchange_object = get_exchange_object6(exchange_id)
+            advanced_atr_over_this_period = 30
+            acceptable_backlash = 0.05
+            timeframe = "1d"
+            last_bitcoin_price = 30000
+            count_min_volume_over_this_many_days = 7
+            if model_type == "ПРОБОЙ_ATL_с_подтверждением_вход_на_следующий_день":
+                trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_the_next_day(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+                print("trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day")
+                print(trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day)
 
-                        if trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
-
-
-                    elif model_type == "ПРОБОЙ_ATL_с_подтверждением_вход_на_2й_день":
-                        trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
-                        print("trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two")
-                        print(trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two)
-
-                        if trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
-
-
-                    elif model_type == "ПРОБОЙ_ATH_с_подтверждением_вход_на_2й_день":
-                        trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_ath_position_entry_on_day_two(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
-                        print("trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two")
-                        print(trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two)
-
-                        if trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index+2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
-
-                    elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_1Б":
-                        trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_atl_by_one_bar(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
-
-
-                        if trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
-
-                    elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_1Б":
-                        trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_ath_by_one_bar(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
-
-                        print("trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar")
-                        print(trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar)
-
-                        if trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
-
-
-                    elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_2Б":
-                        trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_atl_by_two_bars(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
+                if trading_pair_is_ready_for_breakout_of_atl_situations_entry_point_next_day:
+                    trade_status="bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status="bfr_conditions_are_not_met"
 
 
 
-                        if trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
 
-                    elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_2Б":
-                        trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_ath_by_two_bars(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period)
+            elif model_type == "ПРОБОЙ_ATH_с_подтверждением_вход_на_следующий_день":
+                trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_ath_position_entry_on_the_next_day(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+                print("trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day")
+                print(trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day)
 
-                        print("trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars")
-                        print(trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars)
-
-                        if trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
+                if trading_pair_is_ready_for_breakout_of_ath_situations_entry_point_next_day:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
 
 
-                    elif model_type == "ОТБОЙ_от_ATL":
-                        trading_pair_is_ready_for_rebound_situations_off_atl = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_off_atl(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period, acceptable_backlash)
+            elif model_type == "ПРОБОЙ_ATL_с_подтверждением_вход_на_2й_день":
+                trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+                print("trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two")
+                print(trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two)
 
-                        print("trading_pair_is_ready_for_rebound_situations_off_atl")
-                        print(trading_pair_is_ready_for_rebound_situations_off_atl)
+                if trading_pair_is_ready_for_breakout_of_atl_position_entry_on_day_two:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
-                        if trading_pair_is_ready_for_rebound_situations_off_atl:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
-
-                    elif model_type == "ОТБОЙ_от_ATH":
-                        trading_pair_is_ready_for_rebound_situations_off_ath = \
-                            verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_off_ath(
-                                include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
-                                last_bitcoin_price, advanced_atr_over_this_period, acceptable_backlash)
-                        print("trading_pair_is_ready_for_rebound_situations_off_ath")
-                        print(trading_pair_is_ready_for_rebound_situations_off_ath)
-
-                        if trading_pair_is_ready_for_rebound_situations_off_ath:
-                            trade_status = "bfr_conditions_are_met"
-                            cell_value = trade_status
-                            column_name = "trade_status"
-                            column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
-                            print("column_number_of_trade_status")
-                            print(column_number_of_trade_status)
-                            update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
-                        else:
-                            trade_status = "bfr_conditions_are_not_met"
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
 
 
-                    else:
-                        print("no_bfr_model_yet")
+            elif model_type == "ПРОБОЙ_ATH_с_подтверждением_вход_на_2й_день":
+                trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_ath_position_entry_on_day_two(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+                print("trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two")
+                print(trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two)
 
-                    df_with_bfr["trade_status"].iat[row_index]=trade_status
-                    print("df_with_bfr1")
-                    print(df_with_bfr.to_string())
-                    # time.sleep(100000)
+                if trading_pair_is_ready_for_breakout_of_ath_position_entry_on_day_two:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index+2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
+
+            elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_1Б":
+                trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_atl_by_one_bar(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+
+
+                if trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
+
+            elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_1Б":
+                trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_ath_by_one_bar(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+
+                print("trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar")
+                print(trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar)
+
+                if trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
+
+
+            elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_2Б":
+                trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_atl_by_two_bars(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+
+
+
+                if trading_pair_is_ready_for_false_breakout_situations_of_atl_by_two_bars:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
+
+            elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_2Б":
+                trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_false_breakout_situations_of_ath_by_two_bars(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period)
+
+                print("trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars")
+                print(trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars)
+
+                if trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
+
+
+            elif model_type == "ОТБОЙ_от_ATL":
+                trading_pair_is_ready_for_rebound_situations_off_atl = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_off_atl(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period, acceptable_backlash)
+
+                print("trading_pair_is_ready_for_rebound_situations_off_atl")
+                print(trading_pair_is_ready_for_rebound_situations_off_atl)
+
+                if trading_pair_is_ready_for_rebound_situations_off_atl:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
+
+            elif model_type == "ОТБОЙ_от_ATH":
+                trading_pair_is_ready_for_rebound_situations_off_ath = \
+                    verify_that_asset_is_still_on_the_list_of_found_models_rebound_situations_off_ath(
+                        include_last_day_in_bfr_model_assessment, stock_name_with_underscore_between_base_and_quote_and_exchange, timeframe,
+                        last_bitcoin_price, advanced_atr_over_this_period, acceptable_backlash)
+                print("trading_pair_is_ready_for_rebound_situations_off_ath")
+                print(trading_pair_is_ready_for_rebound_situations_off_ath)
+
+                if trading_pair_is_ready_for_rebound_situations_off_ath:
+                    trade_status = "bfr_conditions_are_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
+                else:
+                    trade_status = "bfr_conditions_are_not_met"
+
 
             else:
-                # next bar print time has not yet arrived
-                # for row_index, row in df_with_bfr.iterrows():
-                #     print("row2")
-                #     print(pd.DataFrame(row).T.to_string())
-                #     row_df = pd.DataFrame(row).T
-                #     model_type = row_df.loc[row_index, "model"]
-                #
-                #     print("model_type")
-                #     print(model_type)
-                print("desired time has not yet arrived")
-                time.sleep(1)
-                continue
-        except:
-            traceback.print_exc()
-            continue
-        # time.sleep(1)
+                print("no_bfr_model_yet")
+
+            df_with_bfr["trade_status"].iat[row_index]=trade_status
+            print("df_with_bfr1")
+            print(df_with_bfr.to_string())
+            # time.sleep(100000)
+
+
+
+            time.sleep(10)
 
     # verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(stock_name)

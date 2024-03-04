@@ -47,7 +47,7 @@ if __name__=="__main__":
         process2 = Popen(command_args2)
 
     if st.button("run verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used"):
-        command_args3 = [sys.executable,'verify_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used.py']
+        command_args3 = [sys.executable,'verify_right_now_that_all_pairs_from_df_are_ready_for_bfr_google_spreadsheed_is_used_popen_is_not_used.py']
         process3 = Popen(command_args3)
 
 

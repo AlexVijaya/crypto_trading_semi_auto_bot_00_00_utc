@@ -3077,7 +3077,9 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
         print("\n"+limit_buy_order_status_on_spot)
         print("\n" + f"amount_of_tp={amount_of_tp}")
 
-
+################################################
+################################################
+################################################
         try:
             current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
             print("current_price_of_trading_pair3")
@@ -3138,7 +3140,10 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     params={})
         except:
             traceback.print_exc()
-
+#########################################################
+#########################################################
+#########################################################
+#########################################################
         if limit_buy_order_status_on_spot == "closed" or\
                 limit_buy_order_status_on_spot == "closed".upper() or\
                 limit_buy_order_status_on_spot == "FILLED":
