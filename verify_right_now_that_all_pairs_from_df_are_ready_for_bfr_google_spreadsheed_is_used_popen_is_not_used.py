@@ -5608,6 +5608,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status="bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
 
 
@@ -5630,6 +5636,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
 
             elif model_type == "ПРОБОЙ_ATL_с_подтверждением_вход_на_2й_день":
@@ -5651,6 +5663,12 @@ if __name__=="__main__":
 
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
 
             elif model_type == "ПРОБОЙ_ATH_с_подтверждением_вход_на_2й_день":
@@ -5671,6 +5689,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index+2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
             elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_1Б":
                 trading_pair_is_ready_for_false_breakout_situations_of_atl_by_one_bar = \
@@ -5689,6 +5713,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
             elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_1Б":
                 trading_pair_is_ready_for_false_breakout_situations_of_ath_by_one_bar = \
@@ -5709,6 +5739,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
 
             elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATL_2Б":
@@ -5729,6 +5765,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
             elif model_type == "ЛОЖНЫЙ_ПРОБОЙ_ATH_2Б":
                 trading_pair_is_ready_for_false_breakout_situations_of_ath_by_two_bars = \
@@ -5749,6 +5791,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
 
             elif model_type == "ОТБОЙ_от_ATL":
@@ -5770,6 +5818,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
             elif model_type == "ОТБОЙ_от_ATH":
                 trading_pair_is_ready_for_rebound_situations_off_ath = \
@@ -5789,6 +5843,12 @@ if __name__=="__main__":
                     update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
                 else:
                     trade_status = "bfr_conditions_are_not_met"
+                    cell_value = trade_status
+                    column_name = "trade_status"
+                    column_number_of_trade_status = df_with_bfr.columns.get_loc(column_name) + 1
+                    print("column_number_of_trade_status")
+                    print(column_number_of_trade_status)
+                    update_one_cell_in_google_spreadsheet(row_index + 2, column_number_of_trade_status, cell_value)
 
 
             else:
