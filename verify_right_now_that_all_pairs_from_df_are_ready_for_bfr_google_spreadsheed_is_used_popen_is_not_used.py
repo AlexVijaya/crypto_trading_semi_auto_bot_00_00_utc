@@ -5861,6 +5861,7 @@ if __name__=="__main__":
 
 
 
-            time.sleep(10)
+            time.sleep(20)
+            print("i am sleeping for 20 sec")
 
     # verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(stock_name)
