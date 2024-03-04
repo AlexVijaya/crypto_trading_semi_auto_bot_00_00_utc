@@ -1041,6 +1041,30 @@ def get_limit_of_daily_candles_original_limits(exchange_name):
 
 
     return exchange_object, limit
+
+def insert_into_df_whether_swap_contract_is_also_available_for_swap(data_df,exchange_object,markets,trading_pair_base_slash_underscore_without_exchange):
+    spot_asset_also_available_as_swap_contract_on_the_same_exchange=False
+    try:
+        probable_swap_contract_name_of_symbol_which_might_be_in_symbols_of_the_exchange_too = trading_pair_base_slash_underscore_without_exchange.replace("_",
+                                                                                                                   "/") + ":USDT"
+        print("probable_swap_contract_name_of_symbol_which_might_be_in_symbols_of_the_exchange_too")
+        print(probable_swap_contract_name_of_symbol_which_might_be_in_symbols_of_the_exchange_too)
+        if probable_swap_contract_name_of_symbol_which_might_be_in_symbols_of_the_exchange_too in exchange_object.symbols:
+            print(
+                f"{probable_swap_contract_name_of_symbol_which_might_be_in_symbols_of_the_exchange_too} in exchange_object.symbols")
+
+            if get_asset_type2(markets,
+                               probable_swap_contract_name_of_symbol_which_might_be_in_symbols_of_the_exchange_too) == "swap":
+                spot_asset_also_available_as_swap_contract_on_the_same_exchange=True
+                print(f'{trading_pair_base_slash_underscore_without_exchange.replace("_", "/")} has also a '
+                      f'swap contract called {probable_swap_contract_name_of_symbol_which_might_be_in_symbols_of_the_exchange_too} on {exchange_object}')
+        else:
+            spot_asset_also_available_as_swap_contract_on_the_same_exchange = False
+    except:
+        traceback.print_exc()
+
+    return spot_asset_also_available_as_swap_contract_on_the_same_exchange
+
 def fetch_one_ohlcv_table(ticker,timeframe,last_bitcoin_price):
 
     exchange=ticker.split("_on_")[1]
@@ -1193,8 +1217,8 @@ def fetch_one_ohlcv_table(ticker,timeframe,last_bitcoin_price):
         spot_asset_is_also_available_as_swap_contract_on_the_same_exchange=False
         if asset_type == "spot":
             try:
-                from fetch_additional_historical_USDT_pairs_for_1D_without_deleting_primary_db_and_without_deleting_db_with_low_volume import \
-                    insert_into_df_whether_swap_contract_is_also_available_for_swap
+                # from fetch_additional_historical_USDT_pairs_for_1D_without_deleting_primary_db_and_without_deleting_db_with_low_volume import \
+                #     insert_into_df_whether_swap_contract_is_also_available_for_swap
                 spot_asset_is_also_available_as_swap_contract_on_the_same_exchange = insert_into_df_whether_swap_contract_is_also_available_for_swap(
                     data_df,
                     exchange_object,
