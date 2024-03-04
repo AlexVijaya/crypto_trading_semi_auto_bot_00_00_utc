@@ -5431,12 +5431,15 @@ def fetch_dataframe_from_google_spreadsheet(spread_sheet_title):
     path_to_json = os.path.join(path_to_dir_where_json_file_is, json_file_name)
     credentials = ServiceAccountCredentials.from_json_keyfile_name(path_to_json, scope)
     gc = gspread.authorize(credentials)
-    print("authorize ok!8")
+    print("authorize ok!88")
+
 
     print("spread_sheet_title")
     print(spread_sheet_title)
     # Open the spreadsheet by its title
     # spread_sheet_title="copy_of_streamlit_app_google_sheet"
+    print("going to sleep for 10 sec")
+    time.sleep(10)
     spreadsheet = gc.open(spread_sheet_title)
 
     # Check if the worksheet exists

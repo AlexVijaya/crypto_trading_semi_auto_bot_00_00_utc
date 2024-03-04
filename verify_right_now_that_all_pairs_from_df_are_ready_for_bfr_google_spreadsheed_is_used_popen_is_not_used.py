@@ -5459,6 +5459,8 @@ def fetch_dataframe_from_google_spreadsheet(spread_sheet_title):
 
     print("spread_sheet_title")
     print(spread_sheet_title)
+    print("going to sleep for 10 sec")
+    time.sleep(10)
     # Open the spreadsheet by its title
     # spread_sheet_title="copy_of_streamlit_app_google_sheet"
     spreadsheet = gc.open(spread_sheet_title)
@@ -5861,7 +5863,7 @@ if __name__=="__main__":
 
 
 
-            time.sleep(20)
-            print("i am sleeping for 20 sec")
+            # time.sleep(20)
+            # print("i am sleeping for 20 sec")
 
     # verify_that_asset_is_still_on_the_list_of_found_models_breakout_situations_of_atl_position_entry_on_day_two(stock_name)
