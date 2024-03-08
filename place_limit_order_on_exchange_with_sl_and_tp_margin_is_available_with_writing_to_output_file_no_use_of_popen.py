@@ -611,6 +611,8 @@ def get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exch
             # print(order['status'])
             # print("order['info'].keys()")
             # print(order['info'].keys())
+            print("order0")
+            print(order)
             if 'ordId' in order.keys() and 'orderId' not in order.keys():
                 if order['ordId'] == order_id:
                     print("order1")
