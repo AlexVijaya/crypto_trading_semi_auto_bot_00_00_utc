@@ -3299,6 +3299,18 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     trade_status = "limit_take_profit_has_been_filled"
 
                     return "limit_take_profit_has_been_filled"
+                elif limit_sell_order_tp_order_status in ["canceled","CANCELED","CANCELLED","cancelled"]:
+                    print("\n"+f"take profit order with order id = {limit_sell_order_tp_order_id} has cancelled")
+                    # stop looking at the price to place stop loss because take profit has been filled
+                    # break
+                    column_name = "trade_status"
+                    cell_value = "limit_take_profit_has_been_canceled"
+                    update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index, column_name, cell_value)
+                    df_with_bfr.at[row_index, column_name] = cell_value
+                    trade_status = "limit_take_profit_has_been_canceled"
+
+                    return "limit_take_profit_has_been_canceled"
+
                 else:
                     current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                     print("current_price_of_trading_pair3")
@@ -3428,7 +3440,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             df_with_bfr.at[row_index, column_name] = cell_value
                             trade_status = "market_stop_loss_is_placed"
                             return "market_stop_loss_is_placed"
-                        if exchange_id in ['mexc3','huobi','huobipro']:
+                        if exchange_id in ['mexc','mexc3','huobi','huobipro']:
                             print("\n" + "market_sell_order_sl is going to be placed1")
                             prices = exchange_object_where_api_is_required.fetch_tickers()
                             bid = float(prices[trading_pair]['bid'])
