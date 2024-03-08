@@ -983,7 +983,7 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
             print(f"spot_cross_or_isolated_margin variable value problem")
             return None
 
-    elif exchange_object_where_api_is_required.id in ['mexc3','mexc','lbank','lbank2']:
+    elif exchange_object_where_api_is_required.id in ['lbank','lbank2']:
         if spot_cross_or_isolated_margin=="spot":
             # trading_pair="RPL/USDT"
             # print("trading_pair23")
@@ -1011,7 +1011,7 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
         else:
             print(f"spot_cross_or_isolated_margin variable value problem")
             return None
-    elif exchange_object_where_api_is_required.id in ['okex5',]:
+    elif exchange_object_where_api_is_required.id in ['okex5','mexc3','mexc',]:
         if spot_cross_or_isolated_margin == "spot":
             all_open_orders_on_spot_account=exchange_object_where_api_is_required.fetchOpenOrders(symbol=trading_pair,since=None, limit=None,
                                                                                             params={})
