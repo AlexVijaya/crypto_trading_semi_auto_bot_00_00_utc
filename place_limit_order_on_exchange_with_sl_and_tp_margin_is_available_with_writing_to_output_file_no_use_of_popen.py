@@ -718,7 +718,7 @@ def get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exch
     end_time = time.perf_counter()
     duration = end_time - start_time
     print(
-        f"5The function get_order_status_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
+        f"6The function get_order_status_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
 
 
     return f"order_id={order_id} is not in orders"
@@ -836,7 +836,7 @@ def get_order_amount_from_list_of_dictionaries_with_all_orders(orders, order_id)
     end_time = time.perf_counter()
     duration = end_time - start_time
     print(
-        f"5The function get_order_amount_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
+        f"7The function get_order_amount_from_list_of_dictionaries_with_all_orders took {duration} seconds to execute.")
 
 
     return f"order_id={order_id} is not in orders"
