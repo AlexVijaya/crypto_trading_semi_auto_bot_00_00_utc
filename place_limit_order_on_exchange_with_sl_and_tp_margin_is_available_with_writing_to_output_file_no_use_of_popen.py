@@ -3256,15 +3256,35 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                     traceback.print_exc()
 
 
-                print("limit_sell_order_tp_order_id12")
+                print("limit_sell_order_tp_order_id1245")
                 print(limit_sell_order_tp_order_id)
 
                 limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                     all_orders_on_spot_account, limit_sell_order_tp_order_id)
 
+                print(f"1limit_sell_order_tp_order_status for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                print(limit_sell_order_tp_order_status)
+
+                try:
+                    if "not in orders" in limit_sell_order_tp_order_status and exchange_id != "gateio":
+                        limit_sell_order_tp_order_status = exchange_object_where_api_is_required.fetch_order_status(
+                            symbol=trading_pair,
+                            id=limit_sell_order_tp_order_id,
+                            params={})
+                        print(
+                            f"2limit_sell_order_tp_order_status for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                        print(limit_sell_order_tp_order_status)
+
+                except:
+                    traceback.print_exc()
+
+
+
                 current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                 print("current_price_of_trading_pair2")
                 print(current_price_of_trading_pair)
+
+
 
                 # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                 #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
