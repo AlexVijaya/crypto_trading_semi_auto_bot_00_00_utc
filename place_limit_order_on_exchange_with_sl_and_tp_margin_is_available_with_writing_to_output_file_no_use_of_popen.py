@@ -596,6 +596,8 @@ def get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exch
     start_time = time.perf_counter()
     print("execution of get_order_status_from_list_of_dictionaries_with_all_orders")
 
+    print("orders0")
+    print(orders)
     if isinstance(orders,list):
 
         for order in orders:
