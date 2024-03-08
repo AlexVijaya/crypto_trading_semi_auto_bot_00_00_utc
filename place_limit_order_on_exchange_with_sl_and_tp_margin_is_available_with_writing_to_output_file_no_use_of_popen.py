@@ -1024,6 +1024,13 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
                 since=None,
                 limit=None,
                 params={})
+            print(f"all_open_orders_on_spot_account for {exchange_object_where_api_is_required.id} for {trading_pair}")
+            print(all_open_orders_on_spot_account)
+            print(f"all_cancelled_orders_on_spot_account for {exchange_object_where_api_is_required.id} for {trading_pair}")
+            print(all_cancelled_orders_on_spot_account)
+            print(f"all_closed_orders_on_spot_account for {exchange_object_where_api_is_required.id} for {trading_pair}")
+            print(all_closed_orders_on_spot_account)
+
             all_orders_on_spot_account=all_open_orders_on_spot_account+all_cancelled_orders_on_spot_account+all_closed_orders_on_spot_account
             return all_orders_on_spot_account
         elif spot_cross_or_isolated_margin=="cross":
