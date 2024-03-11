@@ -792,7 +792,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             # print(limit_buy_order['status'])
 
             try:
-                if "not in orders" in limit_buy_order_status_on_spot and exchange_id!="gateio":
+                if "not in orders" in limit_buy_order_status_on_spot :
 
                     limit_buy_order_status_on_spot = exchange_object_where_api_is_required.fetch_order_status(symbol=trading_pair,
                                                                                                     id=order_id,
@@ -834,7 +834,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
             print(limit_buy_order_status_on_spot)
 
             try:
-                if "not in orders" in limit_buy_order_status_on_spot and exchange_id!="gateio":
+                if "not in orders" in limit_buy_order_status_on_spot :
 
                     limit_buy_order_status_on_spot = exchange_object_where_api_is_required.fetch_order_status(symbol=trading_pair,
                                                                                                     id=order_id,
