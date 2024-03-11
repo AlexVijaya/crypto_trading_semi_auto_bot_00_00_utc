@@ -479,6 +479,8 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
         technical_stop_loss=np.nan
         distance_between_technical_sl_and_buy_order_in_atr=np.nan
         distance_between_technical_sl_and_sell_order_in_atr=np.nan
+        distance_between_calculated_sl_and_sell_order_in_atr=np.nan
+        distance_between_calculated_sl_and_buy_order_in_atr=np.nan
 
 
         if "distance_between_technical_sl_and_buy_order_in_atr" in df_with_resulting_table_of_certain_models.columns:
@@ -489,6 +491,14 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
         if "distance_between_technical_sl_and_sell_order_in_atr" in df_with_resulting_table_of_certain_models.columns:
             distance_between_technical_sl_and_sell_order_in_atr = df_with_resulting_table_of_certain_models.loc[
                 row_of_pair_ready_for_model, 'distance_between_technical_sl_and_sell_order_in_atr'].iat[0]
+
+        if "distance_between_calculated_sl_and_buy_order_in_atr" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_calculated_sl_and_buy_order_in_atr = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_calculated_sl_and_buy_order_in_atr'].iat[0]
+
+        if "distance_between_calculated_sl_and_sell_order_in_atr" in df_with_resulting_table_of_certain_models.columns:
+            distance_between_calculated_sl_and_sell_order_in_atr = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'distance_between_calculated_sl_and_sell_order_in_atr'].iat[0]
 
 
         if "distance_between_technical_sl_and_buy_order" in df_with_resulting_table_of_certain_models.columns:
@@ -530,6 +540,14 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
         if "take_profit_when_sl_is_technical_3_to_1" in df_with_resulting_table_of_certain_models.columns:
             take_profit_when_sl_is_technical_3_to_1 = df_with_resulting_table_of_certain_models.loc[
                 row_of_pair_ready_for_model, 'take_profit_when_sl_is_technical_3_to_1'].iat[0]
+
+        if "take_profit_3_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_technical_3_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_3_1'].iat[0]
+
+        if "take_profit_4_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_technical_4_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_4_1'].iat[0]
 
         if "take_profit_when_sl_is_technical_4_to_1" in df_with_resulting_table_of_certain_models.columns:
             take_profit_when_sl_is_technical_4_to_1 = df_with_resulting_table_of_certain_models.loc[
@@ -802,79 +820,246 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
                     # st.write("spot_cross_or_isolated_margin")
                     # st.write(spot_cross_or_isolated_margin)
-                    min_USD_value=5.0
-                    min_asset_amount_technical_stop_loss_is_used_for_calculation=min_USD_value/technical_stop_loss
-                    min_asset_amount_calculated_stop_loss_is_used_for_calculation=min_USD_value/calculated_stop_loss
+                    min_USD_value=1.0
+                    if exchange=="mexc":
+                        min_USD_value=5.0
+                    elif exchange=="gateio":
+                        min_USD_value=10.0
+                    elif exchange=="kucoin":
+                        min_USD_value=1.0
+                    if "calculated_stop_loss" in df_with_resulting_table_of_certain_models.columns and\
+                            "technical_stop_loss" in df_with_resulting_table_of_certain_models.columns:
+                        min_asset_amount_technical_stop_loss_is_used_for_calculation=min_USD_value/technical_stop_loss
+                        min_asset_amount_calculated_stop_loss_is_used_for_calculation=min_USD_value/calculated_stop_loss
 
-                    min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_3_to_1
-                    min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_4_to_1
-                    min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_3_to_1
-                    min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_4_to_1
+                        min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_3_to_1
+                        min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_4_to_1
+                        min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_3_to_1
+                        min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_4_to_1
 
-                    allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr=2
-                    if "sell_order" in df_with_resulting_table_of_certain_models.columns:
+                        allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr=2
+                        if "sell_order" in df_with_resulting_table_of_certain_models.columns:
 
-                        st.write(
-                            f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
-                        if distance_between_technical_sl_and_sell_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
                             st.write(
-                                f'<span style="color: red;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
-                                unsafe_allow_html=True)
-                        else:
+                                f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
+                            if distance_between_technical_sl_and_sell_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
+                                st.write(
+                                    f'<span style="color: red;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            else:
+                                st.write(
+                                    f'<span style="color: green;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {sell_order}"
+                            st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                            min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation
+                            min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation
+                            min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation
+                            min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation
+
+
+
+
+                            position_size_in_usd = \
+                                st.number_input(
+                                    label=f'Please enter position size in USD (min USD cost when TTP_3/1={min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation}, '
+                                          f'TTP_4/1={min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation}, '
+                                          f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
+                                          f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}',
+                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation), min_value=1)
+
+                        if "buy_order" in df_with_resulting_table_of_certain_models.columns:
+
                             st.write(
-                                f'<span style="color: green;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
-                                unsafe_allow_html=True)
-                        underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {sell_order}"
-                        st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
-                        min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = \
-                            sell_order * min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation
-                        min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = \
-                            sell_order * min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation
-                        min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = \
-                            sell_order * min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation
-                        min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = \
-                            sell_order * min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation
+                                f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
+                            if distance_between_technical_sl_and_buy_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
+                                st.write(
+                                    f'<span style="color: red;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            else:
+                                st.write(
+                                    f'<span style="color: green;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+
+                            underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
+                            st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                            min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation=\
+                                buy_order*min_asset_amount_technical_stop_loss_is_used_for_calculation
+                            min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation = \
+                                buy_order * min_asset_amount_calculated_stop_loss_is_used_for_calculation
 
 
 
 
-                        position_size_in_usd = \
-                            st.number_input(
-                                label=f'Please enter position size in USD (min USD cost when TTP_3/1={min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation}, '
-                                      f'TTP_4/1={min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation}, '
-                                      f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
-                                      f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}',
-                                value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation), min_value=1)
+                            position_size_in_usd = \
+                                st.number_input(
+                                    label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
+                                          f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL',
+                                    value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation), min_value=1)
 
-                    if "buy_order" in df_with_resulting_table_of_certain_models.columns:
+                    elif "calculated_stop_loss" not in df_with_resulting_table_of_certain_models.columns and\
+                            "technical_stop_loss" in df_with_resulting_table_of_certain_models.columns:
+                        min_asset_amount_technical_stop_loss_is_used_for_calculation=min_USD_value/technical_stop_loss
+                        # min_asset_amount_calculated_stop_loss_is_used_for_calculation=min_USD_value/calculated_stop_loss
 
-                        st.write(
-                            f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
-                        if distance_between_technical_sl_and_buy_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
+                        min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_3_to_1
+                        min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_4_to_1
+
+                        st.write("take_profit_when_sl_is_technical_3_to_1")
+                        st.write(take_profit_when_sl_is_technical_3_to_1)
+                        # min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_3_to_1
+                        # min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_4_to_1
+
+                        allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr=2
+                        if "sell_order" in df_with_resulting_table_of_certain_models.columns:
+
                             st.write(
-                                f'<span style="color: red;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
-                                unsafe_allow_html=True)
-                        else:
+                                f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
+                            if distance_between_technical_sl_and_sell_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
+                                st.write(
+                                    f'<span style="color: red;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            else:
+                                st.write(
+                                    f'<span style="color: green;">distance_between_technical_sl_and_sell_order_in_atr={distance_between_technical_sl_and_sell_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {sell_order}"
+                            st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                            min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation
+                            # min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                            #     sell_order * min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation
+                            min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation
+                            # min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                            #     sell_order * min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation
+
+
+
+
+                            position_size_in_usd = \
+                                st.number_input(
+                                    label=f'Please enter position size in USD (min USD cost when TTP_3/1={min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation}, '
+                                          f'TTP_4/1={min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation}, '
+                                          # f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
+                                          # f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}'
+                                    ,
+                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation), min_value=1)
+
+                        if "buy_order" in df_with_resulting_table_of_certain_models.columns:
+
                             st.write(
-                                f'<span style="color: green;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
-                                unsafe_allow_html=True)
+                                f"allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr}")
+                            if distance_between_technical_sl_and_buy_order_in_atr > allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr:
+                                st.write(
+                                    f'<span style="color: red;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            else:
+                                st.write(
+                                    f'<span style="color: green;">distance_between_technical_sl_and_buy_order_in_atr={distance_between_technical_sl_and_buy_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
 
-                        underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
-                        st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
-                        min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation=\
-                            buy_order*min_asset_amount_technical_stop_loss_is_used_for_calculation
-                        min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation = \
-                            buy_order * min_asset_amount_calculated_stop_loss_is_used_for_calculation
+                            underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
+                            st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                            min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation=\
+                                buy_order*min_asset_amount_technical_stop_loss_is_used_for_calculation
+                            # min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation = \
+                            #     buy_order * min_asset_amount_calculated_stop_loss_is_used_for_calculation
 
 
 
 
-                        position_size_in_usd = \
-                            st.number_input(
-                                label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
-                                      f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL',
-                                value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation), min_value=1)
+                            position_size_in_usd = \
+                                st.number_input(
+                                    label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
+                                          # f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL'
+                                    ,
+                                    value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation), min_value=1)
 
+                    elif "calculated_stop_loss"  in df_with_resulting_table_of_certain_models.columns and\
+                            "technical_stop_loss" not in df_with_resulting_table_of_certain_models.columns:
+                        # min_asset_amount_technical_stop_loss_is_used_for_calculation=min_USD_value/technical_stop_loss
+                        min_asset_amount_calculated_stop_loss_is_used_for_calculation=min_USD_value/calculated_stop_loss
+
+                        # min_asset_amount_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_3_to_1
+                        # min_asset_amount_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_technical_4_to_1
+
+
+                        min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_3_to_1
+                        min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = min_USD_value / take_profit_when_sl_is_calculated_4_to_1
+                        st.write("take_profit_when_sl_is_calculated_3_to_1")
+                        st.write(take_profit_when_sl_is_calculated_3_to_1)
+
+                        # allowed_distance_between_technical_sl_and_buy_or_sell_order_in_atr=2
+                        allowed_distance_between_calculated_sl_and_buy_or_sell_order_in_atr=2
+                        if "sell_order" in df_with_resulting_table_of_certain_models.columns:
+
+                            st.write(
+                                f"allowed_distance_between_calculated_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_calculated_sl_and_buy_or_sell_order_in_atr}")
+                            if distance_between_calculated_sl_and_sell_order_in_atr > allowed_distance_between_calculated_sl_and_buy_or_sell_order_in_atr:
+                                st.write(
+                                    f'<span style="color: red;">distance_between_calculated_sl_and_sell_order_in_atr={distance_between_calculated_sl_and_sell_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            else:
+                                st.write(
+                                    f'<span style="color: green;">distance_between_calculated_sl_and_sell_order_in_atr={distance_between_calculated_sl_and_sell_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {sell_order}"
+                            st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                            min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation
+                            # min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                            #     sell_order * min_asset_amount_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation
+                            min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                                sell_order * min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation
+                            # min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation = \
+                            #     sell_order * min_asset_amount_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation
+
+
+
+
+                            position_size_in_usd = \
+                                st.number_input(
+                                    label=f'Please enter position size in USD (min USD cost when TTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
+                                          f'TTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
+                                          # f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
+                                          # f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}'
+                                    ,
+                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation), min_value=1)
+
+                        if "buy_order" in df_with_resulting_table_of_certain_models.columns:
+
+                            st.write(
+                                f"allowed_distance_between_calculated_sl_and_buy_or_sell_order_in_atr={allowed_distance_between_calculated_sl_and_buy_or_sell_order_in_atr}")
+                            if distance_between_calculated_sl_and_buy_order_in_atr > allowed_distance_between_calculated_sl_and_buy_or_sell_order_in_atr:
+                                st.write(
+                                    f'<span style="color: red;">distance_between_calculated_sl_and_buy_order_in_atr={distance_between_calculated_sl_and_buy_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+                            else:
+                                st.write(
+                                    f'<span style="color: green;">distance_between_calculated_sl_and_buy_order_in_atr={distance_between_calculated_sl_and_buy_order_in_atr}</span>',
+                                    unsafe_allow_html=True)
+
+                            underlined_text = f"POSITION SIZE in USD which will be used to enter at the price = {buy_order}"
+                            st.markdown(f"<u>{underlined_text}</u>", unsafe_allow_html=True)
+                            min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation=\
+                                buy_order*min_asset_amount_calculated_stop_loss_is_used_for_calculation
+                            # min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation = \
+                            #     buy_order * min_asset_amount_calculated_stop_loss_is_used_for_calculation
+
+
+
+
+                            position_size_in_usd = \
+                                st.number_input(
+                                    label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} '
+                                          # f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL'
+                                    ,
+                                    value=math.ceil(min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation), min_value=1)
                     # Get the current UTC time
                     current_utc_time = datetime.datetime.now(timezone.utc)
                     position_entry_time=st.time_input(label="I will enter the selected position at this UTC time", value=current_utc_time)
@@ -904,6 +1089,12 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
 
                             if side=="buy":
                                 final_take_profit_price=buy_order_price+distance_between_technical_sl_and_buy_order*take_profit_x_to_one
+                                print("buy_order_price")
+                                print(buy_order_price)
+                                print("distance_between_technical_sl_and_buy_order")
+                                print(distance_between_technical_sl_and_buy_order)
+                                print("take_profit_x_to_one")
+                                print(take_profit_x_to_one)
                                 final_take_profit_price_default_price = buy_order_price + distance_between_technical_sl_and_buy_order * 3
                                 print("final_take_profit_price4")
                                 print(final_take_profit_price)
@@ -2097,6 +2288,14 @@ def streamlit_func():
             df_with_resulting_table_of_certain_models["ticker"]
         )
 
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2120,6 +2319,21 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2143,6 +2357,20 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2166,6 +2394,20 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2189,6 +2431,20 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2212,6 +2468,20 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2235,6 +2505,20 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2258,6 +2542,20 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2281,6 +2579,21 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2304,6 +2617,21 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2327,6 +2655,21 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2350,6 +2693,21 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------
@@ -2373,6 +2731,21 @@ def streamlit_func():
         except ProgrammingError:
             st.write(f"There is no '{model}' for today")
             st.stop()
+
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc("url_of_swap_contract_if_it_exists") + 1,
+            "ticker_copy",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
+
+        # Adding a new column "ticker_copy" with values from the "ticker" column
+        # Inserting "ticker_copy" column after "url_of_swap_contract_if_it_exists"
+        df_with_resulting_table_of_certain_models.insert(
+            df_with_resulting_table_of_certain_models.columns.get_loc(
+                "exchange_names_string_where_trading_pair_is_traded") + 1,
+            "ticker_copy_two",
+            df_with_resulting_table_of_certain_models["ticker"]
+        )
         st.dataframe(df_with_resulting_table_of_certain_models)
 
         # -------------------------

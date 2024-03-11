@@ -2975,6 +2975,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                                "waiting_for_price_to_reach_either_tp_or_sl",
                                                "limit_take_profit_has_been_filled",
                                                "limit_take_profit_has_been_placed",
+                                               "limit_take_profit_has_been_canceled",
                                                "market_take_profit_has_been_filled",
                                                "market_take_profit_has_been_placed",
                                                "stop_market_take_profit_has_been_filled",
@@ -3201,11 +3202,11 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         print(limit_sell_order_tp)
                         if pd.isna(limit_sell_order_tp):
                             limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
-                            print("limit_sell_order_tp_order_id123")
+                            print(f"limit_sell_order_tp_order_id123 for {exchange_object_where_api_is_required.id} for {trading_pair}")
                             print(limit_sell_order_tp_order_id)
                         else:
                             limit_sell_order_tp_order_id = get_order_id(limit_sell_order_tp)
-                            print("limit_sell_order_tp_order_id1234")
+                            print(f"limit_sell_order_tp_order_id1234 for {exchange_object_where_api_is_required.id} for {trading_pair}")
                             print(limit_sell_order_tp_order_id)
 
                         column_name = "trade_status"
@@ -3250,7 +3251,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 try:
                     if trade_status=='neither_sl_nor_tp_has_been_reached':
                         limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
-                        print("limit_sell_order_tp_order_id12345678")
+                        print(f"limit_sell_order_tp_order_id12345678 for {exchange_object_where_api_is_required.id} for {trading_pair}")
                         print(limit_sell_order_tp_order_id)
                 except:
                     traceback.print_exc()
