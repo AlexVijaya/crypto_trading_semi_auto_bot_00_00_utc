@@ -4363,7 +4363,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
         print("\n"+str(stop_market_buy_order_status_on_spot_margin))
 
         try:
-            if "not in orders" in stop_market_buy_order_status_on_spot_margin and exchange_id != "gateio":
+            if "not in orders" in stop_market_buy_order_status_on_spot_margin :
                 stop_market_buy_order_status_on_spot_margin = exchange_object_where_api_is_required.fetch_order_status(
                     symbol=trading_pair,
                     id=order_id,
@@ -4457,7 +4457,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
 
                     try:
-                        if "not in orders" in limit_sell_order_tp_order_status and exchange_id != "gateio":
+                        if "not in orders" in limit_sell_order_tp_order_status :
                             limit_sell_order_tp_order_status = exchange_object_where_api_is_required.fetch_order_status(
                                 symbol=trading_pair,
                                 id=limit_sell_order_tp_order_id,
@@ -4591,8 +4591,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                     # stop loss has been reached
                     if trade_status == "stop_market_take_profit_has_been_filled" \
-                            and trade_status == "market_take_profit_has_been_filled" \
-                            and trade_status == "limit_take_profit_has_been_filled":
+                            or trade_status == "market_take_profit_has_been_filled" \
+                            or trade_status == "limit_take_profit_has_been_filled":
                         return "tp_is_filled"
 
                     print("current_price_of_trading_pair5")
@@ -5110,6 +5110,19 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
             stop_market_sell_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_spot_margin_account, order_id)
+
+            try:
+                if "not in orders" in stop_market_sell_order_status_on_spot_margin:
+                    stop_market_sell_order_status_on_spot_margin = exchange_object_where_api_is_required.fetch_order_status(
+                        symbol=trading_pair,
+                        id=order_id,
+                        params={})
+                    print(
+                        f"stop_market_sell_order_status_on_spot_margin for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                    print(stop_market_sell_order_status_on_spot_margin)
+            except:
+                traceback.print_exc()
+
             print("\n"+"stop_market_sell_order_status_on_spot_margin1")
             print("\n"+str(stop_market_sell_order_status_on_spot_margin))
             print("\n"+"stop_market_sell_order['status']")
@@ -5146,7 +5159,17 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
             stop_market_sell_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_spot_margin_account, order_id)
-
+            try:
+                if "not in orders" in stop_market_sell_order_status_on_spot_margin:
+                    stop_market_sell_order_status_on_spot_margin = exchange_object_where_api_is_required.fetch_order_status(
+                        symbol=trading_pair,
+                        id=order_id,
+                        params={})
+                    print(
+                        f"stop_market_sell_order_status_on_spot_margin for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                    print(stop_market_sell_order_status_on_spot_margin)
+            except:
+                traceback.print_exc()
             print("\n"+"stop_market_sell_order_status_on_spot_margin3")
             print("\n"+str(stop_market_sell_order_status_on_spot_margin))
 
@@ -5173,6 +5196,19 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                             all_orders_on_spot_margin_account, limit_buy_order_tp_order_id)
                         # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
+                        try:
+                            if "not in orders" in limit_buy_order_tp_order_status:
+                                limit_buy_order_tp_order_status = exchange_object_where_api_is_required.fetch_order_status(
+                                    symbol=trading_pair,
+                                    id=limit_buy_order_tp_order_id,
+                                    params={})
+                                print(
+                                    f"2limit_buy_order_tp_order_status for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                                print(limit_buy_order_tp_order_status)
+
+                        except:
+                            traceback.print_exc()
+
                         if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                             print("\n"+f"take profit order with order id = {limit_buy_order_tp_order_id} has been filled")
                             # repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_pair,
@@ -7588,7 +7624,24 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
         if external_while_loop_break_flag == True:
             print("\n"+"external_while_loop_break_flag = True so while loop is breaking")
             break
+def get_stop_market_or_limit_order_to_use_for_entry_from_df_given_row_index(row_index_to_be_found, df_with_bfr):
+    stop_market_or_limit_order_to_use_for_entry = ""
+    for row_index, row in df_with_bfr.iterrows():
 
+        if row_index == row_index_to_be_found:
+            row_df = pd.DataFrame(row).T
+            stop_market_or_limit_order_to_use_for_entry = row_df.loc[
+                row_index, "stop_market_or_limit_order_to_use_for_entry"]
+    return stop_market_or_limit_order_to_use_for_entry
+
+def get_trade_status_from_df_given_row_index(row_index_to_be_found, df_with_bfr):
+    trade_status = ""
+    for row_index, row in df_with_bfr.iterrows():
+
+        if row_index == row_index_to_be_found:
+            row_df = pd.DataFrame(row).T
+            trade_status = row_df.loc[row_index, "trade_status"]
+    return trade_status
 
 if __name__=="__main__":
     # exchange_id = sys.argv[1]
@@ -7613,25 +7666,10 @@ if __name__=="__main__":
     #     except:
     #         traceback.print_exc()
 
-    def get_trade_status_from_df_given_row_index(row_index_to_be_found, df_with_bfr):
-        trade_status = ""
-        for row_index, row in df_with_bfr.iterrows():
-
-            if row_index == row_index_to_be_found:
-                row_df = pd.DataFrame(row).T
-                trade_status = row_df.loc[row_index, "trade_status"]
-        return trade_status
 
 
-    def get_stop_market_or_limit_order_to_use_for_entry_from_df_given_row_index(row_index_to_be_found, df_with_bfr):
-        stop_market_or_limit_order_to_use_for_entry = ""
-        for row_index, row in df_with_bfr.iterrows():
 
-            if row_index == row_index_to_be_found:
-                row_df = pd.DataFrame(row).T
-                stop_market_or_limit_order_to_use_for_entry = row_df.loc[
-                    row_index, "stop_market_or_limit_order_to_use_for_entry"]
-        return stop_market_or_limit_order_to_use_for_entry
+
 
     with open(file_path, "w") as file:
         # watch forever dataframe from spread sheet

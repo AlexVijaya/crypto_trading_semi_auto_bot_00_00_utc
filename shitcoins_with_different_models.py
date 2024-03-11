@@ -870,7 +870,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                           f'TTP_4/1={min_USD_cost_tp_4_to_1_when_technical_stop_loss_is_used_for_calculation}, '
                                           f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
                                           f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}',
-                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation), min_value=1)
+                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation)+3, min_value=1)
 
                         if "buy_order" in df_with_resulting_table_of_certain_models.columns:
 
@@ -899,7 +899,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                 st.number_input(
                                     label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
                                           f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL',
-                                    value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation), min_value=1)
+                                    value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation)+3, min_value=1)
 
                     elif "calculated_stop_loss" not in df_with_resulting_table_of_certain_models.columns and\
                             "technical_stop_loss" in df_with_resulting_table_of_certain_models.columns:
@@ -948,7 +948,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                           # f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
                                           # f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}'
                                     ,
-                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation), min_value=1)
+                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_technical_stop_loss_is_used_for_calculation)+3, min_value=1)
 
                         if "buy_order" in df_with_resulting_table_of_certain_models.columns:
 
@@ -978,7 +978,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                     label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation} '
                                           # f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL'
                                     ,
-                                    value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation), min_value=1)
+                                    value=math.ceil(min_USD_cost_for_position_size_technical_stop_loss_is_used_for_calculation)+3, min_value=1)
 
                     elif "calculated_stop_loss"  in df_with_resulting_table_of_certain_models.columns and\
                             "technical_stop_loss" not in df_with_resulting_table_of_certain_models.columns:
@@ -1029,7 +1029,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                           # f' CTP_3/1={min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation}, '
                                           # f' CTP_4/1={min_USD_cost_tp_4_to_1_when_calculated_stop_loss_is_used_for_calculation}'
                                     ,
-                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation), min_value=1)
+                                    value=math.ceil(min_USD_cost_tp_3_to_1_when_calculated_stop_loss_is_used_for_calculation)+3, min_value=1)
 
                         if "buy_order" in df_with_resulting_table_of_certain_models.columns:
 
@@ -1059,7 +1059,7 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
                                     label=f'Please enter position size in USD (min USD cost is {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} '
                                           # f'for TSL and {min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation} for CSL'
                                     ,
-                                    value=math.ceil(min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation), min_value=1)
+                                    value=math.ceil(min_USD_cost_for_position_size_calculated_stop_loss_is_used_for_calculation)+3, min_value=1)
                     # Get the current UTC time
                     current_utc_time = datetime.datetime.now(timezone.utc)
                     position_entry_time=st.time_input(label="I will enter the selected position at this UTC time", value=current_utc_time)

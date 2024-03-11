@@ -4359,6 +4359,20 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
             all_orders_on_spot_margin_account, order_id)
         file.write("\n"+"stop_market_buy_order_status_on_spot")
         file.write("\n"+str(stop_market_buy_order_status_on_spot_margin))
+        print("\n" + "stop_market_buy_order_status_on_spot")
+        print("\n" + str(stop_market_buy_order_status_on_spot_margin))
+        try:
+            if "not in orders" in stop_market_buy_order_status_on_spot_margin :
+                stop_market_buy_order_status_on_spot_margin = exchange_object_where_api_is_required.fetch_order_status(
+                    symbol=trading_pair,
+                    id=order_id,
+                    params={})
+        except:
+            traceback.print_exc()
+
+        print("\n" + "2stop_market_buy_order_status_on_spot")
+        print("\n" + str(stop_market_buy_order_status_on_spot_margin))
+
         if stop_market_buy_order_status_on_spot_margin == "closed" or\
                 stop_market_buy_order_status_on_spot_margin == "closed".upper() or\
                 stop_market_buy_order_status_on_spot_margin == "FILLED":
@@ -4438,7 +4452,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                     #     all_orders_on_spot_account, limit_sell_order_tp_order_id)
 
                     try:
-                        if "not in orders" in limit_sell_order_tp_order_status and exchange_id != "gateio":
+                        if "not in orders" in limit_sell_order_tp_order_status :
                             limit_sell_order_tp_order_status = exchange_object_where_api_is_required.fetch_order_status(
                                 symbol=trading_pair,
                                 id=limit_sell_order_tp_order_id,
@@ -4453,7 +4467,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                     current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                     print("current_price_of_trading_pair2")
                     print(current_price_of_trading_pair)
-
+                    print(f"2limit_sell_order_tp_order_status for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                    print(limit_sell_order_tp_order_status)
                     if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
                         file.write("\n"+f"take profit order with order id = {limit_sell_order_tp_order_id} has been filled")
 
@@ -4479,7 +4494,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                         print("current_price_of_trading_pair3")
                         print(current_price_of_trading_pair)
                         file.write("\n" + f"take profit order with id = {limit_sell_order_tp_order_id} has "
-                                          f"status {limit_sell_order_tp_order_status} and not yet filled. I'll keep waiting")
+                                          f"status {limit_sell_order_tp_order_status} and not yet filled or canceled. I'll keep waiting")
 
                     current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                     file.write("\n"+f"waiting for the price to reach either tp={price_of_tp} or sl={price_of_sl}")
@@ -4572,8 +4587,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
                     # stop loss has been reached
                     if trade_status == "stop_market_take_profit_has_been_filled" \
-                            and trade_status == "market_take_profit_has_been_filled" \
-                            and trade_status == "limit_take_profit_has_been_filled":
+                            or trade_status == "market_take_profit_has_been_filled" \
+                            or trade_status == "limit_take_profit_has_been_filled":
                         return "tp_is_filled"
 
                     print("current_price_of_trading_pair5")
@@ -5096,6 +5111,19 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
             file.write("\n"+"stop_market_sell_order['status']")
             file.write("\n"+str(stop_market_sell_order['status']))
 
+            try:
+                if "not in orders" in stop_market_sell_order_status_on_spot_margin:
+                    stop_market_sell_order_status_on_spot_margin = exchange_object_where_api_is_required.fetch_order_status(
+                        symbol=trading_pair,
+                        id=order_id,
+                        params={})
+                    print(
+                        f"stop_market_sell_order_status_on_spot_margin for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                    print(stop_market_sell_order_status_on_spot_margin)
+
+            except:
+                traceback.print_exc()
+
         except ccxt.InvalidOrder as e:
             if "Filter failure: NOTIONAL" in str(e):
                 file.write("\n"+"Invalid order: Filter failure: NOTIONAL")
@@ -5128,6 +5156,17 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
             stop_market_sell_order_status_on_spot_margin = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                 all_orders_on_spot_margin_account, order_id)
 
+            try:
+                if "not in orders" in stop_market_sell_order_status_on_spot_margin:
+                    stop_market_sell_order_status_on_spot_margin = exchange_object_where_api_is_required.fetch_order_status(
+                        symbol=trading_pair,
+                        id=order_id,
+                        params={})
+                    print(
+                        f"stop_market_sell_order_status_on_spot_margin for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                    print(stop_market_sell_order_status_on_spot_margin)
+            except:
+                traceback.print_exc()
             file.write("\n"+"stop_market_sell_order_status_on_spot_margin3")
             file.write("\n"+str(stop_market_sell_order_status_on_spot_margin))
 
@@ -5152,6 +5191,20 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                                                                      exchange_object_where_api_is_required)
                         limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(trading_pair,exchange_object_where_api_is_required,
                             all_orders_on_spot_margin_account, limit_buy_order_tp_order_id)
+
+                        try:
+                            if "not in orders" in limit_buy_order_tp_order_status:
+                                limit_buy_order_tp_order_status = exchange_object_where_api_is_required.fetch_order_status(
+                                    symbol=trading_pair,
+                                    id=limit_buy_order_tp_order_id,
+                                    params={})
+                                print(
+                                    f"2limit_buy_order_tp_order_status for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                                print(limit_buy_order_tp_order_status)
+
+                        except:
+                            traceback.print_exc()
+
                         # limit_buy_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                         #     all_orders_on_spot_account, limit_buy_order_tp_order_id)
                         if limit_buy_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
