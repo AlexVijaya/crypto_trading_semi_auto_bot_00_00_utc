@@ -4672,6 +4672,10 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_sl
+                                    print("type(amount134)")
+                                    print(type(amount))
+                                    print("amount134")
+                                    print(amount)
                                     market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
                                         trading_pair, 'sell', amount,
                                         price=bid)
@@ -4685,6 +4689,10 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     trade_status = "market_stop_loss_is_placed"
                                     return "market_stop_loss_is_placed"
                                 else:
+                                    print("type(amount134)")
+                                    print(type(amount))
+                                    print("amount_of_sl134")
+                                    print(amount_of_sl)
                                     market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
                                         trading_pair, amount_of_sl, params=params)
                                     column_name = "trade_status"
