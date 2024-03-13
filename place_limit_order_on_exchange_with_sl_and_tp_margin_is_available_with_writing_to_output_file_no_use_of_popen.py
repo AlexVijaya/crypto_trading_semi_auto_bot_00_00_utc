@@ -478,6 +478,11 @@ def repay_margin_loan_when_base_currency_is_borrowed(file, margin_mode, trading_
 def get_origQty_from_list_of_dictionaries_with_all_orders(orders, order_id):
     start_time = time.perf_counter()
 
+    print("order_id2345")
+    print(order_id)
+    print("orders567")
+    print(orders)
+
     if isinstance(orders,list):
 
         for order in orders:
