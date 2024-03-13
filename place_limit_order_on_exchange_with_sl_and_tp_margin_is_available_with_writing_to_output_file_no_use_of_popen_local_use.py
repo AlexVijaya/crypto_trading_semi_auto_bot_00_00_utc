@@ -1986,7 +1986,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     df_with_bfr.at[row_index, column_name] = cell_value
                                     trade_status = "market_stop_loss_is_placed"
                                     return "market_stop_loss_is_placed"
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_sl
@@ -2351,7 +2351,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                                                                    amount_of_asset_for_entry,
                                                                                                # price_of_stop_market_order,
                                                                                                params=params)
-                elif exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                elif exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                     prices = exchange_object_where_api_is_required.fetch_tickers()
                     bid = float(prices[trading_pair]['bid'])
                     amount = amount_of_asset_for_entry
@@ -2523,7 +2523,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_tp
@@ -2574,7 +2574,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     if exchange_id in ['binance', 'binanceus']:
                                         market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
                                             trading_pair, amount_of_sl, params=params)
-                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                         prices = exchange_object_where_api_is_required.fetch_tickers()
                                         ask = float(prices[trading_pair]['ask'])
                                         amount = amount_of_sl
@@ -3363,7 +3363,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             file.write("\n" + f"market_sell_order_tp = {market_sell_order_tp}")
                             file.write("\n" + "market_sell_order_tp has been placed")
                             return "market_take_profit_has_been_filled"
-                        if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                        if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                             prices = exchange_object_where_api_is_required.fetch_tickers()
                             bid = float(prices[trading_pair]['bid'])
                             amount = amount_of_tp
@@ -4276,7 +4276,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_tp
@@ -4323,7 +4323,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
                                         trading_pair, amount_of_sl, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_sl
@@ -4694,7 +4694,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_tp
@@ -4735,7 +4735,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_sl, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_sl
@@ -5354,7 +5354,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_tp
@@ -5393,7 +5393,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_sl, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_sl
@@ -5835,7 +5835,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_tp
@@ -5914,7 +5914,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     if exchange_id in ['binance', 'binanceus']:
                                         market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
                                             trading_pair, amount_of_sl, params=params)
-                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                         prices = exchange_object_where_api_is_required.fetch_tickers()
                                         bid = float(prices[trading_pair]['bid'])
                                         amount = amount_of_sl
@@ -6380,7 +6380,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_tp
@@ -6434,7 +6434,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     if exchange_id in ['binance', 'binanceus']:
                                         market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
                                             trading_pair, amount_of_sl, params=params)
-                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                         prices = exchange_object_where_api_is_required.fetch_tickers()
                                         ask = float(prices[trading_pair]['ask'])
                                         amount = amount_of_sl
@@ -6906,7 +6906,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_sell_order_tp = exchange_object_where_api_is_required.create_market_sell_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_tp
@@ -6985,7 +6985,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     if exchange_id in ['binance', 'binanceus']:
                                         market_sell_order_sl = exchange_object_where_api_is_required.create_market_sell_order(
                                             trading_pair, amount_of_sl, params=params)
-                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                         prices = exchange_object_where_api_is_required.fetch_tickers()
                                         bid = float(prices[trading_pair]['bid'])
                                         amount = amount_of_sl
@@ -7451,7 +7451,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                 if exchange_id in ['binance', 'binanceus']:
                                     market_buy_order_tp = exchange_object_where_api_is_required.create_market_buy_order(
                                         trading_pair, amount_of_tp, params=params)
-                                if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     ask = float(prices[trading_pair]['ask'])
                                     amount = amount_of_tp
@@ -7505,7 +7505,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                                     if exchange_id in ['binance', 'binanceus']:
                                         market_buy_order_sl = exchange_object_where_api_is_required.create_market_buy_order(
                                             trading_pair, amount_of_sl, params=params)
-                                    if exchange_id in ['mexc3', 'huobi', 'huobipro']:
+                                    if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
                                         prices = exchange_object_where_api_is_required.fetch_tickers()
                                         ask = float(prices[trading_pair]['ask'])
                                         amount = amount_of_sl
