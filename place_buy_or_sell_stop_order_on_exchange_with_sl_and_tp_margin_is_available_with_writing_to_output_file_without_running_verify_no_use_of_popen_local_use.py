@@ -4294,15 +4294,15 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
             all_orders_on_spot_account = get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,
                                                                                          spot_cross_or_isolated_margin,
                                                                                          exchange_object_where_api_is_required)
-            if exchange_id in ["mexc3","mexc"]:
-                orig_quantity = get_origQty_from_list_of_dictionaries_with_all_orders(all_orders_on_spot_account, order_id)
-                amount_of_tp = orig_quantity
-                amount_of_sl = orig_quantity
-            else:
-                orig_quantity = get_origQty_from_list_of_dictionaries_with_all_orders(all_orders_on_spot_account, order_id)
-                # orig_quantity = stop_market_buy_order['info']['origQty']
-                amount_of_tp = orig_quantity
-                amount_of_sl = orig_quantity
+            # if exchange_id in ["mexc3","mexc"]:
+            #     orig_quantity = get_origQty_from_list_of_dictionaries_with_all_orders(all_orders_on_spot_account, order_id)
+            #     amount_of_tp = orig_quantity
+            #     amount_of_sl = orig_quantity
+            # else:
+            #     orig_quantity = get_origQty_from_list_of_dictionaries_with_all_orders(all_orders_on_spot_account, order_id)
+            #     # orig_quantity = stop_market_buy_order['info']['origQty']
+            #     amount_of_tp = orig_quantity
+            #     amount_of_sl = orig_quantity
 
             # # amount of tp sometimes is not equal to order amount
             # spot_balance = exchange_object_where_api_is_required.fetch_balance()
@@ -4376,6 +4376,14 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
         if stop_market_buy_order_status_on_spot_margin == "closed" or\
                 stop_market_buy_order_status_on_spot_margin == "closed".upper() or\
                 stop_market_buy_order_status_on_spot_margin == "FILLED":
+
+            # amount of tp sometimes is not equal to order amount
+            spot_balance = exchange_object_where_api_is_required.fetch_balance()
+            amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+            print("amount_of_tp_from_spot_balance")
+            print(amount_of_tp)
+            amount_of_sl = amount_of_tp
+
 
             # place take profit right away as soon as stop_market order has been fulfilled
             limit_sell_order_tp_order_id = np.nan
