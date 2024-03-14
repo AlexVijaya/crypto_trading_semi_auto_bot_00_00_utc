@@ -851,6 +851,14 @@ def get_order_amount_from_list_of_dictionaries_with_all_orders(orders, order_id)
 def get_amount_of_free_base_currency_i_own(spot_balance, base_currency):
     amount_of_free_base_currency=spot_balance['free'][base_currency]
     return amount_of_free_base_currency
+
+def get_amount_of_total_base_currency_i_own(spot_balance, base_currency):
+    amount_of_total_base_currency=spot_balance['total'][base_currency]
+    return amount_of_total_base_currency
+
+def get_amount_of_used_base_currency_i_own(spot_balance, base_currency):
+    amount_of_used_base_currency=spot_balance['used'][base_currency]
+    return amount_of_used_base_currency
 def get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(orders, order_id):
     start_time = time.perf_counter()
     order_dict = {}
@@ -3174,7 +3182,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
             # amount of tp sometimes is not equal to order amount
             spot_balance = exchange_object_where_api_is_required.fetch_balance()
-            amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+            amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
             print("amount_of_tp_from_spot_balance")
             print(amount_of_tp)
             amount_of_sl=amount_of_tp

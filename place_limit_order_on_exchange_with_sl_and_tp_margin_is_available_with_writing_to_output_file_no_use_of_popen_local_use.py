@@ -1156,6 +1156,14 @@ def get_amount_of_free_base_currency_i_own(spot_balance, base_currency):
     amount_of_free_base_currency=spot_balance['free'][base_currency]
     return amount_of_free_base_currency
 
+def get_amount_of_total_base_currency_i_own(spot_balance, base_currency):
+    amount_of_total_base_currency=spot_balance['total'][base_currency]
+    return amount_of_total_base_currency
+
+def get_amount_of_used_base_currency_i_own(spot_balance, base_currency):
+    amount_of_used_base_currency=spot_balance['used'][base_currency]
+    return amount_of_used_base_currency
+
 def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account1(row_df, row_index,file, exchange_id,
                                                        trading_pair,
                                                        price_of_sl, type_of_sl, amount_of_sl,
@@ -1640,7 +1648,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
             # # amount of tp sometimes is not equal to order amount
             # spot_balance = exchange_object_where_api_is_required.fetch_balance()
-            # amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+            # amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
             # print("amount_of_tp_from_spot_balance")
             # print(amount_of_tp)
             # amount_of_sl = amount_of_tp
@@ -3193,7 +3201,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
             # amount of tp sometimes is not equal to order amount
             spot_balance = exchange_object_where_api_is_required.fetch_balance()
-            amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+            amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
             print("amount_of_tp_from_spot_balance")
             print(amount_of_tp)
             amount_of_sl = amount_of_tp
@@ -3218,7 +3226,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
 
                         spot_balance = exchange_object_where_api_is_required.fetch_balance()
-                        amount_of_tp=get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+                        amount_of_tp=get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
                         print("amount_of_tp1 (amount_of_free_base_currency_i_own)")
                         print(amount_of_tp)
                         limit_sell_order_tp = exchange_object_where_api_is_required.create_limit_sell_order(
@@ -3348,7 +3356,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
                     if type_of_tp == "market":
                         spot_balance = exchange_object_where_api_is_required.fetch_balance()
-                        amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+                        amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
                         print("amount_of_tp2")
                         print(amount_of_tp)
                         market_sell_order_tp = ""
@@ -3396,7 +3404,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                         # break
                     elif type_of_tp == "stop":
                         spot_balance = exchange_object_where_api_is_required.fetch_balance()
-                        amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+                        amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
                         print("amount_of_tp1")
                         print(amount_of_tp)
                         stop_market_sell_order_tp = exchange_object_where_api_is_required.create_stop_market_order(
@@ -3442,7 +3450,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                trading_pair, params=params)
                             spot_balance = exchange_object_where_api_is_required.fetch_balance()
-                            amount_of_sl = get_amount_of_free_base_currency_i_own(spot_balance,
+                            amount_of_sl = get_amount_of_total_base_currency_i_own(spot_balance,
                                                                                   trading_pair.split("/")[0])
                             print("amount_of_sl1")
                             print(amount_of_sl)
@@ -3472,7 +3480,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                trading_pair, params=params)
                             spot_balance = exchange_object_where_api_is_required.fetch_balance()
-                            amount_of_sl = get_amount_of_free_base_currency_i_own(spot_balance,
+                            amount_of_sl = get_amount_of_total_base_currency_i_own(spot_balance,
                                                                                   trading_pair.split("/")[0])
                             print("amount_of_sl1")
                             print(amount_of_sl)
@@ -3536,7 +3544,7 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                             file.write("\n"+f"tp order with id = {limit_sell_order_tp_order_id} has been canceled")
 
                             spot_balance = exchange_object_where_api_is_required.fetch_balance()
-                            amount_of_sl = get_amount_of_free_base_currency_i_own(spot_balance,
+                            amount_of_sl = get_amount_of_total_base_currency_i_own(spot_balance,
                                                                                   trading_pair.split("/")[0])
                             print("amount_of_sl1")
                             print(amount_of_sl)
