@@ -2900,6 +2900,15 @@ def get_order_amount_from_list_of_dictionaries_with_all_orders(orders, order_id)
 def get_amount_of_free_base_currency_i_own(spot_balance, base_currency):
     amount_of_free_base_currency=spot_balance['free'][base_currency]
     return amount_of_free_base_currency
+
+def get_amount_of_total_base_currency_i_own(spot_balance, base_currency):
+    amount_of_total_base_currency=spot_balance['total'][base_currency]
+    return amount_of_total_base_currency
+
+def get_amount_of_used_base_currency_i_own(spot_balance, base_currency):
+    amount_of_used_base_currency=spot_balance['used'][base_currency]
+    return amount_of_used_base_currency
+
 def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_cross_margin_account1(file, exchange_id,
                                                        trading_pair,
                                                        price_of_sl, type_of_sl, amount_of_sl,
@@ -4385,7 +4394,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
             # amount of tp sometimes is not equal to order amount
             spot_balance = exchange_object_where_api_is_required.fetch_balance()
-            amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+            amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
             print("amount_of_tp_from_spot_balance")
             print(amount_of_tp)
             amount_of_sl = amount_of_tp
@@ -4555,6 +4564,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                 prices = exchange_object_where_api_is_required.fetch_tickers()
                                 bid = float(prices[trading_pair]['bid'])
                                 amount = amount_of_tp
+
                                 market_sell_order_tp = exchange_object_where_api_is_required.create_market_order(
                                     trading_pair, 'sell', amount,
                                     price=bid)
@@ -4683,10 +4693,12 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_sl
-                                    print("type(amount134)")
-                                    print(type(amount))
-                                    print("amount134")
+                                    print("\n" + "amount = amount_of_sl")
                                     print(amount)
+                                    print("\n" + "bid")
+                                    print(bid)
+                                    print("\n" + "trading_pair6")
+                                    print(trading_pair)
                                     market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
                                         trading_pair, 'sell', amount,
                                         price=bid)

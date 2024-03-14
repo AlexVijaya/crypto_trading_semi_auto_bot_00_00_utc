@@ -318,7 +318,7 @@ def write_to_google_sheets2(dataframe):
         concatenated_df = pd.concat([already_existing_data_in_worksheet_df, cleaned_df], ignore_index=True)
         st.write("concatenated_df1")
         st.dataframe(concatenated_df)
-        concatenated_df.drop_duplicates(subset=("ticker"),inplace=True,ignore_index=False)
+        concatenated_df.drop_duplicates(subset=("ticker",),inplace=True,ignore_index=False)
         st.write("concatenated_df2")
         st.dataframe(concatenated_df)
         # Assuming already_existing_data_in_worksheet_df_length is the length of the already_existing_data_in_worksheet_df DataFrame

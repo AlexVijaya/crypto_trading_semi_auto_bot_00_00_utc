@@ -3819,6 +3819,14 @@ def get_order_amount_from_list_of_dictionaries_with_all_orders(orders, order_id)
 def get_amount_of_free_base_currency_i_own(spot_balance, base_currency):
     amount_of_free_base_currency=spot_balance['free'][base_currency]
     return amount_of_free_base_currency
+
+def get_amount_of_total_base_currency_i_own(spot_balance, base_currency):
+    amount_of_total_base_currency=spot_balance['total'][base_currency]
+    return amount_of_total_base_currency
+
+def get_amount_of_used_base_currency_i_own(spot_balance, base_currency):
+    amount_of_used_base_currency=spot_balance['used'][base_currency]
+    return amount_of_used_base_currency
 def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_or_tp_on_spot_account1(row_df, row_index,file, exchange_id,
                                                        trading_pair,
                                                        price_of_sl, type_of_sl, amount_of_sl,
@@ -4379,7 +4387,9 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
             # amount of tp sometimes is not equal to order amount
             spot_balance = exchange_object_where_api_is_required.fetch_balance()
-            amount_of_tp = get_amount_of_free_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
+            print("spot_balance")
+            print(spot_balance)
+            amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
             print("amount_of_tp_from_spot_balance")
             print(amount_of_tp)
             amount_of_sl = amount_of_tp
@@ -4638,6 +4648,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                             return "limit_stop_loss_is_placed"
                         elif type_of_sl == "market":
                             file.write("\n" + "market_sell_order_sl is going to be placed")
+                            print("\n" + "market_sell_order_sl is going to be placed")
                             try:
                                 # market_sell_order_sl=\
                                     # exchange_object_where_api_is_required.sapiPostMarginOrder(remove_slash_from_trading_pair_name(trading_pair),
@@ -4653,6 +4664,7 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                 # we need to cancel tp first otherwise we will have insufficient funds to sell with sl.
                                 # borrowed amount already locked in tp order
                                 if limit_sell_order_tp_order_status not in ["canceled","cancelled","CANCELLED","CANCELED"]:
+                                    print("\n" + "if limit_sell_order_tp_order_status not in")
                                     limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
                                     exchange_object_where_api_is_required.cancel_order(limit_sell_order_tp_order_id,
                                                                                        trading_pair, params=params)
@@ -4673,9 +4685,16 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                     trade_status = "market_stop_loss_is_placed"
                                     return "market_stop_loss_is_placed"
                                 if exchange_id in ['mexc3', 'huobi', 'huobipro','mexc']:
+                                    print("\n" + "if exchange_id in")
                                     prices = exchange_object_where_api_is_required.fetch_tickers()
                                     bid = float(prices[trading_pair]['bid'])
                                     amount = amount_of_sl
+                                    print("\n" + "amount = amount_of_sl")
+                                    print(amount)
+                                    print("\n" + "bid")
+                                    print(bid)
+                                    print("\n" + "trading_pair6")
+                                    print(trading_pair)
                                     market_sell_order_sl = exchange_object_where_api_is_required.create_market_order(
                                         trading_pair, 'sell', amount,
                                         price=bid)
@@ -7698,19 +7717,19 @@ if __name__=="__main__":
                         if trade_status == "must_verify_if_bfr_conditions_are_fulfilled":
                             continue
 
-                        utc_position_entry_time_list = list(df_with_bfr["utc_position_entry_time"])
+                        # utc_position_entry_time_list = list(df_with_bfr["utc_position_entry_time"])
                         # Remove seconds and keep only hours and minutes
-                        utc_position_entry_time_list_without_seconds = [time_str.rsplit(':', 1)[0] for time_str in
-                                                                        utc_position_entry_time_list]
-                        print("utc_position_entry_time_list")
-                        print(utc_position_entry_time_list)
+                        # utc_position_entry_time_list_without_seconds = [time_str.rsplit(':', 1)[0] for time_str in
+                        #                                                 utc_position_entry_time_list]
+                        # print("utc_position_entry_time_list")
+                        # print(utc_position_entry_time_list)
 
-                        current_utc_time = datetime.datetime.now(timezone.utc).strftime('%H:%M')
-                        current_utc_time_without_leading_zero = datetime.datetime.now(timezone.utc).strftime('%-H:%M')
-                        print("current_utc_time")
-                        print(current_utc_time)
-                        print("utc_position_entry_time_list_without_seconds")
-                        print(utc_position_entry_time_list_without_seconds)
+                        # current_utc_time = datetime.datetime.now(timezone.utc).strftime('%H:%M')
+                        # current_utc_time_without_leading_zero = datetime.datetime.now(timezone.utc).strftime('%-H:%M')
+                        # print("current_utc_time")
+                        # print(current_utc_time)
+                        # print("utc_position_entry_time_list_without_seconds")
+                        # print(utc_position_entry_time_list_without_seconds)
 
                         stock_name_with_underscore_between_base_and_quote_and_exchange = \
                             row_df.loc[row_index, "ticker"]
