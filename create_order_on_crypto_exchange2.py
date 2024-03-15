@@ -64,7 +64,9 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'rateLimit': 10000,  # Set a custom rate limit of 6000 ms (6 seconds)
         'enableRateLimit': True  # Enable rate limiting
     }),
-        'bitget': ccxt.bitget(),
+        'bitget': ccxt.bitget({
+        'apiKey': public_api_key ,
+        'secret': api_secret }),
         'bithumb': ccxt.bithumb(),
         # 'bitkk': ccxt.bitkk(),
         'bitmart': ccxt.bitmart({
@@ -80,7 +82,9 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'bitstamp': ccxt.bitstamp(),
         # 'bitstamp1': ccxt.bitstamp1(),/
         # 'bittrex': ccxt.bittrex(),
-        'bitrue':ccxt.bitrue(),
+        'bitrue':ccxt.bitrue({
+        'apiKey': public_api_key ,
+        'secret': api_secret }),
         'bitvavo': ccxt.bitvavo(),
         # 'bitz': ccxt.bitz(),
         'bl3p': ccxt.bl3p(),
@@ -270,7 +274,9 @@ def get_exchange_object_with_api_key(exchange_name,public_api_key,api_secret,tra
         'zaif': ccxt.zaif(),
         # 'zb': ccxt.zb(),
         'zonda':ccxt.zonda(),
-        'bingx': ccxt.bingx()
+        'bingx': ccxt.bingx({
+        'apiKey': public_api_key ,
+        'secret': api_secret })
     }
     exchange_object = exchange_objects.get(exchange_name)
     exchange_object.set_sandbox_mode(False)
