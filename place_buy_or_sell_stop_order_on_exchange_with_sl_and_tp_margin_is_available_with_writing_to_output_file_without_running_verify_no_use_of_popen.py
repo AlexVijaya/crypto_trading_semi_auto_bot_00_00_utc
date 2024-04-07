@@ -4394,6 +4394,41 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
 
             # amount of tp sometimes is not equal to order amount
             spot_balance = exchange_object_where_api_is_required.fetch_balance()
+            #######################
+            #######################
+            #######################
+            try:
+                if trade_status == 'neither_sl_nor_tp_has_been_reached':
+                    limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                    print("limit_sell_order_tp_order_id1220285")
+                    print(limit_sell_order_tp_order_id)
+
+
+                    limit_sell_order_tp_order_status = exchange_object_where_api_is_required.fetch_order_status(
+                        symbol=trading_pair,
+                        id=limit_sell_order_tp_order_id,
+                        params={})
+                    print(
+                        f"20limit_sell_order_tp_order_status for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                    print(limit_sell_order_tp_order_status)
+                    if limit_sell_order_tp_order_status in ["filled","FILLED", "closed", "CLOSED"]:
+                        column_name = "trade_status"
+                        cell_value = "limit_take_profit_has_been_filled"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name, cell_value)
+                        df_with_bfr.at[row_index, column_name] = cell_value
+                        trade_status = "limit_take_profit_has_been_filled"
+
+                        return "limit_take_profit_has_been_filled"
+
+
+            except:
+                traceback.print_exc()
+
+            ########################
+            ########################
+            ########################
+
             amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
             print("amount_of_tp_from_spot_balance")
             print(amount_of_tp)

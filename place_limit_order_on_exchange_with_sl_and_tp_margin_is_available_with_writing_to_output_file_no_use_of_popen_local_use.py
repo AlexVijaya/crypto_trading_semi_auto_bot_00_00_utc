@@ -978,7 +978,7 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
             print(f"spot_cross_or_isolated_margin variable value problem")
             return None
 
-    elif exchange_object_where_api_is_required.id in ['mexc3','mexc','lbank','lbank2']:
+    elif exchange_object_where_api_is_required.id in ['lbank','lbank2']:
         if spot_cross_or_isolated_margin=="spot":
             all_orders_on_spot_account = exchange_object_where_api_is_required.fetch_orders(symbol=trading_pair,
                                                                                             since=None, limit=None,
@@ -998,7 +998,7 @@ def get_all_orders_on_spot_cross_or_isolated_margin(trading_pair,spot_cross_or_i
         else:
             print(f"spot_cross_or_isolated_margin variable value problem")
             return None
-    elif exchange_object_where_api_is_required.id in ['okex5',]:
+    elif exchange_object_where_api_is_required.id in ['okex5','mexc3','mexc']:
         if spot_cross_or_isolated_margin == "spot":
             all_open_orders_on_spot_account=exchange_object_where_api_is_required.fetchOpenOrders(symbol=trading_pair,since=None, limit=None,
                                                                                             params={})
@@ -3201,6 +3201,41 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
             # amount of tp sometimes is not equal to order amount
             spot_balance = exchange_object_where_api_is_required.fetch_balance()
+
+            #######################
+            #######################
+            #######################
+            try:
+                if trade_status == 'neither_sl_nor_tp_has_been_reached':
+                    limit_sell_order_tp_order_id = df_with_bfr.loc[row_index, "tp_order_id"]
+                    print("limit_sell_order_tp_order_id1220285")
+                    print(limit_sell_order_tp_order_id)
+
+                    limit_sell_order_tp_order_status = exchange_object_where_api_is_required.fetch_order_status(
+                        symbol=trading_pair,
+                        id=limit_sell_order_tp_order_id,
+                        params={})
+                    print(
+                        f"20limit_sell_order_tp_order_status for {exchange_object_where_api_is_required.id} for {trading_pair}")
+                    print(limit_sell_order_tp_order_status)
+                    if limit_sell_order_tp_order_status in ["filled", "FILLED", "closed", "CLOSED"]:
+                        column_name = "trade_status"
+                        cell_value = "limit_take_profit_has_been_filled"
+                        update_one_cell_in_google_spreadsheet_column_name_is_argument(df_with_bfr, row_index,
+                                                                                      column_name, cell_value)
+                        df_with_bfr.at[row_index, column_name] = cell_value
+                        trade_status = "limit_take_profit_has_been_filled"
+
+                        return "limit_take_profit_has_been_filled"
+
+
+            except:
+                traceback.print_exc()
+
+            ########################
+            ########################
+            ########################
+
             amount_of_tp = get_amount_of_total_base_currency_i_own(spot_balance, trading_pair.split("/")[0])
             print("amount_of_tp_from_spot_balance")
             print(amount_of_tp)
@@ -3297,12 +3332,23 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
                 print("limit_sell_order_tp_order_id12")
                 print(limit_sell_order_tp_order_id)
 
+                print(f"all_orders_on_spot_account567 for {exchange_object_where_api_is_required.id}")
+                print(all_orders_on_spot_account)
+
                 limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders(exchange_object_where_api_is_required,
                     all_orders_on_spot_account, limit_sell_order_tp_order_id)
 
                 current_price_of_trading_pair = get_price(exchange_object_without_api, trading_pair)
                 print("current_price_of_trading_pair2")
                 print(current_price_of_trading_pair)
+
+                if exchange_object_where_api_is_required.id=='mexc' and len(all_orders_on_spot_account)==0:
+                    limit_sell_order_tp_order_status=exchange_object_where_api_is_required.fetch_order_status(
+                        symbol=trading_pair,
+                        id=limit_sell_order_tp_order_id,
+                        params={})
+                    print(f"limit_sell_order_tp_order_status7890 in {exchange_object_where_api_is_required.id} for {trading_pair} for {limit_sell_order_tp_order_id}")
+                    print(limit_sell_order_tp_order_status)
 
                 # limit_sell_order_tp_order_status = get_order_status_from_list_of_dictionaries_with_all_orders_sped_up(
                 #     all_orders_on_spot_account, limit_sell_order_tp_order_id)

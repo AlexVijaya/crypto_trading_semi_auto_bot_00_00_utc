@@ -549,6 +549,14 @@ def plot_ohlcv(connection_to_db_levels_formed_by_highs_and_lows_for_cryptos_0000
             take_profit_when_sl_is_technical_4_to_1 = df_with_resulting_table_of_certain_models.loc[
                 row_of_pair_ready_for_model, 'take_profit_4_1'].iat[0]
 
+        if "take_profit_3_to_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_technical_3_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_3_to_1'].iat[0]
+
+        if "take_profit_4_to_1" in df_with_resulting_table_of_certain_models.columns:
+            take_profit_when_sl_is_technical_4_to_1 = df_with_resulting_table_of_certain_models.loc[
+                row_of_pair_ready_for_model, 'take_profit_4_to_1'].iat[0]
+
         if "take_profit_when_sl_is_technical_4_to_1" in df_with_resulting_table_of_certain_models.columns:
             take_profit_when_sl_is_technical_4_to_1 = df_with_resulting_table_of_certain_models.loc[
                 row_of_pair_ready_for_model, 'take_profit_when_sl_is_technical_4_to_1'].iat[0]
