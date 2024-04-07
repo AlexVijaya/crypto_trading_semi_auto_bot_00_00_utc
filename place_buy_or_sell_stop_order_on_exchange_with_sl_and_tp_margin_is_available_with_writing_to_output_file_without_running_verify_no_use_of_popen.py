@@ -3886,7 +3886,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
         # we want to place a buy order with spot margin
         params = {}
 
-
+        if trade_status == "stop_market_buy_order_has_been_cancelled":
+            return "stop_market_buy_order_has_been_cancelled"
 
         stop_market_buy_order = None
         order_id = ""
@@ -4220,6 +4221,8 @@ def place_buy_or_sell_stop_order_with_sl_and_tp_with_constant_tracing_of_price_r
                                                "market_stop_loss_is_placed",
                                                "market_stop_loss_is_filled",
                                                "stop_market_stop_loss_is_placed", "stop_market_stop_loss_is_used",
+                                               "stop_market_buy_order_has_been_cancelled",
+                                               "stop_market_sell_order_has_been_cancelled",
                                                "neither_sl_nor_tp_has_been_reached",
                                                "limit_order_has_been_cancelled","limit_buy_order_is_filled","limit_sell_order_is_filled"]
                 if trade_status not in list_of_possible_trade_status:

@@ -2716,6 +2716,9 @@ def place_limit_order_with_sl_and_tp_with_constant_tracing_of_price_reaching_sl_
 
         limit_buy_order = None
 
+        if trade_status == "limit_order_has_been_cancelled":
+            return "limit_order_has_been_cancelled"
+
 
         if trade_status=="bfr_conditions_are_met" and current_price_of_trading_pair>=price_of_limit_order:
             trade_status="limit_order_will_be_used"
